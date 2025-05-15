@@ -1,0 +1,33 @@
+# `kubetail cluster`
+
+```console
+Subcommands for installing Kubetail cluster resources using Helm.
+
+These commands use the Helm library under-the-hood so you don't need
+to have Helm installed in order to use them. If you do have Helm
+installed, you can switch between them or Helm itself to manage your
+cluster resources seamlessly.
+
+Usage:
+  kubetail cluster [command]
+
+Available Commands:
+  install     Create a new release
+  list        List current releases
+  repo        Manage charts repository
+  uninstall   Uninstall an existing release
+  upgrade     Upgrade an existing release
+
+Flags:
+  -h, --help   help for cluster
+
+Use "kubetail cluster [command] --help" for more information about a command.
+```
+
+## Subcommands
+
+* [`kubetail cluster install`](/docs/cli/commands/cluster-install)
+* [`kubetail cluster list`](/docs/cli/commands/cluster-list)
+* [`kubetail cluster repo`](/docs/cli/commands/cluster-repo)
+* [`kubetail cluster uninstall`](/docs/cli/commands/cluster-uninstall)
+* [`kubetail cluster upgrade`](/docs/cli/commands/cluster-upgrade)

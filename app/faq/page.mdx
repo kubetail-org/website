@@ -1,0 +1,83 @@
+# Frequently Asked Questions
+
+## General
+
+**1. What is Kubetail and who is it for?**
+
+Kubetail is a logging dashboard for Kubernetes that allows users to vew multiple log streams from their Kubernetes clusters simultaneously, in real-time.
+
+**2. What Kubernetes distributions or vendors does Kubetail support?**
+
+Kubetail works with all Kubernetes distributions and vendors using Kubernetes v1.18 or newer. If you encounter any issues using Kubetail, please create a [GitHub Issue](https://github.com/kubetail-org/kubetail/issues).
+
+**3. Does Kubetail run on my desktop or in my cluster?**
+
+Kubetail can run both on your [desktop](/docs/getting-started/desktop) (via the CLI) and in your [cluster](/docs/getting-started/cluster) (as a deployment of the Dashboard docker image).
+
+**4. What does Kubetail cost?**
+
+Kubetail is completely free. You can download, install, and use it without paying anything. In addition, Kubetail uses your own Kubernetes API and (optionally) runs services inside your own cluster, giving you full control over the (minimal) resources used by the tool.
+
+**5. Will Kubetail always be free?**
+
+Yes! While we may introduce paid cloud services in the future, the Kubetail Dashboard, Kubetail CLI and associated tools will always be free. As a matter of principle, we believe that the most advanced logging tools should be available to everyone for free.
+
+**6 . How much memory and cpu does Kubetail use?**
+
+Memory and cpu usage depend on the workload, but a typical deployment (e.g. for the Kubetail [demo site](https://demo.kubetail.com)) looks like this:
+
+| Component     | Memory | CPU    |
+| :------------ | ------ | ------ |
+| Dashboard     | ~21MB  | ~3.00m |
+| Cluster API   | ~21MB  | ~3.00m |
+| Cluster Agent | ~13MB  | ~4.00m |
+
+**7. Where can I find the source code for Kubetail?**
+
+Kubetail is an open-source project licensed under the Apache 2.0. The repository is available at [https://github.com/kubetail-org/kubetail](https://github.com/kubetail-org/kubetail).
+
+**8. Will Kubetail always be open source?**
+
+Yes! We strongly believe that any third-party tool running inside your cluster should be open source. Ensuring that Kubetail remains completely open source is a foundational principle of this project.
+
+**9. Who maintains Kubetail?**
+
+Kubetail is an open-source project maintained by the community on GitHub. Contributions to the core Kubetail code have been made by these [contributors](https://github.com/kubetail-org/kubetail/graphs/contributors). Additionly, our Helm charts have received contributions from these [contributors](https://github.com/kubetail-org/helm-charts/graphs/contributors). Currently, the lead developer of the project is Andres Morey ([@amorey](https://github.com/amorey/)).
+
+**10. What credentials/permissions does Kubetail need to access my Kubernetes cluster?**
+
+Kubetail running on your desktop will use the credentials from your local kubeconfig file to connect to your Kubernetes API. Kubetail resources running in your cluster will use RBAC permissions granted to their service accounts. You can see the specific permissions required for each resource in this [YAML manifest](https://github.com/kubetail-org/helm-charts/releases/latest/download/kubetail-clusterauth.yaml).
+
+## Installation
+
+**1. How can I install and access Kubetail on my desktop?**
+
+Follow the instructions [here](/docs/getting-started/desktop) to run Kubetail on your desktop.
+
+**2. How can I install and access Kubetail in my cluster?**
+
+Follow the instructions [here](/docs/getting-started/cluster) to run Kubetail inside your cluster.
+
+## Usage
+
+**1. Can I use Kubetail to view the logs for multiple clusters?**
+
+Yes, if you use Kubetail on your desktop (via the CLI), it will detect the clusters defined in your local kubeconfig file and allow you to switch between them in the dashboard UI. 
+
+**2. How can I get help using Kubetail?**
+
+We love helping users! If you need assistance, you can:
+
+* Send us an email at [hello@kubetail.com](mailto:hello@kubetail.com)
+* Create a [GitHub Issue](https://github.com/kubetail-org/kubetail/issues)
+* Chat with us on [Discord](https://discord.gg/CmsmWAVkvX)
+* Join our [Slack](https://join.slack.com/t/kubetail/shared_invite/zt-2cq01cbm8-e1kbLT3EmcLPpHSeoFYm1w)
+* Send us a [tweet](https://x.com/kubetail)
+
+**3. How can I contribute to Kubetail?**
+
+We love getting contributions! To contribute:
+
+1. Fork the [repository](https://github.com/kubetail-org/kubetail)
+2. Make your changes
+3. Submit a [Github Pull Request](https://github.com/kubetail-org/kubetail/pulls)

@@ -1,0 +1,60 @@
+name: release
+
+on:
+  push:
+    branches:
+      - production
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Get Commit Hash
+        run: echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+      - name: Build, tag, and push the image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ vars.AWS_ECR_REGISTRY }}
+          ECR_REPOSITORY: kubetail-web
+          IMAGE_TAG: ${{ env.COMMIT_HASH  }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+      - name: Configure kubectl
+        env:
+          KUBE_HOST: ${{ vars.KUBE_HOST }}
+          KUBE_CERTIFICATE: ${{ secrets.KUBE_CERTIFICATE }}
+          KUBE_TOKEN: ${{ secrets.KUBE_TOKEN }}
+        run: |
+          echo "$KUBE_CERTIFICATE" | base64 -d > kube.crt
+          kubectl config set-cluster default --server=https://$KUBE_HOST --certificate-authority=kube.crt > /dev/null
+          kubectl config set-credentials cluster-admin --token="${KUBE_TOKEN}" > /dev/null
+          kubectl config set-context default --cluster=default --namespace=default --user=cluster-admin > /dev/null
+          kubectl config use-context default > /dev/null
+      - name: Update Kubernetes Deployment
+        env:
+          AWS_ECR_REGISTRY: ${{ vars.AWS_ECR_REGISTRY }}
+          COMMIT_HASH: ${{ env.COMMIT_HASH }}
+        run: |
+          PATCH="spec:
+            template:
+              spec:
+                containers:
+                - name: kubetail-web
+                  imagePullPolicy: IfNotPresent
+                  image: \"${AWS_ECR_REGISTRY}/kubetail-web:${COMMIT_HASH}\""
+          echo "$PATCH" > patch-file.yaml
+          kubectl patch deployment kubetail-web -n kubetail --patch "$(cat patch-file.yaml)"

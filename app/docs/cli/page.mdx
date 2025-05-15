@@ -1,0 +1,93 @@
+# Kubetail CLI
+
+The Kubetail CLI tool (`kubetail`) acts as an entry point into Kubetail on your desktop. Using the CLI tool you can start/stop the Kubetail Dashboard and perform other Kubetail-related operations on your cluster.
+
+## Install/Upgrade
+
+### Homebrew
+
+To install `kubetail` with [homebrew](https://brew.sh/) use this command:
+
+```sh
+brew install kubetail
+```
+
+By default homebrew will place the executable in a directory that's already in to your path.
+
+To upgrade `kubetail` just upgrade the package through homebrew:
+
+```sh
+brew update
+brew upgrade
+```
+
+### Shell
+
+To install `kubetail` with a shell script you can run this command:
+
+```sh
+curl -sS https://www.kubetail.com/install.sh | bash
+```
+
+This will download our [install.sh](/install.sh) script and run it in one step. The script will automatically detect your OS/Arch, download the appropriate binary file and place it in your `/usr/local/bin/` directory.
+
+To upgrade `kubetail` just run the command again when a new version is available:
+
+```sh
+curl -sS https://www.kubetail.com/install.sh | bash
+```
+
+### Download Binary
+
+First, download the binary for your OS/Arch (from the latest [release binaries](https://github.com/kubetail-org/kubetail/releases/latest)):
+
+* [Darwin/amd64](https://github.com/kubetail-org/kubetail/releases/latest/download/kubetail-darwin-amd64)
+* [Darwin/arm64](https://github.com/kubetail-org/kubetail/releases/latest/download/kubetail-darwin-arm64)
+* [Linux/amd64](https://github.com/kubetail-org/kubetail/releases/latest/download/kubetail-linux-amd64)
+* [Linux/arm64](https://github.com/kubetail-org/kubetail/releases/latest/download/kubetail-linux-arm64)
+* [Windows/amd64](https://github.com/kubetail-org/kubetail/releases/latest/download/kubetail-windows-amd64)
+
+Next, rename the file and make it executable:
+
+```sh
+mv <filename> kubetail
+chmod a+x kubetail
+```
+
+To upgrade `kubetail` just repeat the steps above when a new version is available.
+
+## Next Steps
+
+To see the top-level commands just run `kubetail`:
+
+```sh
+kubetail
+```
+
+To start the Kubetail Dashboard use the `serve` sub-command:
+
+```sh
+kubetail serve
+```
+
+This command will start the dashboard server in your terminal and open [http://localhost:7500/](http://localhost:7500/) in your default browser.
+
+To view your Kubernetes logs use the `logs` sub-command:
+
+```sh
+kubetail logs
+```
+
+To enable advanced functionality in the dashboard, you can install the Kubetail cluster resources (e.g. Cluster API, Cluster Agent) using this command:
+
+```sh
+kubetail cluster install
+```
+
+## Subcommands
+
+* [`kubetail cluster`](/docs/cli/commands/cluster)
+* [`kubetail completion`](/docs/cli/commands/completion)
+* [`kubetail help`](/docs/cli/commands/help)
+* [`kubetail logs`](/docs/cli/commands/logs)
+* [`kubetail serve`](/docs/cli/commands/serve)
