@@ -1,6 +1,6 @@
 import { Tabs } from 'nextra/components';
 
-<Tabs items={['Package Manager', 'Shell', 'Binaries']}>
+<Tabs items={['Package Managers', 'Shell', 'Binaries']}>
   <Tabs.Tab>
     First, install the Kubetail CLI tool (`kubetail`) via your favorite package manager:
 
@@ -10,6 +10,9 @@ import { Tabs } from 'nextra/components';
 
     # Winget
     winget install Kubetail.Kubetail
+
+    # Chocolatey
+    choco install kubetail
     ```
 
     Next, start the web dashboard using the `serve` subcommand:
