@@ -1,10 +1,8 @@
-# Cluster
+# Install
 
 To run Kubetail inside your Kubernetes cluster, you can install the application and its required resources using tools such as Helm, Glasskube, or do it manually with YAML manifests.
 
-## Install
-
-### Helm
+## Helm
 
 To install Kubetail using [helm](https://helm.sh), first add the Kubetail org's chart repository, then install the "kubetail" chart:
 
@@ -19,60 +17,7 @@ For more information on how to configure the helm chart see the chart's [values.
 kubectl get pods -n kubetail-system
 ```
 
-Here is an example of the Helm deploy with Traefik ingress, basic authentication and TLS.
-It uses namespace "logs" and assumes, that it's already created.
-It assumes that there is cluster-issuer: "letsencrypt-prod". You can remove TLS part, if it's not needed.
-
-Use manifest below if you want to create secret and middleware for the basic authentication. You can skip this, if you want unauthenticated access.
-
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: kubetail-auth
-  namespace: logs
-type: Opaque
-data:
-  # generate your own by running:
-  # htpasswd -nb user1 SecretPassword | base64
-  auth: dXNlcjE6JGFwcjEkZzdTSEY0NVUkN1Fsby9JOUFFWXpxYWxkejI2U0wuMQoK
----
-apiVersion: traefik.io/v1alpha1
-kind: Middleware
-metadata:
-  name: kubetail-auth
-  namespace: logs
-spec:
-  basicAuth:
-    secret: kubetail-auth
-    removeHeader: true
-```
-
-Then use this `values.yaml` for Helm deploy (optionally remove middleware or TLS entries if not needed):
-
-```yaml
-kubetail:
-  dashboard:
-    ingress:
-      enabled: true
-      name: kubetail
-      annotations:
-        traefik.ingress.kubernetes.io/router.middlewares: logs-kubetail-auth@kubernetescrd
-        cert-manager.io/cluster-issuer: "letsencrypt-prod"
-      rules:
-        - host: logs.example.com
-          http:
-            paths:
-              - path: /
-                pathType: Prefix
-      tls:
-        - hosts:
-            - logs.example.com
-          secretName: logs.example.com
-      className: traefik
-```
-
-### YAML Manifest
+## YAML Manifest
 
 For cluster-based authentication use [kubetail-clusterauth.yaml](https://github.com/kubetail-org/helm-charts/releases/latest/download/kubetail-clusterauth.yaml):
 
@@ -92,7 +37,7 @@ To verify that the installation worked, you can inspect the application's pods:
 kubectl get pods -n kubetail-system
 ```
 
-### Glasskube
+## Glasskube
 
 To install Kubetail using [Glasskube](https://glasskube.dev/), you can select "Kubetail" from the "ClusterPackages" tab in the Glasskube GUI then click "install" or you can run the following command:
 
@@ -106,7 +51,7 @@ Once Kubetail is installed you can use it by clicking "open" in the Glasskube GU
 glasskube open kubetail
 ```
 
-## Access
+## Next Steps
 
 Once Kubetail is running inside your cluster, you can access it using your usual access methods such as `kubectl proxy` or `kubectl port-forward`:
 
@@ -128,7 +73,5 @@ Once Kubetail is running inside your cluster, you can access it using your usual
   Visit [http://localhost:8080](http://localhost:8080)
 
 To make the Kubetail web dashboard easier to access you can also expose it using a service or an ingress.
-
-## Next Steps
 
 For more information about the Kubetail Dashboard, check out the documentation [here](/docs/dashboard).
