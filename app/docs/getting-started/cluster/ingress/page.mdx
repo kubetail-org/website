@@ -1,0 +1,65 @@
+# Ingress
+
+One common way to run Kubetail inside a cluster and expose it to users outside the cluster is by using an Ingress.
+
+## Traefik
+
+Here's an example of how to deploy Kubetail behind a Traefik reverse proxy with HTTP Basic authentication and TLS, using helm and the Kubetail helm chart's `ingress` option. This assumes that there's a cluster-issuer ("letsencrypt-prod") but you can remove the TLS part if it's not needed.
+
+First, use this manifest to add the HTTP Basic credentials as a Secret and to configure Traefik to use them:
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kubetail-auth
+  namespace: kubetail-system
+type: Opaque
+data:
+  # generate your own by running:
+  # htpasswd -nb user1 SecretPassword | base64
+  auth: dXNlcjE6JGFwcjEkZzdTSEY0NVUkN1Fsby9JOUFFWXpxYWxkejI2U0wuMQoK
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: kubetail-auth
+  namespace: kubetail-system
+spec:
+  basicAuth:
+    secret: kubetail-auth
+    removeHeader: true
+```
+
+Next, create a `values.yaml` file to configure the Kubetail chart:
+
+```yaml
+kubetail:
+  dashboard:
+    ingress:
+      enabled: true
+      name: kubetail
+      annotations:
+        traefik.ingress.kubernetes.io/router.middlewares: kubetail-system-kubetail-auth@kubernetescrd
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      rules:
+        - host: kubetail.example.com
+          http:
+            paths:
+              - path: /
+                pathType: Prefix
+      tls:
+        - hosts:
+            - kubetail.example.com
+          secretName: kubetail.example.com
+      className: traefik
+```
+
+Finally, install the Kubetail chart using this helm command:
+
+```console
+helm install kubetail kubetail/kubetail \
+  --namespace kubetail-system \
+  --values /path/to/values.yaml \
+  --create-namespace
+```
