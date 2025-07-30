@@ -1,0 +1,3 @@
+.blogWrapper a[target="_blank"] > svg {
+  display: none !important;
+}
