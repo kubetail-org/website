@@ -20,7 +20,7 @@ import BlogPostHeader from '@/components/BlogPostHeader';
 
 Recently, we decided to migrate our cluster agent from Go to Rust. Now I'm happy to say the rewrite is complete and the result is a cluster agent image that is 57% smaller (10MB) and uses 70% less memory (~3MB) while still using minimal CPU (~0.1%).
 
-### Why Go originally
+### Why Go first
 
 The first version of Kubetail was designed to run inside the cluster and expose logs to users through a web browser. For that version, the primary responsibility of the backend was to make requests to the Kubernetes API and relay responses to the frontend in real-time. After looking at a few options including Python and JavaScript, I decided to write it in Go because it's well supported by the Kubernetes API, has great multi-threading support and produces fast executables and small Docker images.
 
