@@ -1,6 +1,6 @@
 import { Tabs } from 'nextra/components';
 
-<Tabs items={['Helm', 'YAML Manifest', 'Glasskube']}>
+<Tabs items={['Helm', 'YAML Manifest', 'Glasskube', 'Minikube']}>
   <Tabs.Tab>
     First, add the Kubetail org's chart repository, then install the "kubetail" chart:
 
@@ -55,6 +55,19 @@ import { Tabs } from 'nextra/components';
 
     ```sh
     glasskube open kubetail
+    ```
+  </Tabs.Tab>
+  <Tabs.Tab>
+    As of [minikube](https://minikube.sigs.k8s.io/docs/) v1.36.0, you can install Kubetail as an addon:
+
+    ```sh
+    minikube addons enable kubetail
+    ```
+
+    Once the Kubetail pods are running in the cluster you can access it via a service:
+
+    ```sh
+    minikube service -n kubetail-system kubetail-dashboard
     ```
   </Tabs.Tab>
 </Tabs>

@@ -51,6 +51,20 @@ Once Kubetail is installed you can use it by clicking "open" in the Glasskube GU
 glasskube open kubetail
 ```
 
+## Minikube
+
+As of [minikube](https://minikube.sigs.k8s.io/docs/) v1.36.0, you can install Kubetail as an addon:
+
+```sh
+minikube addons enable kubetail
+```
+
+Once the Kubetail pods are running in the cluster you can access it via a service:
+
+```sh
+minikube service -n kubetail-system kubetail-dashboard
+```
+
 ## Next Steps
 
 Once Kubetail is running inside your cluster, you can access it using your usual access methods such as `kubectl proxy` or `kubectl port-forward`:
