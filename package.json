@@ -42,7 +42,14 @@
     "minimumReleaseAge": 14400,
     "onlyBuiltDependencies": [
       "sharp"
-    ]
+    ],
+    "overrides": {
+      "brace-expansion": "^2.0.2",
+      "estree-util-value-to-estree": "^3.3.3",
+      "js-yaml": "^3.14.2",
+      "mdast-util-to-hast": "^13.2.1",
+      "mermaid": "^11.10.0"
+    }
   },
   "packageManager": "pnpm@10.24.0+sha512.01ff8ae71b4419903b65c60fb2dc9d34cf8bb6e06d03bde112ef38f7a34d6904c424ba66bea5cdcf12890230bf39f9580473140ed9c946fef328b6e5238a345a"
 }
