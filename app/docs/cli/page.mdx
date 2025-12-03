@@ -4,7 +4,11 @@ The Kubetail CLI tool (`kubetail`) acts as an entry point into Kubetail on your 
 
 ## Install/Upgrade
 
-### Homebrew
+### Package Managers
+
+#### macOS
+
+##### Homebrew
 
 To install `kubetail` with [homebrew](https://brew.sh/) use this command:
 
@@ -21,7 +25,251 @@ brew update
 brew upgrade
 ```
 
-### Shell
+##### MacPorts
+
+To install `kubetail` with [MacPorts](https://www.macports.org/) use this command:
+
+```sh
+sudo port install kubetail
+```
+
+To upgrade `kubetail` just upgrade the package through MacPorts:
+
+```sh
+sudo port upgrade kubetail
+```
+
+#### Linux
+
+##### Ubuntu/Mint (apt)
+
+To install `kubetail` on Ubuntu/Mint with [apt](https://help.ubuntu.com/community/AptGet/Howto) use these commands:
+
+```sh
+sudo add-apt-repository ppa:kubetail/kubetail
+sudo apt update && sudo apt install kubetail-cli
+```
+
+To upgrade `kubetail` just upgrade the package through apt:
+
+```sh
+sudo apt update
+sudo apt upgrade kubetail-cli
+```
+
+##### Arch Linux (AUR)
+
+**With AUR helper (recommended)**
+
+If you use an AUR helper like [yay](https://aur.archlinux.org/packages/yay) or [paru](https://aur.archlinux.org/packages/paru), install `kubetail` from [Arch Linux AUR](https://aur.archlinux.org/) with:
+
+```sh
+# yay
+yay -S kubetail-cli
+
+# paru
+paru -S kubetail-cli
+```
+
+To upgrade `kubetail` just upgrade the package through your AUR helper:
+
+```sh
+# yay
+yay -Syu kubetail-cli
+
+# paru
+paru -Syu kubetail-cli
+```
+
+**Without AUR helper**
+
+To install `kubetail` manually from AUR:
+
+```sh
+git clone https://aur.archlinux.org/kubetail-cli.git
+cd kubetail-cli && makepkg -si
+```
+
+To upgrade `kubetail` manually, repeat the process:
+
+```sh
+cd kubetail-cli
+git pull
+makepkg -si
+```
+
+##### Fedora/RHEL/CentOS (copr)
+
+To install `kubetail` on Fedora/CentOS-Stream/RHEL (also Amazonlinux and Magea) with [copr](https://copr.fedorainfracloud.org/) use this command:
+
+```sh
+dnf copr enable kubetail/kubetail
+dnf install kubetail
+```
+
+To upgrade `kubetail` just upgrade the package through dnf:
+
+```sh
+dnf upgrade kubetail
+```
+
+##### SUSE (zypper)
+
+To install `kubetail` with openSUSE [zypper](https://documentation.suse.com/smart/systems-management/html/concept-zypper/index.html) use these commands:
+
+```sh
+zypper addrepo 'https://download.opensuse.org/repositories/home:/kubetail/$releasever/' kubetail
+zypper refresh && zypper install kubetail-cli
+```
+
+To upgrade `kubetail` just upgrade the package through zypper:
+
+```sh
+zypper refresh
+zypper update kubetail-cli
+```
+
+##### Gentoo (GURU)
+
+To install `kubetail` from the [Gentoo GURU](https://wiki.gentoo.org/wiki/Project:GURU/Information_for_End_Users) repository, first enable the GURU overlay if you haven't already:
+
+```sh
+emerge --ask app-eselect/eselect-repository
+eselect repository enable guru
+emerge --sync guru
+```
+
+Then install `kubetail`:
+
+```sh
+ACCEPT_KEYWORDS="~$(portageq envvar ARCH)" emerge dev-util/kubetail
+```
+
+To upgrade `kubetail` just sync and upgrade the package through emerge:
+
+```sh
+emerge --sync
+ACCEPT_KEYWORDS="~$(portageq envvar ARCH)" emerge --update dev-util/kubetail
+```
+
+#### Windows
+
+##### Winget
+
+To install `kubetail` with [WinGet](https://learn.microsoft.com/en-us/windows/package-manager/winget/) use this command:
+
+```sh
+winget install kubetail
+```
+
+To upgrade `kubetail` just upgrade the package through WinGet:
+
+```sh
+winget upgrade kubetail
+```
+
+##### Chocolatey
+
+To install `kubetail` with [Chocolatey](https://chocolatey.org/) use this command:
+
+```sh
+choco install kubetail
+```
+
+To upgrade `kubetail` just upgrade the package through Chocolatey:
+
+```sh
+choco upgrade kubetail
+```
+
+##### Scoop
+
+To install `kubetail` with [Scoop](https://scoop.sh/) use this command:
+
+```sh
+scoop install kubetail
+```
+
+To upgrade `kubetail` just upgrade the package through Scoop:
+
+```sh
+scoop update kubetail
+```
+
+#### Cross-Platform
+
+##### Krew
+
+To install `kubetail` with [krew](https://krew.sigs.k8s.io/) use this command:
+
+```sh
+kubectl krew install kubetail
+```
+
+To upgrade `kubetail` just upgrade the plugin through krew:
+
+```sh
+kubectl krew upgrade kubetail
+```
+
+##### Snap
+
+To install `kubetail` with [snap](https://snapcraft.io/docs/installing-snap-on-ubuntu) you can use the [Snap Store](https://snapcraft.io/kubetail) or this CLI command:
+
+```sh
+sudo snap install kubetail
+```
+
+To upgrade `kubetail` just refresh the snap package:
+
+```sh
+sudo snap refresh kubetail
+```
+
+##### Nix (Flake)
+
+To install `kubetail` via a [nix](https://nixos.org/) flake use this command:
+
+```sh
+nix profile add github:kubetail-org/kubetail-nix
+```
+
+To upgrade `kubetail` just upgrade the profile:
+
+```sh
+nix profile upgrade kubetail
+```
+
+##### Nix (Classic)
+
+To install `kubetail` with [nix](https://nixos.org/) classic use this command:
+
+```sh
+nix-env -i -f https://github.com/kubetail-org/kubetail-nix/archive/refs/heads/main.tar.gz
+```
+
+To upgrade `kubetail` just upgrade the package through nix-env:
+
+```sh
+nix-env -u kubetail
+```
+
+##### asdf
+
+To install `kubetail` with [asdf](https://asdf-vm.com/) use this command:
+
+```sh
+asdf plugin add kubetail https://github.com/kubetail-org/asdf-kubetail.git
+asdf install kubetail latest
+```
+
+To upgrade `kubetail` install the latest version and set it as global:
+
+```sh
+asdf install kubetail latest
+```
+
+### Shell script
 
 To install `kubetail` with a shell script you can run this command:
 
