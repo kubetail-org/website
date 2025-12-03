@@ -43,11 +43,19 @@ sudo port upgrade kubetail
 
 ##### Ubuntu/Mint (apt)
 
-To install `kubetail` on Ubuntu/Mint with [apt](https://help.ubuntu.com/community/AptGet/Howto) use these commands:
+To install `kubetail` from the [Kubetail PPA](https://launchpad.net/~kubetail/+archive/ubuntu/kubetail) on Ubuntu Launchpad, first install the `add-apt-repository` tool if you haven't already:
+
+```sh
+sudo apt update
+sudo apt install software-properties-common
+```
+
+Then install `kubetail`:
 
 ```sh
 sudo add-apt-repository ppa:kubetail/kubetail
-sudo apt update && sudo apt install kubetail-cli
+sudo apt update
+sudo apt install kubetail-cli
 ```
 
 To upgrade `kubetail` just upgrade the package through apt:
