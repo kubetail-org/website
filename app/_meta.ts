@@ -10,6 +10,7 @@ export default {
     title: 'About',
     theme: {
       typesetting: 'article',
+      copyPage: false,
     },
   },
   docs: {
@@ -21,6 +22,7 @@ export default {
     title: 'FAQ',
     theme: {
       typesetting: 'article',
+      copyPage: false,
     },
   },
   blog: {
@@ -28,6 +30,7 @@ export default {
     title: 'Blog',
     theme: {
       breadcrumb: false,
+      copyPage: false,
       sidebar: false,
       layout: 'full',
       pagination: false,
