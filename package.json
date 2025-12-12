@@ -12,12 +12,12 @@
     "@heroicons/react": "^2.2.0",
     "@icons-pack/react-simple-icons": "^11.2.0",
     "gray-matter": "^4.0.3",
-    "next": "^15.5.7",
-    "nextra": "^4.6.0",
-    "nextra-theme-blog": "^4.6.0",
-    "nextra-theme-docs": "^4.6.0",
-    "react": "^19.2.1",
-    "react-dom": "^19.2.1",
+    "next": "^15.5.8",
+    "nextra": "^4.6.1",
+    "nextra-theme-blog": "^4.6.1",
+    "nextra-theme-docs": "^4.6.1",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
     "yn": "^5.0.0"
   },
   "devDependencies": {
@@ -48,7 +48,8 @@
       "estree-util-value-to-estree": "^3.3.3",
       "js-yaml": "^3.14.2",
       "mdast-util-to-hast": "^13.2.1",
-      "mermaid": "^11.10.0"
+      "mermaid": "^11.10.0",
+      "next-view-transitions": "^0.3.5"
     }
   },
   "packageManager": "pnpm@10.24.0+sha512.01ff8ae71b4419903b65c60fb2dc9d34cf8bb6e06d03bde112ef38f7a34d6904c424ba66bea5cdcf12890230bf39f9580473140ed9c946fef328b6e5238a345a"
