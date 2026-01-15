@@ -13,6 +13,8 @@ export default {
   'cluster-repo-remove': <span className={cn}>cluster repo remove</span>,
   'cluster-repo-update': <span className={cn}>cluster repo update</span>,
   completion: <span className={cn}>completion</span>,
+  config: <span className={cn}>config</span>,
+  'config-init': <span className={cn}>config-init</span>,
   'completion-bash': <span className={cn}>completion bash</span>,
   'completion-fish': <span className={cn}>completion fish</span>,
   'completion-powershell': <span className={cn}>completion powershell</span>,

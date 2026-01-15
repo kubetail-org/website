@@ -1,6 +1,7 @@
 import type { MetaRecord } from 'nextra';
 
 export default {
-  index: 'Overview',
+  index: 'Install',
+  configure: 'Configure',
   commands: 'Commands',
 } satisfies MetaRecord;
