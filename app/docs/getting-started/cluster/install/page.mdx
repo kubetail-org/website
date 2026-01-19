@@ -1,6 +1,6 @@
 # Install
 
-To run Kubetail inside your Kubernetes cluster, you can install the application and its required resources using tools such as Helm, Glasskube, or do it manually with YAML manifests.
+To run Kubetail inside your Kubernetes cluster, you can install the application and its required resources using Helm or do it manually with YAML manifests.
 
 ## Helm
 
@@ -35,20 +35,6 @@ To verify that the installation worked, you can inspect the application's pods:
 
 ```sh
 kubectl get pods -n kubetail-system
-```
-
-## Glasskube
-
-To install Kubetail using [Glasskube](https://glasskube.dev/), you can select "Kubetail" from the "ClusterPackages" tab in the Glasskube GUI then click "install" or you can run the following command:
-
-```sh
-glasskube install kubetail
-```
-
-Once Kubetail is installed you can use it by clicking "open" in the Glasskube GUI or by using the `open` command:
-
-```sh
-glasskube open kubetail
 ```
 
 ## Minikube
