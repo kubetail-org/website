@@ -1,6 +1,6 @@
 import { Tabs } from 'nextra/components';
 
-<Tabs items={['Helm', 'YAML Manifest', 'Glasskube', 'Minikube']}>
+<Tabs items={['Helm', 'YAML Manifest', 'Minikube']}>
   <Tabs.Tab>
     First, add the Kubetail org's chart repository, then install the "kubetail" chart:
 
@@ -43,19 +43,6 @@ import { Tabs } from 'nextra/components';
     ```
 
     Visit [http://localhost:8080](http://localhost:8080)
-  </Tabs.Tab>
-  <Tabs.Tab>
-    To install Kubetail using [Glasskube](https://glasskube.dev/), you can select "Kubetail" from the "ClusterPackages" tab in the Glasskube GUI then click "install" or you can run the following command:
-
-    ```sh
-    glasskube install kubetail
-    ```
-
-    Once Kubetail is installed you can use it by clicking "open" in the Glasskube GUI or by using the `open` command:
-
-    ```sh
-    glasskube open kubetail
-    ```
   </Tabs.Tab>
   <Tabs.Tab>
     As of [minikube](https://minikube.sigs.k8s.io/docs/) v1.36.0, you can install Kubetail as an addon:
