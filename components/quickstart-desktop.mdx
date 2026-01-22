@@ -14,11 +14,14 @@ import { Tabs } from 'nextra/components';
     # Snap
     sudo snap install kubetail
 
-    # Nix (Flake)
-    nix profile add github:kubetail-org/kubetail-nix
+    # Winget
+    winget install kubetail
+    
+    # Chocolatey
+    choco install kubetail
 
-    # Nix (Classic)
-    nix-env -i -f https://github.com/kubetail-org/kubetail-nix/archive/refs/heads/main.tar.gz
+    # Scoop
+    scoop install kubetail
 
     # MacPorts
     sudo port install kubetail
@@ -26,9 +29,6 @@ import { Tabs } from 'nextra/components';
     # Ubuntu/Mint (apt)
     add-apt-repository ppa:kubetail/kubetail
     apt update && apt install kubetail-cli
-
-    # Arch Linux (AUR)
-    yay -S --noconfirm kubetail-cli
 
     # Fedora/CentOS-Stream/RHEL/Amazonlinux/Mageia (copr)
     dnf copr enable kubetail/kubetail
@@ -38,17 +38,20 @@ import { Tabs } from 'nextra/components';
     zypper addrepo 'https://download.opensuse.org/repositories/home:/kubetail/$releasever/' kubetail
     zypper refresh && zypper install kubetail-cli
 
+    # Alpine (apk)
+    apk add kubetail --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing
+
+    # Arch Linux (AUR)
+    yay -S --noconfirm kubetail-cli
+
     # Gentoo (GURU)
     ACCEPT_KEYWORDS="~$(portageq envvar ARCH)" emerge dev-util/kubetail
 
-    # Winget
-    winget install Kubetail.Kubetail
-    
-    # Chocolatey
-    choco install kubetail
+    # Nix (Flake)
+    nix profile add github:kubetail-org/kubetail-nix
 
-    # Scoop
-    scoop install kubetail
+    # Nix (Classic)
+    nix-env -i -f https://github.com/kubetail-org/kubetail-nix/archive/refs/heads/main.tar.gz
 
     # asdf
     asdf plugin add kubetail https://github.com/kubetail-org/asdf-kubetail.git
