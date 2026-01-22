@@ -18,35 +18,8 @@ kubectl krew install kubetail
 # Snap
 sudo snap install kubetail
 
-# Nix (Flake)
-nix profile add github:kubetail-org/kubetail-nix
-
-# Nix (Classic)
-nix-env -i -f https://github.com/kubetail-org/kubetail-nix/archive/refs/heads/main.tar.gz
-
-# MacPorts
-sudo port install kubetail
-
-# Ubuntu/Mint (apt)
-add-apt-repository ppa:kubetail/kubetail
-apt update && apt install kubetail-cli
-
-# Arch Linux (AUR)
-yay -S --noconfirm kubetail-cli
-
-# Fedora/CentOS-Stream/RHEL/Amazonlinux/Mageia (copr)
-dnf copr enable kubetail/kubetail
-dnf install kubetail
-
-# SUSE (zypper)
-zypper addrepo 'https://download.opensuse.org/repositories/home:/kubetail/$releasever/' kubetail
-zypper refresh && zypper install kubetail-cli
-
-# Gentoo (GURU)
-ACCEPT_KEYWORDS="~$(portageq envvar ARCH)" emerge dev-util/kubetail
-
 # Winget
-winget install Kubetail.Kubetail
+winget install kubetail
 
 # Chocolatey
 choco install kubetail
@@ -54,12 +27,42 @@ choco install kubetail
 # Scoop
 scoop install kubetail
 
+# MacPorts
+sudo port install kubetail
+
+# Ubuntu/Mint (apt)
+sudo add-apt-repository ppa:kubetail/kubetail
+sudo apt update && sudo apt install kubetail-cli
+
+# Fedora/CentOS/RHEL/Amazonlinux/Mageia (copr)
+dnf copr enable kubetail/kubetail
+dnf install kubetail
+
+# SUSE (zypper)
+zypper addrepo 'https://download.opensuse.org/repositories/home:/kubetail/$releasever/' kubetail
+zypper refresh && zypper install kubetail-cli
+
+# Alpine (apk)
+apk add kubetail --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing
+
+# Arch Linux (AUR)
+yay -S --noconfirm kubetail-cli
+
+# Gentoo (GURU)
+ACCEPT_KEYWORDS="~$(portageq envvar ARCH)" emerge dev-util/kubetail
+
+# Nix (Flake)
+nix profile add github:kubetail-org/kubetail-nix
+
+# Nix (Classic)
+nix-env -i -f https://github.com/kubetail-org/kubetail-nix/archive/refs/heads/main.tar.gz
+
 # asdf
 asdf plugin add kubetail https://github.com/kubetail-org/asdf-kubetail.git
 asdf install kubetail latest
 ```
 
-By default homebrew will place the executable in a directory that's already in to your path. To verify that the installation worked you can check the version number:
+By default, package managers will place the executable in a directory that's already in to your path. To verify that the installation worked you can check the version number:
 
 ```sh
 kubetail --version

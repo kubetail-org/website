@@ -65,6 +65,51 @@ sudo apt update
 sudo apt upgrade kubetail-cli
 ```
 
+##### Fedora/RHEL/CentOS (copr)
+
+To install `kubetail` on Fedora/CentOS-Stream/RHEL (also Amazonlinux and Magea) with [copr](https://copr.fedorainfracloud.org/) use this command:
+
+```sh
+dnf copr enable kubetail/kubetail
+dnf install kubetail
+```
+
+To upgrade `kubetail` just upgrade the package through dnf:
+
+```sh
+dnf upgrade kubetail
+```
+
+##### SUSE (zypper)
+
+To install `kubetail` with openSUSE [zypper](https://documentation.suse.com/smart/systems-management/html/concept-zypper/index.html) use these commands:
+
+```sh
+zypper addrepo 'https://download.opensuse.org/repositories/home:/kubetail/$releasever/' kubetail
+zypper refresh && zypper install kubetail-cli
+```
+
+To upgrade `kubetail` just upgrade the package through zypper:
+
+```sh
+zypper refresh
+zypper update kubetail-cli
+```
+
+##### Alpine (apk)
+
+To install `kubetail` on Alpine with [apk](https://wiki.alpinelinux.org/wiki/Alpine_Package_Keeper) you can use the [testing](https://wiki.alpinelinux.org/wiki/Repositories) repository:
+
+```sh
+apk add kubetail --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing
+```
+
+To upgrade `kubetail` just use the `upgrade` command:
+
+```sh
+apk upgrade kubetail
+```
+
 ##### Arch Linux (AUR)
 
 **With AUR helper (recommended)**
@@ -104,37 +149,6 @@ To upgrade `kubetail` manually, repeat the process:
 cd kubetail-cli
 git pull
 makepkg -si
-```
-
-##### Fedora/RHEL/CentOS (copr)
-
-To install `kubetail` on Fedora/CentOS-Stream/RHEL (also Amazonlinux and Magea) with [copr](https://copr.fedorainfracloud.org/) use this command:
-
-```sh
-dnf copr enable kubetail/kubetail
-dnf install kubetail
-```
-
-To upgrade `kubetail` just upgrade the package through dnf:
-
-```sh
-dnf upgrade kubetail
-```
-
-##### SUSE (zypper)
-
-To install `kubetail` with openSUSE [zypper](https://documentation.suse.com/smart/systems-management/html/concept-zypper/index.html) use these commands:
-
-```sh
-zypper addrepo 'https://download.opensuse.org/repositories/home:/kubetail/$releasever/' kubetail
-zypper refresh && zypper install kubetail-cli
-```
-
-To upgrade `kubetail` just upgrade the package through zypper:
-
-```sh
-zypper refresh
-zypper update kubetail-cli
 ```
 
 ##### Gentoo (GURU)
