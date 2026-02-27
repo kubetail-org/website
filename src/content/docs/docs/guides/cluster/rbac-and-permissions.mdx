@@ -1,0 +1,123 @@
+---
+title: "RBAC & Permissions"
+description: "The RBAC resources the Kubetail Helm chart creates — ServiceAccounts, ClusterRoles, and ClusterRoleBindings — and the permissions each component needs."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Kubetail delegates access control to Kubernetes RBAC. This page explains what RBAC resources the Helm chart creates and how each component uses them.
+
+---
+
+## Overview
+
+The Helm chart creates a dedicated ServiceAccount, ClusterRole, and ClusterRoleBinding for each component. Each component runs with only the permissions it needs to do its job — the principle of least privilege applies throughout.
+
+| Component | Kind | ServiceAccount |
+|-----------|------|---------------|
+| Dashboard | Deployment | `kubetail-dashboard` |
+| Cluster API | Deployment | `kubetail-cluster-api` |
+| Cluster Agent | DaemonSet | `kubetail-cluster-agent` |
+
+---
+
+## Dashboard
+
+The Dashboard needs broad read access to the Kubernetes API so it can enumerate workloads and stream logs on behalf of users. It also needs permission to create token reviews to validate user credentials.
+
+**ClusterRole** — cluster-wide read access:
+
+```yaml
+rules:
+  - apiGroups: [""]
+    resources: [namespaces, nodes]
+    verbs: [get, list, watch]
+  - apiGroups: ["", apps, batch]
+    resources:
+      - cronjobs
+      - daemonsets
+      - deployments
+      - jobs
+      - pods
+      - pods/log
+      - replicasets
+      - statefulsets
+    verbs: [get, list, watch]
+  - apiGroups: [authentication.k8s.io]
+    resources: [tokenreviews]
+    verbs: [create]
+```
+
+**Role** — namespace-scoped access within `kubetail-system`:
+
+```yaml
+rules:
+  - apiGroups: [discovery.k8s.io]
+    resources: [endpointslices]
+    verbs: [list, watch]
+```
+
+The `endpointslices` permission is used by the Dashboard to monitor the health of Cluster API pods in real time.
+
+---
+
+## Cluster API
+
+The Cluster API needs the same read access to workload resources as the Dashboard, because it also serves workload metadata through its GraphQL API.
+
+**ClusterRole** — cluster-wide read access:
+
+```yaml
+rules:
+  - apiGroups: [""]
+    resources: [nodes]
+    verbs: [get, list, watch]
+  - apiGroups: ["", apps, batch]
+    resources:
+      - cronjobs
+      - daemonsets
+      - deployments
+      - jobs
+      - pods
+      - pods/log
+      - replicasets
+      - statefulsets
+    verbs: [get, list, watch]
+```
+
+**Role** — namespace-scoped access within `kubetail-system`:
+
+```yaml
+rules:
+  - apiGroups: [discovery.k8s.io]
+    resources: [endpointslices]
+    verbs: [list, watch]
+```
+
+The `endpointslices` permission allows the Cluster API to track which Cluster Agent pods are ready so it can route log requests to healthy agents.
+
+---
+
+## Cluster Agent
+
+The Cluster Agent reads log files directly from the node filesystem and does not need Kubernetes API access to fetch logs. Its service account is used only so that requests from the Cluster API can be authorized — the agent validates the incoming bearer token against the Kubernetes API before serving any data.
+
+The Cluster Agent service account has no ClusterRole or Role by default. Authorization decisions are made by calling the Kubernetes `SubjectAccessReview` API using the token supplied by the caller, so the caller's own RBAC permissions determine what they can access.
+
+---
+
+## How authorization works
+
+When a user opens a log view in the Dashboard, the following authorization flow occurs:
+
+1. The Dashboard creates a short-lived Kubernetes service account token on behalf of the authenticated user.
+2. The Dashboard forwards that token to the Cluster API in the `Authorization` header.
+3. The Cluster API forwards the token to the relevant Cluster Agent(s).
+4. Each Cluster Agent validates the token by calling the Kubernetes `SubjectAccessReview` API and checks whether the token holder has `get` permission on `pods/log` in the requested namespace.
+5. If the check passes, the agent streams log data. If not, it returns a permission denied error.
+
+This means a user who cannot run `kubectl logs` against a pod cannot view those logs in Kubetail either, regardless of how they connect. No additional Kubetail-specific permissions are required.
+
+<Aside type="tip">
+To understand which permissions your users need, see the [Security and Privacy](/docs/concepts/security-and-privacy) page.
+</Aside>

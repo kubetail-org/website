@@ -1,0 +1,67 @@
+---
+title: Overview
+description: "A tour of the Kubetail web dashboard: browsing workloads, opening the logging console, and checking the health status of backend services."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+import homePageLight from '@/assets/screenshots/light/home-page.webp';
+import homePageDark from '@/assets/screenshots/dark/home-page.webp';
+import consolePageLight from '@/assets/screenshots/light/logging-console.webp';
+import consolePageDark from '@/assets/screenshots/dark/logging-console.webp';
+import healthStatusLight from '@/assets/screenshots/light/health-status.webp';
+import healthStatusDark from '@/assets/screenshots/dark/health-status.webp';
+
+The Kubetail web dashboard is a browser-based GUI that gives you a birds-eye view of your Kubernetes workloads and lets you follow multiple log streams in real-time.
+
+You can run the dashboard in two ways:
+
+- **On your desktop** — use the `kubetail` CLI to start a local dashboard server that authenticates against your cluster using your kubeconfig file. No cluster-side installation required. (See [Run on Desktop > Installation](/docs/guides/desktop/installation))
+- **In your cluster** — deploy the dashboard as a Kubernetes workload using Helm or YAML manifests, then access it via `kubectl port-forward`, `kubectl proxy`, or an ingress resource. (See [Run in Cluster > Installation](/docs/guides/cluster/installation))
+
+---
+
+## Workloads
+
+When you open the dashboard the first thing you'll see is a list of all your Kubernetes workloads:
+
+<Image src={homePageLight} alt="Kubetail dashboard home page showing a list of Kubernetes workloads" class="dark:sl-hidden" />
+<Image src={homePageDark} alt="Kubetail dashboard home page showing a list of Kubernetes workloads" class="light:sl-hidden" />
+
+From here you can:
+
+- Click **View** next to any workload to open its log console in a new tab
+- Select multiple workloads using their checkboxes, then click **Open in Console** to view their logs merged into a single timeline
+
+---
+
+## Logs
+
+Once you select the logs you want to view and click through to the console you'll see a real-time tail of the logs:
+
+<Image src={consolePageLight} alt="Kubetail dashboard logging console showing web server log streams" class="dark:sl-hidden" />
+<Image src={consolePageDark} alt="Kubetail dashboard logging console showing web server log streams" class="light:sl-hidden" />
+
+The dashboard supports two log delivery pipelines:
+
+| Pipeline                                                            | Requires cluster install? | Features                                                           |
+|---------------------------------------------------------------------|---------------------------|--------------------------------------------------------------------|
+| [Kubernetes API (Basic)](/docs/guides/dashboard/basic-features)     | No                        | Real-time log tailing, basic filtering                             |
+| [Kubetail API (Advanced)](/docs/guides/dashboard/advanced-features) | Yes                       | All basic features + log file sizes, last event timestamps, search |
+
+By default the dashboard uses the Kubernetes API pipeline. Installing the Kubetail API in your cluster enables the advanced pipeline automatically.
+
+
+<Aside type="tip">
+For a deeper look at how each pipeline works, see the [Architecture](/docs/concepts/architecture#log-delivery-pipelines) page.
+</Aside>
+
+---
+
+## Health status
+
+Click on the status dot in the lower-right corner to see the health of the dashboard's backend server, your cluster's Kubernetes API, and the optional Kubetail Cluster API:
+
+<Image src={healthStatusLight} alt="Health status dialog showing server, Kubernetes API, and Kubetail API status" class="dark:sl-hidden" />
+<Image src={healthStatusDark} alt="Health status dialog showing server, Kubernetes API, and Kubetail API status" class="light:sl-hidden" />

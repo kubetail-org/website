@@ -1,0 +1,322 @@
+---
+title: Dashboard Reference
+description: "Kubetail Dashboard server reference: Docker image variants, startup flags, and YAML options for auth, sessions, TLS, CSRF, and the Cluster API connection."
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+The Kubetail Dashboard is a Go-based HTTP server that hosts the Dashboard web UI and provides the backend API that the web UI uses to interact with your Kubernetes clusters. The server executable is compiled from the source code located in the Kubetail repo at [modules/dashboard](https://github.com/kubetail-org/kubetail/tree/main/modules/dashboard) and is typically deployed using the `kubetail-dashboard` docker image (see below). It's possible to run `kubetail-dashboard` as a standalone container but we recommend deploying it with the official Kubetail [helm chart](/reference/helm-chart).
+
+## Docker image
+
+The `kubetail-dashboard` docker image is published to Docker Hub and the GitHub Container Registry on every release:
+
+| Registry | Image |
+|----------|-------|
+| Docker Hub | `kubetail/kubetail-dashboard` |
+| GHCR | `ghcr.io/kubetail-org/kubetail-dashboard` |
+
+Two variants are available:
+
+| Tag suffix | Base image | Description |
+|------------|------------|-------------|
+| _(none)_ | `scratch` | Minimal image, smallest footprint |
+| `-alpine` | `alpine` | Includes a shell and standard utilities |
+
+## Entrypoint
+
+The default container entrypoint is `/dashboard/dashboard`:
+
+```sh
+dashboard [flags]
+```
+
+## Flags
+
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--config` | `-c` | | Path to configuration file (e.g. `/etc/kubetail/dashboard.yaml`) |
+| `--addr` | `-a` | `:8080` | Host address to bind to |
+| `--gin-mode` | | `release` | Gin framework mode (`release`, `debug`)
+
+## Configuration
+
+The dashboard can be configured using a YAML, JSON, or TOML config file. Pass the path to the file with `-c` / `--config`. Environment variables can be referenced in the config file using `${VARIABLE_NAME}` syntax.
+
+```sh
+dashboard --config /etc/kubetail/dashboard.yaml
+```
+
+<Tabs>
+  <TabItem label="YAML">
+    ```yaml
+    ## Kubetail Dashboard Configuration File
+    #
+    # This file defines the behavior for the kubetail dashboard server,
+    # which serves the web UI and provides the backend API for the dashboard.
+    #
+
+    ## allowed-namespaces ##
+    #
+    # List of namespaces the dashboard is allowed to access.
+    # If empty, all namespaces are accessible.
+    #
+    # Default value: []
+    #
+    allowed-namespaces: []
+
+    ## kubeconfig ##
+    #
+    # Path to the kubeconfig file to use for Kubernetes API requests.
+    # If empty, the default path (~/.kube/config) or KUBECONFIG env var is used.
+    #
+    # Default value: ""
+    #
+    kubeconfig: ""
+
+    ## addr ##
+    #
+    # The network address and port the HTTP server should bind to.
+    #
+    # Default value: :8080
+    #
+    addr: ":8080"
+
+    ## auth-mode ##
+    #
+    # The authentication mode for the dashboard.
+    # Valid values: auto, token
+    #
+    # Default value: auto
+    #
+    auth-mode: auto
+
+    ## base-path ##
+    #
+    # The base URL path for all dashboard endpoints.
+    #
+    # Default value: /
+    #
+    base-path: /
+
+    ## cluster-api-endpoint ##
+    #
+    # The URL of the Cluster API server.
+    # If empty, the Cluster API integration is disabled.
+    #
+    # Default value: ""
+    #
+    cluster-api-endpoint: ""
+
+    ## environment ##
+    #
+    # The environment the dashboard is running in.
+    # Valid values: desktop, cluster
+    #
+    # Default value: cluster
+    #
+    environment: cluster
+
+    ## gin-mode ##
+    #
+    # The Gin framework mode.
+    # Valid values: debug, release
+    #
+    # Default value: release
+    #
+    gin-mode: release
+
+    ## csrf ##
+    #
+    # CSRF protection settings
+    #
+    csrf:
+
+      ## enabled ##
+      #
+      # Whether CSRF protection is enabled.
+      #
+      # Default value: true
+      #
+      enabled: true
+
+    ## logging ##
+    #
+    # Configuration for the dashboard server's logging output
+    #
+    logging:
+
+      ## enabled ##
+      #
+      # Whether logging is enabled for the server.
+      #
+      # Default value: true
+      #
+      enabled: true
+
+      ## level ##
+      #
+      # The minimum log level to output.
+      # Valid values: debug, info, warn, error, disabled
+      #
+      # Default value: info
+      #
+      level: info
+
+      ## format ##
+      #
+      # The format of log output.
+      # Valid values: json, pretty
+      #
+      # Default value: json
+      #
+      format: json
+
+      ## access-log ##
+      #
+      # Configuration for HTTP access logging
+      #
+      access-log:
+
+        ## enabled ##
+        #
+        # Whether access logging is enabled.
+        #
+        # Default value: true
+        #
+        enabled: true
+
+        ## hide-health-checks ##
+        #
+        # Whether to omit health check requests (/healthz) from the access log.
+        #
+        # Default value: false
+        #
+        hide-health-checks: false
+
+    ## session ##
+    #
+    # Session management settings
+    #
+    session:
+
+      ## secret ##
+      #
+      # The secret key used to sign session tokens.
+      # If empty, a random secret is generated on startup (sessions will not
+      # survive restarts).
+      #
+      # Default value: ""
+      #
+      secret: ""
+
+      ## cookie ##
+      #
+      # Session cookie configuration
+      #
+      cookie:
+
+        ## name ##
+        #
+        # The name of the session cookie.
+        #
+        # Default value: kubetail_dashboard_session
+        #
+        name: kubetail_dashboard_session
+
+        ## path ##
+        #
+        # The URL path for which the cookie is valid.
+        #
+        # Default value: /
+        #
+        path: /
+
+        ## domain ##
+        #
+        # The domain for which the cookie is valid.
+        # If empty, the cookie is valid for the current domain only.
+        #
+        # Default value: ""
+        #
+        domain: ""
+
+        ## max-age ##
+        #
+        # The maximum age of the cookie in seconds.
+        #
+        # Default value: 2592000 (30 days)
+        #
+        max-age: 2592000
+
+        ## secure ##
+        #
+        # Whether the cookie should only be sent over HTTPS.
+        #
+        # Default value: false
+        #
+        secure: false
+
+        ## http-only ##
+        #
+        # Whether the cookie is inaccessible to JavaScript.
+        #
+        # Default value: true
+        #
+        http-only: true
+
+        ## same-site ##
+        #
+        # The SameSite attribute for the cookie.
+        # Valid values: strict, lax, none
+        #
+        # Default value: lax
+        #
+        same-site: lax
+
+    ## tls ##
+    #
+    # TLS configuration for the HTTP server
+    #
+    tls:
+
+      ## enabled ##
+      #
+      # Whether TLS is enabled.
+      #
+      # Default value: false
+      #
+      enabled: false
+
+      ## cert-file ##
+      #
+      # Path to the TLS certificate file.
+      #
+      # Default value: ""
+      #
+      cert-file: ""
+
+      ## key-file ##
+      #
+      # Path to the TLS private key file.
+      #
+      # Default value: ""
+      #
+      key-file: ""
+
+    ## ui ##
+    #
+    # UI-specific configuration options
+    #
+    ui:
+
+      ## cluster-api-enabled ##
+      #
+      # Whether the Cluster API integration is enabled in the UI.
+      #
+      # Default value: true
+      #
+      cluster-api-enabled: true
+    ```
+  </TabItem>
+</Tabs>

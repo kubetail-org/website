@@ -1,0 +1,61 @@
+---
+title: Basic Features
+description: "Kubetail dashboard features available with no extra installs: multi-cluster support, workload filters, real-time log tailing, and container-level log filtering."
+---
+
+import { Image } from "astro:assets";
+
+import clusterPickerLight from '@/assets/screenshots/light/cluster-picker.webp';
+import clusterPickerDark from '@/assets/screenshots/dark/cluster-picker.webp';
+import workloadSearchLight from '@/assets/screenshots/light/workload-search.webp';
+import workloadSearchDark from '@/assets/screenshots/dark/workload-search.webp';
+import consolePageLight from '@/assets/screenshots/light/logging-console.webp';
+import consolePageDark from '@/assets/screenshots/dark/logging-console.webp';
+
+By default, Kubetail uses your **Kubernetes API** to watch your workloads and fetch log data. All of the features described here are available in the Kubetail web dashboard without any additional installs.
+
+---
+
+## Multiple clusters
+
+Kubetail reads your kubeconfig file to discover available clusters and uses the credentials defined there to authenticate against each one. When you have more than one context configured, a cluster picker appears in the top navigation bar so you can switch between them. Kubetail watches the kubeconfig file for changes and refreshes the list automatically, so newly added contexts appear without a restart.
+
+<Image src={clusterPickerLight} alt="Kubetail dashboard home page showing the cluster picker" class="dark:sl-hidden" />
+<Image src={clusterPickerDark} alt="Kubetail dashboard home page showing the cluster picker" class="light:sl-hidden" />
+
+---
+
+## Workload filters
+
+On the dashboard home page you can see all your workloads in real-time and narrow the view by namespace, workload type and search.
+
+<Image src={workloadSearchLight} alt="Kubetail dashboard home page showing workload search" class="dark:sl-hidden" />
+<Image src={workloadSearchDark} alt="Kubetail dashboard home page showing workload search" class="light:sl-hidden" />
+
+---
+
+## Real-time tail
+
+Selecting a workload opens the logging console, which starts tailing all of its container logs simultaneously. New log lines stream in as they are written and you can scroll up to see previous lines. You can also use the viewer controls to jump to the beginning of the stream, jump to a specific time or jump to the end to resume tailing.
+
+<Image src={consolePageLight} alt="Kubetail dashboard logging console showing web server log streams" class="dark:sl-hidden" />
+<Image src={consolePageDark} alt="Kubetail dashboard logging console showing web server log streams" class="light:sl-hidden" />
+
+---
+
+## Container lifecycle tracking
+
+Kubetail watches Kubernetes pod events in real time. When a new pod or container starts — during a rolling update, a crash-restart, or a scale-out — its logs are added to the active stream automatically. When a pod is deleted its log source is removed from the stream. You do not need to reopen the console or manually refresh to see these changes.
+
+---
+
+## Log filters
+
+In the logging console you can filter logs by:
+
+- **Container** — show only specific containers by name.
+- **Node** — show only containers running on a particular node.
+- **Region / Zone** — filter by cloud region or availability zone (sourced from `topology.kubernetes.io/region` and `topology.kubernetes.io/zone` node labels).
+- **OS / Arch** — filter by operating system or CPU architecture (sourced from `kubernetes.io/os` and `kubernetes.io/arch` node labels).
+
+Any combination of filters can be applied at once and removing all filters returns the full stream.

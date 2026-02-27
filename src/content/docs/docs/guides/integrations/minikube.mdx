@@ -1,0 +1,16 @@
+---
+title: Minikube
+description: "Install Kubetail as a built-in minikube addon (available since v1.36.0) with one command, then open the dashboard via minikube service."
+---
+
+As of [minikube](https://minikube.sigs.k8s.io/docs/) v1.36.0, you can install Kubetail as an addon:
+
+```sh
+minikube addons enable kubetail
+```
+
+Once the Kubetail pods are running in the cluster you can access it via a service:
+
+```sh
+minikube service -n kubetail-system kubetail-dashboard
+```

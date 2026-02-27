@@ -1,0 +1,41 @@
+- Getting Started
+  - Introduction
+  - Quickstart
+  - Performance
+  - Security and Privacy
+  - Development and Production
+
+- Run on Desktop
+  - Installation
+  - Configuration
+  - Authentication
+  - Viewing Logs
+
+- Run in Cluster
+  - Installation
+  - Configuration
+  - Ingress
+  - RBAC & Permissions
+  - Monitoring
+
+- Use with Docker
+  - Installation
+  - Usage
+  - Docker Run
+  - Docker Compose
+  - Kubernetes Pod
+
+- Web Dashboard (GUI)
+  - Overview
+  - Confuguration
+  - Basic Features
+  - Advanced Features
+
+- Integrations
+  - Minikube
+
+- Reference
+  - Kubetail CLI
+  - Kubetail Dashboard
+  - Kubetail Cluster API
+  - Kubetail Cluster Agent

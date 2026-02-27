@@ -1,0 +1,484 @@
+---
+title: CLI Reference
+description: "Kubetail CLI reference: serve, logs (sources, filters, time ranges), cluster (install/upgrade/uninstall/repo), config init, and configuration file format."
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+The `kubetail` CLI is the primary entry point for Kubetail on your desktop. You can use it to start the web dashboard, stream logs to your terminal or manage Kubetail resources in your cluster.
+
+## Global flags
+
+These flags are available on all commands:
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--kubeconfig` | | Path to kubeconfig file |
+| `--in-cluster` | `false` | Use in-cluster Kubernetes configuration |
+| `-c, --config` | `~/.kubetail/config.yaml` | Path to config file |
+
+## Commands
+
+### `kubetail serve`
+
+Start the dashboard server and open the web UI in your default browser.
+
+```sh
+kubetail serve [flags]
+```
+
+**Flags**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-p, --port` | `7500` | Port number to listen on |
+| `--host` | `localhost` | Host address to bind to |
+| `-l, --log-level` | `info` | Log level (`debug`, `info`, `warn`, `error`, `disabled`) |
+| `--skip-open` | `false` | Skip opening the browser |
+
+**Examples**
+
+```sh
+# Start the dashboard (opens at http://localhost:7500)
+kubetail serve
+
+# Use a custom port
+kubetail serve --port 8080
+
+# Start without opening the browser
+kubetail serve --skip-open
+```
+
+---
+
+### `kubetail logs`
+
+Fetch logs for a container or a set of workload containers.
+
+```sh
+kubetail logs [source1] [source2] ... [flags]
+```
+
+**Sources**
+
+A source identifies which pods/containers to stream logs from. Sources use the following syntax:
+
+```
+[namespace:]<resource>[/name[/container]]
+```
+
+| Example | Description |
+|---------|-------------|
+| `web-abc123` | Pod named `web-abc123` in the default namespace |
+| `deployments/web` | `web` deployment in the default namespace |
+| `deployments/*` | All deployments in the default namespace |
+| `deployments/web/container1` | Specific container in a deployment |
+| `deployments/web/*` | All containers in a deployment |
+| `frontend:web-abc123` | Pod in the `frontend` namespace |
+| `frontend:deployments/web` | Deployment in the `frontend` namespace |
+
+Multiple sources can be specified:
+
+```sh
+kubetail logs <source1> <source2>
+```
+
+**Flags**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--kube-context` | | Kubeconfig context to use |
+| `-h, --head[=N]` | `10` | Return the first N records |
+| `-t, --tail[=N]` | `10` | Return the last N records |
+| `--all` | `false` | Return all records |
+| `-f, --follow` | `false` | Stream new records |
+| `--since` | | Include records from the specified point (inclusive) |
+| `--until` | | Include records up to the specified point (inclusive) |
+| `--after` | | Include records strictly after the specified point |
+| `--before` | | Include records strictly before the specified point |
+| `-g, --grep` | | Filter records by a regular expression (requires `--force`) |
+| `--region` | | Filter source pods by region (comma-separated) |
+| `--zone` | | Filter source pods by zone (comma-separated) |
+| `--os` | | Filter source pods by operating system (comma-separated) |
+| `--arch` | | Filter source pods by CPU architecture (comma-separated) |
+| `--node` | | Filter source pods by node name (comma-separated) |
+| `--raw` | `false` | Output only raw log messages without metadata |
+| `--columns` | | Set output columns (overrides defaults) |
+| `--add-columns` | | Add output columns to the defaults |
+| `--remove-columns` | | Remove output columns from the defaults |
+| `--with-cursors` | `false` | Show paging cursors |
+| `--hide-header` | `false` | Hide table header |
+| `--all-containers` | `false` | Show logs from all containers in a pod |
+| `--force` | `false` | Force command (required when using `--grep`) |
+
+The `--columns`, `--add-columns`, and `--remove-columns` flags accept a comma-separated list of column names: `timestamp`, `dot`, `node`, `region`, `zone`, `os`, `arch`, `namespace`, `pod`, `container`.
+
+The `--head`, `--tail`, and `--all` flags are mutually exclusive. The `--since` and `--after` flags are mutually exclusive, as are `--until` and `--before`.
+
+The `--since`, `--until`, `--after`, and `--before` flags accept:
+- An ISO 8601 timestamp (e.g. `2006-01-02T15:04:05Z07:00`)
+- An ISO 8601 duration relative to now (e.g. `PT30M` for 30 minutes ago) — only for `--since` and `--until`
+
+**Default behavior**: tail mode (last 10 records) unless `--since` is specified, in which case head mode is used.
+
+**Examples**
+
+```sh
+# Tail the last 10 records from a pod
+kubetail logs nginx
+
+# Tail a deployment
+kubetail logs deployments/web
+
+# Follow new records
+kubetail logs deployments/web --follow
+
+# Return all records and follow
+kubetail logs deployments/web --all --follow
+
+# Return first 100 records
+kubetail logs nginx --head=100
+
+# Return records from the last 30 minutes
+kubetail logs nginx --since PT30M --all
+
+# Return records between two timestamps
+kubetail logs nginx --since 2006-01-02T15:04:05Z --until 2007-01-02T15:04:05Z --all
+
+# Filter by regex (requires --force)
+kubetail logs nginx --grep "GET /about" --force
+
+# Filter pods by region
+kubetail logs deployments/web --region=us-east-1
+
+# Output raw log messages only
+kubetail logs nginx --raw
+```
+
+---
+
+### `kubetail cluster`
+
+Manage Kubetail cluster resources using Helm under the hood (Helm does not need to be installed separately).
+
+```sh
+kubetail cluster <subcommand> [flags]
+```
+
+#### `kubetail cluster install`
+
+Create a new Kubetail release in the cluster.
+
+```sh
+kubetail cluster install [flags]
+```
+
+**Flags**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--kube-context` | | Name of the kubeconfig context to use |
+
+**Examples**
+
+```sh
+kubetail cluster install
+```
+
+#### `kubetail cluster upgrade`
+
+Upgrade an existing Kubetail release to the latest chart version available locally.
+
+```sh
+kubetail cluster upgrade [flags]
+```
+
+**Flags**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--kube-context` | | Name of the kubeconfig context to use |
+
+**Examples**
+
+```sh
+kubetail cluster upgrade
+```
+
+#### `kubetail cluster uninstall`
+
+Remove an existing Kubetail release from the cluster.
+
+```sh
+kubetail cluster uninstall [flags]
+```
+
+**Flags**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--kube-context` | | Name of the kubeconfig context to use |
+
+**Examples**
+
+```sh
+kubetail cluster uninstall
+```
+
+#### `kubetail cluster list`
+
+List currently installed Kubetail releases.
+
+```sh
+kubetail cluster list [flags]
+```
+
+**Flags**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--kube-context` | | Name of the kubeconfig context to use |
+
+**Examples**
+
+```sh
+kubetail cluster list
+```
+
+#### `kubetail cluster repo`
+
+Manage Kubetail's Helm chart repository (`https://kubetail-org.github.io/helm-charts/`).
+
+```sh
+kubetail cluster repo <subcommand>
+```
+
+| Subcommand | Description |
+|------------|-------------|
+| `add` | Add the Kubetail chart repository to Helm |
+| `update` | Update the Kubetail chart repository in Helm |
+| `remove` | Remove the Kubetail chart repository from Helm |
+
+**Examples**
+
+```sh
+kubetail cluster repo add
+kubetail cluster repo update
+kubetail cluster repo remove
+```
+
+---
+
+### `kubetail config`
+
+Manage the Kubetail CLI configuration.
+
+```sh
+kubetail config <subcommand>
+```
+
+#### `kubetail config init`
+
+Create a default configuration file.
+
+```sh
+kubetail config init [flags]
+```
+
+**Flags**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--path` | `~/.kubetail/config.yaml` | Target path for the configuration file |
+| `--format` | `yaml` | Configuration file format (`yaml`, `json`, `toml`) |
+| `--force` | `false` | Overwrite an existing configuration file |
+
+**Examples**
+
+```sh
+# Create default config at ~/.kubetail/config.yaml
+kubetail config init
+
+# Create config in JSON format
+kubetail config init --format json
+
+# Overwrite an existing config file
+kubetail config init --force
+
+# Write config to a custom path
+kubetail config init --path /etc/kubetail/config.yaml
+```
+
+## Configuration
+
+The CLI can be configured using a YAML (or JSON/TOML) config file. By default it is read from `~/.kubetail/config.yaml`. Use `kubetail config init` to generate a default config file, or pass a custom path with the `-c` / `--config` global flag.
+
+<Tabs>
+  <TabItem label="YAML">
+    ```yaml
+    ## Kubetail CLI Configuration File
+    # 
+    # This file defines the behavior for the kubetail CLI tool,  
+    # including logs command defaults and dashboard server settings.
+    #
+
+    ## version ##
+    #
+    # Schema version for the configuration file
+    #
+    version: 1
+
+    ## general ##
+    #
+    general:
+
+      ## kubeconfig ##
+      #
+      # Path to the kubeconfig file to use for CLI requests.
+      # If empty, the default path (~/.kube/config) or KUBECONFIG env var is used.
+      #
+      # Default value: ""
+      #
+      kubeconfig: ""
+
+    ## commands ##
+    #
+    commands:
+
+      ## logs ##
+      #
+      # Settings specific to the 'logs' subcommand
+      #
+      logs:
+
+        ## kube-context ##
+        #
+        # The specific Kubernetes context to use. 
+        # If empty, the current active context is used.
+        #
+        # Default value: ""
+        #
+        kube-context: ""
+
+        ## head ##
+        #
+        # The number of lines to show from the beginning of the log buffer
+        #
+        # Default value: 10
+        #
+        head: 10
+
+        ## tail ##
+        #
+        # The number of lines to show from the end of the log buffer
+        #
+        # Default value: 10
+        #
+        tail: 10
+
+        ## columns ##
+        #
+        # Full set of output columns for 'logs' records.
+        # Allowed values: timestamp,dot,node,region,zone,os,arch,namespace,pod, container
+        #
+        # Default value: ["timestamp", "dot"]
+        #
+        columns:
+          - timestamp
+          - dot
+
+      ## serve ##
+      #
+      # Settings for the dashboard server
+      #
+      serve:
+
+        ## host ##
+        #
+        # The network interface the server should bind to.
+        #
+        # Default value: localhost
+        #
+        host: localhost
+
+        ## port ##
+        #
+        # The TCP port the server will listen on.
+        #
+        # Default value: 7500
+        #
+        port: 7500
+
+        ## skip-open ##
+        #
+        # If true, the CLI will not automatically open the browser 
+        # when the server starts.
+        #
+        # Default value: false
+        #
+        skip-open: false
+    ```
+  </TabItem>
+  <TabItem label="TOML">
+    ```toml
+    # Kubetail CLI Configuration File
+    #
+    # Defines behavior for the kubetail CLI tool, including
+    # logs command defaults and dashboard server settings.
+
+    # Schema version for the configuration file
+    version = 1
+
+    [general]
+    # Path to kubeconfig. If empty, uses ~/.kube/config or KUBECONFIG env var.
+    kubeconfig = ""
+
+    [commands.logs]
+    # Specific Kubernetes context to use. If empty, uses active context.
+    kube-context = ""
+
+    # Number of lines to show from the beginning of the log buffer
+    head = 10
+
+    # Number of lines to show from the end of the log buffer
+    tail = 10
+
+    # Full set of output columns for 'logs' records.
+    # Allowed values: timestamp,dot,node,region,zone,os,arch,namespace,pod,container
+    columns = ["timestamp", "dot"]
+
+    [commands.serve]
+    # Network interface the server binds to
+    host = "localhost"
+
+    # TCP port the server listens on
+    port = 7500
+
+    # If true, don't automatically open browser when server starts
+    skip-open = false
+    ```
+  </TabItem>
+  <TabItem label="JSON">
+    ```json
+    {
+      "version": 1,
+      "general": {
+        "kubeconfig": ""
+      },
+      "commands": {
+        "logs": {
+          "kube-context": "",
+          "head": 10,
+          "tail": 10,
+          "columns": ["timestamp", "dot"]
+        },
+        "serve": {
+          "host": "localhost",
+          "port": 7500,
+          "skip-open": false
+        }
+      }
+    }
+    ```
+  </TabItem>
+</Tabs>

@@ -1,19 +1,49 @@
-# Kubetail Website
+# Starlight Starter Kit: Basics
 
-*Source code for the Kubetail website (https://www.kubetail.com)*
+[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
 
-<a href="https://discord.gg/CmsmWAVkvX"><img src="https://img.shields.io/discord/1212031524216770650?logo=Discord&style=flat-square&logoColor=FFFFFF&labelColor=5B65F0&label=Discord&color=64B73A"></a>
-[![slack](https://img.shields.io/badge/Slack-kubetail-364954?logo=slack&labelColor=4D1C51)](https://join.slack.com/t/kubetail/shared_invite/zt-2cq01cbm8-e1kbLT3EmcLPpHSeoFYm1w)
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](https://github.com/kubetail-org/.github/blob/main/CODE_OF_CONDUCT.md)
-[![Contributor Resources](https://img.shields.io/badge/Contributor%20Resources-purple?style=flat-square)](https://github.com/kubetail-org)
-
-## Quickstart
-
-To run the website locally use `pnpm`:
-
-```console
-pnpm install
-pnpm dev
+```
+pnpm create astro@latest -- --template starlight
 ```
 
-Next, visit http://localhost:3000 in your browser.
+> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+
+## 🚀 Project Structure
+
+Inside of your Astro + Starlight project, you'll see the following folders and files:
+
+```
+.
+├── public/
+├── src/
+│   ├── assets/
+│   ├── content/
+│   │   └── docs/
+│   └── content.config.ts
+├── astro.config.mjs
+├── package.json
+└── tsconfig.json
+```
+
+Starlight looks for `.md` or `.mdx` files in the `src/content/docs/` directory. Each file is exposed as a route based on its file name.
+
+Images can be added to `src/assets/` and embedded in Markdown with a relative link.
+
+Static assets, like favicons, can be placed in the `public/` directory.
+
+## 🧞 Commands
+
+All commands are run from the root of the project, from a terminal:
+
+| Command                   | Action                                           |
+| :------------------------ | :----------------------------------------------- |
+| `pnpm install`             | Installs dependencies                            |
+| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
+| `pnpm build`           | Build your production site to `./dist/`          |
+| `pnpm preview`         | Preview your build locally, before deploying     |
+| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
+| `pnpm astro -- --help` | Get help using the Astro CLI                     |
+
+## 👀 Want to learn more?
+
+Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).

@@ -1,0 +1,29 @@
+---
+title: Introduction
+description: "Kubetail is a real-time Kubernetes logging dashboard. Tail logs from all containers in a workload in a single timeline, in your browser or terminal."
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+**Kubetail** is a general-purpose logging dashboard for Kubernetes, optimized for tailing logs across multi-container workloads in real-time. With Kubetail, you can view logs from all the containers in a workload (e.g. Deployment or DaemonSet) merged into a single, chronological timeline, delivered to your browser or terminal.
+
+The primary entry point is the `kubetail` CLI tool, which can launch a local web dashboard on your desktop or stream raw logs directly to your terminal. By default, Kubetail uses your cluster's Kubernetes API to fetch logs directly from your cluster, so it works out of the box without needing to forward logs to an external service. It also tracks container lifecycle events to keep your log timeline in sync as containers start, stop, or get replaced. This makes it easy to follow logs seamlessly as requests move from one ephemeral container to another across services.
+
+For more advanced features like log file sizes, last event timestamps, and search, you can install the **Kubetail API** into your cluster. It consists of an API server and a small cluster agent running on each node (see [Architecture](/docs/concepts/architecture) for more details). The cluster agent is written in Rust and designed to be extremely performant (~3MB memory, ~4.00m CPU). Kubetail also supports multiple deployment options -- you can run the web dashboard in your cluster and expose it with an ingress, or run the CLI in a Docker container on your desktop or inside a cluster (see [Deployment Topologies](/docs/concepts/architecture#deployment-topologies)). 
+
+Our goal is to build the most powerful, user-friendly logging platform for Kubernetes and we'd love your help. If you notice a bug or have a suggestion please create a GitHub Issue or send us an email (hello@kubetail.com).
+
+Have fun tailing your logs!
+
+<br />
+<br />
+
+<Aside type="tip">
+If you need help or want to make a suggestion:
+
+* Send us an email at [hello@kubetail.com](mailto:hello@kubetail.com)
+* Create a [GitHub Issue](https://github.com/kubetail-org/kubetail/issues)
+* Chat with us on [Discord](https://discord.gg/CmsmWAVkvX)
+* Join our [Slack](https://join.slack.com/t/kubetail/shared_invite/zt-2cq01cbm8-e1kbLT3EmcLPpHSeoFYm1w)
+* Send us a [tweet](https://x.com/kubetail)
+</Aside>

@@ -1,0 +1,24 @@
+---
+title: "Announcing: Real-time log search for Kubernetes"
+description: "Kubetail now supports real-time log search powered by ripgrep. Install the Kubetail cluster agent to grep container logs on-node before any data leaves your cluster."
+date: 2025-05-01
+authors:
+  - name: Andres Morey
+    title: Lead Developer
+    url: https://github.com/amorey
+    picture: https://github.com/amorey.png
+---
+
+Ever since Kubetail launched last year, the single most-requested feature has been log search. Now I'm happy to say we finally have log search available in our latest official release (cli/v0.4.3, helm/v0.10.1). You can check it out in action here:
+
+[https://www.kubetail.com/demo](https://www.kubetail.com/demo)
+
+Implementing search took time because the Kubernetes API doesn't support it natively, so we had to build the feature from scratch. We considered implementing it quickly using client-side grepping but this wouldn't have been a great user experience because each search could potentially trigger a full download of many log files which would have been slow and bandwidth-heavy. There are ways around this but it would have required extra user input which isn't a great user experience.
+
+Instead, we implemented search by creating a custom Rust-powered executable that wraps [ripgrep](https://github.com/BurntSushi/ripgrep). Why Rust? Because it's fucking fast. Most of the Kubetail backend is written in Go but for this low-level component that reads log files on disk we wanted it to be as fast as possible. The result: a full scan of a 1GB file takes ~250msec. On every query, the executable scans only the relevant container log files on each node and streams back just the matching lines to your browser. Most queries can stop early which means they can even return before doing a full scan. You can think of Kubetail search as "remote grep" for your Kubernetes logs. Now you don't need to download an entire log file just to grep it locally.
+
+To enable search, you need to install Kubetail "Cluster Resources" in your cluster. This can be done easily by clicking "Install" from the GUI or by calling `kubetail cluster install` from the CLI. This action will deploy a Kubetail Cluster Agent to each node as well as an instance of the Kubetail Cluster API. When the Cluster API is available, the dashboard will use it to access Kubetail custom features like search on the nodes. Otherwise, the dashboard will disable those features in the GUI and fall back to using the Kubernetes API.
+
+We’re just getting started with log search, and there’s plenty of room to make it even better. If you're a Rust, Go, or React hacker - or a UI designer who loves logs - come help us build the most user-friendly, open-source logging platform for Kubernetes. Join our community on [Discord](https://discord.gg/CmsmWAVkvX)!
+
+Andres
