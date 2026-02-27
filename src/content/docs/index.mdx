@@ -1,26 +1,58 @@
 ---
-title: ''
+title: ""
+description: 'Kubetail is a real-time logging dashboard for Kubernetes. View container logs in a terminal or a browser. Run anywhere - desktop, cluster, docker.'
+template: splash
+hero:
+  title: User-friendly Kubernetes logging
+  tagline: Kubetail is a real-time logging dashboard for Kubernetes
+  actions:
+    - text: View docs
+      link: /docs/concepts/introduction
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/kubetail-org/kubetail
+      icon: external
+      variant: minimal
+  image:
+    html: |
+      <div class="flex flex-col items-center gap-2 w-full">
+        <video class="w-full max-w-screen-sm rounded-md dark:hidden" poster="https://assets.kubetail.com/demo-light-poster.bb7f6d4a.webp" controls>
+          <source src="https://assets.kubetail.com/demo-light.48aba4ab.mp4" type="video/mp4" />
+        </video>
+        <video class="w-full max-w-screen-sm rounded-md hidden dark:block" poster="https://assets.kubetail.com/demo-dark-poster.6070fba2.webp" controls>
+          <source src="https://assets.kubetail.com/demo-dark.251c0575.mp4" type="video/mp4" />
+        </video>
+        <a class="underline hover:no-underline text-(--sl-color-accent)" href="https://www.kubetail.com/demo">
+          Live Demo
+          <svg class="inline align-baseline" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewBox="0 0 24 24" height="16">
+            <path d="M7 17L17 7"></path>
+            <path d="M7 7h10v10"></path>
+          </svg>
+        </a>
+      </div>
+head:
+  - tag: title
+    content: "Kubetail | Kubernetes logging dashboard"
+  - tag: link
+    attrs:
+      rel: preload
+      as: image
+      fetchpriority: high
+      href: 'https://assets.kubetail.com/demo-light-poster.bb7f6d4a.webp'
+  - tag: link
+    attrs:
+      rel: preload
+      as: image
+      fetchpriority: high
+      href: 'https://assets.kubetail.com/demo-dark-poster.6070fba2.webp'
 ---
 
 import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
 
-## Key Features
-
-* Clean, easy-to-use interface
-* View your log messages in real-time
-* Filter logs by:
-  * Workload (e.g. Deployment, CronJob, StatefulSet)
-  * Absolute or relative time range
-  * Node properties (e.g. availability zone, CPU architecture, node ID)
-  * Search messages using grep
-* Use web dashboard or CLI tool
-* Web dashboard can be installed on desktop or in cluster
-* Uses your Kubernetes API to retrieve log messages (private by default)
-* Open source (Apache-2.0 license)
-
 ## Quickstart
 
-To install `kubetail`, you can use your favorite package manager:
+<Aside type="note" title="Installation">
+To get started, install the `kubetail` CLI tool using your favorite package manager:
 
 <Tabs>
   <TabItem label="macOS">
@@ -136,6 +168,7 @@ If you prefer, you can also download it from the [release binaries](https://gith
 ```sh
 curl -sS https://www.kubetail.com/install.sh | bash
 ```
+</Aside>
 
 <br />
 <br />
