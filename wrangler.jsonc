@@ -1,6 +1,9 @@
 {
   "main": "dist/_worker.js/index.js",
   "name": "kubetail-website",
+  "routes": [
+    { "pattern": "www.kubetail.com", "custom_domain": true }
+  ],
   "compatibility_date": "2026-02-27",
   "compatibility_flags": [
     "global_fetch_strictly_public",
@@ -8,7 +11,8 @@
   ],
   "assets": {
     "binding": "ASSETS",
-    "directory": "dist"
+    "directory": "dist",
+    "html_handling": "drop-trailing-slash"
   },
   "observability": {
     "enabled": true

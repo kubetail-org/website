@@ -131,7 +131,15 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
         '@': new URL('./src', import.meta.url).pathname,
       },
     },
+    ssr: {
+      external: [
+        'node:buffer', 'node:crypto', 'node:fs', 'node:fs/promises',
+        'node:http2', 'node:path', 'node:url',
+        'buffer', 'child_process', 'crypto', 'fs', 'module',
+        'os', 'path', 'tty', 'url', 'util', 'worker_threads',
+      ],
+    },
   },
 
-  adapter: cloudflare(),
+  adapter: cloudflare({ imageService: 'compile' }),
 });
