@@ -1,5 +1,4 @@
 // @ts-check
-import sitemap from '@astrojs/sitemap';
 import starlight from '@astrojs/starlight';
 import { defineConfig } from 'astro/config';
 import starlightBlog from 'starlight-blog';
@@ -16,7 +15,6 @@ export default defineConfig({
   trailingSlash: 'never',
 
   integrations: [
-    sitemap(),
     starlight({
       plugins: [
         starlightBlog({

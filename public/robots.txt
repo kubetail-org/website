@@ -6,7 +6,7 @@
                                      
 User-agent: *
 Disallow: /cdn-cgi/
-Disallow: /_next/
+Disallow: /_astro/
 Allow: /
 
-Sitemap: https://www.kubetail.com/sitemap.xml
+Sitemap: https://www.kubetail.com/sitemap-index.xml

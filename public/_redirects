@@ -1,0 +1,14 @@
+/docs/cli/commands/cluster /docs/reference/cli 301
+/docs/cli/commands/cluster-install /docs/reference/cli 301
+/docs/cli/commands/cluster-repo-remove /docs/reference/cli 301
+/docs/cli/commands/cluster-repo-update /docs/reference/cli 301
+/docs/cli/commands/completion-bash /docs/reference/cli 301
+/docs/cli/commands/completion-fish /docs/reference/cli 301
+/docs/cli/commands/config /docs/reference/cli 301
+/docs/cli/commands/logs /docs/reference/cli 301
+/docs/cluster-resources /docs/concepts/architecture 301
+/docs/cluster-resources/cluster-agent /docs/reference/cluster-agent 301
+/docs/getting-started/docker /docs/guides/docker/introduction 301
+/docs/getting-started/cluster/ingress /docs/guides/cluster/ingress 301
+/docs/getting-started/cluster/install /docs/guides/cluster/installation 301
+/sitemap.xml /sitemap-index.xml 302
