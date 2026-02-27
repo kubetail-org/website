@@ -49,6 +49,10 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
       head: [
         { tag: 'link', attrs: { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' } },
         { tag: 'link', attrs: { rel: 'manifest', href: '/site.webmanifest' } },
+        {
+          tag: 'script',
+          content: `if(!localStorage.getItem('starlight-synced-tabs__os')){const p=navigator.platform||'';const u=navigator.userAgent||'';const t=p.startsWith('Win')?'Windows':p.startsWith('Mac')||p==='iPhone'||p==='iPad'?'macOS':/Linux|Android/.test(u)?'Linux':'macOS';localStorage.setItem('starlight-synced-tabs__os',t)}`,
+        },
       ],
       editLink: {
         baseUrl: 'https://github.com/kubetail-org/website/edit/main/',
