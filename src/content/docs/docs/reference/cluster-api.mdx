@@ -1,0 +1,254 @@
+---
+title: Cluster API Reference
+description: "Kubetail Cluster API reference: Docker image variants, startup flags, and YAML configuration for TLS, logging, CSRF, and cluster-agent connections."
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+The Kubetail Cluster API is a Go-based HTTP server that provides the GraphQL API used by the Dashboard to perform cluster operations. The server executable is compiled from the source code located in the Kubetail repo at [modules/cluster-api](https://github.com/kubetail-org/kubetail/tree/main/modules/cluster-api) and is typically deployed using the `kubetail-cluster-api` docker image (see below). It's possible to run `kubetail-cluster-api` as a standalone container but we recommend deploying it with the official Kubetail [helm chart](/reference/helm-chart).
+
+## Docker image
+
+The `kubetail-cluster-api` docker image is published to Docker Hub and the GitHub Container Registry on every release:
+
+| Registry | Image |
+|----------|-------|
+| Docker Hub | `kubetail/kubetail-cluster-api` |
+| GHCR | `ghcr.io/kubetail-org/kubetail-cluster-api` |
+
+Two variants are available:
+
+| Tag suffix | Base image | Description |
+|------------|------------|-------------|
+| _(none)_ | `scratch` | Minimal image, smallest footprint |
+| `-alpine` | `alpine` | Includes a shell and standard utilities |
+
+## Entrypoint
+
+The default container entrypoint is `/cluster-api/cluster-api`:
+
+```sh
+cluster-api [flags]
+```
+
+## Flags
+
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--config` | `-c` | | Path to configuration file (e.g. `/etc/kubetail/cluster-api.yaml`) |
+| `--addr` | `-a` | `:8080` | Host address to bind to |
+| `--gin-mode` | | `release` | Gin framework mode (`release`, `debug`)
+
+## Configuration
+
+The Cluster API can be configured using a YAML, JSON, or TOML config file. Pass the path to the file with `-c` / `--config`. Environment variables can be referenced in the config file using `${VARIABLE_NAME}` syntax.
+
+```sh
+cluster-api --config /etc/kubetail/cluster-api.yaml
+```
+
+<Tabs>
+  <TabItem label="YAML">
+    ```yaml
+    ## Kubetail Cluster API Configuration File
+    #
+    # This file defines the behavior for the kubetail cluster API server,
+    # which provides the GraphQL API for cluster operations.
+    #
+
+    ## allowed-namespaces ##
+    #
+    # List of namespaces the API is allowed to access.
+    # If empty, all namespaces are accessible.
+    #
+    # Default value: []
+    #
+    allowed-namespaces: []
+
+    ## addr ##
+    #
+    # The network address and port the HTTP server should bind to.
+    #
+    # Default value: :8080
+    #
+    addr: ":8080"
+
+    ## base-path ##
+    #
+    # The base URL path for all API endpoints.
+    #
+    # Default value: /
+    #
+    base-path: /
+
+    ## gin-mode ##
+    #
+    # The Gin framework mode.
+    # Valid values: debug, release
+    #
+    # Default value: release
+    #
+    gin-mode: release
+
+    ## cluster-agent ##
+    #
+    # Configuration for connecting to the cluster agent
+    #
+    cluster-agent:
+
+      ## dispatch-url ##
+      #
+      # The URL used to connect to the cluster agent.
+      # Supports kubernetes:// scheme for in-cluster service discovery.
+      #
+      # Default value: kubernetes://kubetail-cluster-agent:50051
+      #
+      dispatch-url: kubernetes://kubetail-cluster-agent:50051
+
+      ## tls ##
+      #
+      # TLS configuration for cluster agent connections
+      #
+      tls:
+
+        ## enabled ##
+        #
+        # Whether TLS is enabled for cluster agent connections.
+        #
+        # Default value: false
+        #
+        enabled: false
+
+        ## cert-file ##
+        #
+        # Path to the TLS certificate file.
+        #
+        # Default value: ""
+        #
+        cert-file: ""
+
+        ## key-file ##
+        #
+        # Path to the TLS private key file.
+        #
+        # Default value: ""
+        #
+        key-file: ""
+
+        ## ca-file ##
+        #
+        # Path to the CA certificate file used to verify the cluster agent's certificate.
+        #
+        # Default value: ""
+        #
+        ca-file: ""
+
+        ## server-name ##
+        #
+        # The server name used for TLS verification.
+        # If empty, the hostname from dispatch-url is used.
+        #
+        # Default value: ""
+        #
+        server-name: ""
+
+    ## csrf ##
+    #
+    # CSRF protection settings
+    #
+    csrf:
+
+      ## enabled ##
+      #
+      # Whether CSRF protection is enabled.
+      #
+      # Default value: true
+      #
+      enabled: true
+
+    ## logging ##
+    #
+    # Configuration for the API server's logging output
+    #
+    logging:
+
+      ## enabled ##
+      #
+      # Whether logging is enabled for the server.
+      #
+      # Default value: true
+      #
+      enabled: true
+
+      ## level ##
+      #
+      # The minimum log level to output.
+      # Valid values: debug, info, warn, error, disabled
+      #
+      # Default value: info
+      #
+      level: info
+
+      ## format ##
+      #
+      # The format of log output.
+      # Valid values: json, pretty
+      #
+      # Default value: json
+      #
+      format: json
+
+      ## access-log ##
+      #
+      # Configuration for HTTP access logging
+      #
+      access-log:
+
+        ## enabled ##
+        #
+        # Whether access logging is enabled.
+        #
+        # Default value: true
+        #
+        enabled: true
+
+        ## hide-health-checks ##
+        #
+        # Whether to omit health check requests (/healthz) from the access log.
+        #
+        # Default value: false
+        #
+        hide-health-checks: false
+
+    ## tls ##
+    #
+    # TLS configuration for the HTTP server
+    #
+    tls:
+
+      ## enabled ##
+      #
+      # Whether TLS is enabled.
+      #
+      # Default value: false
+      #
+      enabled: false
+
+      ## cert-file ##
+      #
+      # Path to the TLS certificate file.
+      #
+      # Default value: ""
+      #
+      cert-file: ""
+
+      ## key-file ##
+      #
+      # Path to the TLS private key file.
+      #
+      # Default value: ""
+      #
+      key-file: ""
+    ```
+  </TabItem>
+</Tabs>

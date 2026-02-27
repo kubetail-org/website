@@ -1,0 +1,32 @@
+---
+title: Development vs. Production
+description: "Kubetail complements your observability stack. Use it to trace requests across ephemeral containers during development, or tail logs during incidents."
+---
+
+Kubetail works well in both development and production environments though the value proposition differs at each stage.
+
+---
+
+## Development
+
+Distributed systems are hard to debug because a single user request can touch many services. Kubetail is designed exactly for this scenario. Using Kubetail, you can view logs from multiple services merged in a chronological timeline across all the containers in the workloads and watch requests flow through your system in real-time.
+
+Because Kubetail tracks container lifecycle events, log streams stay connected as containers restart or get replaced. This makes it easy to trace the path of a request end-to-end and reproduce issues without needing to reconstruct events using individual pod logs.
+
+To start using Kubetail in development, just install the `kubetail` CLI and run `kubetail serve` to view logs in your browser, or `kubetal logs` to stream logs to your terminal (see [Quickstart](/docs/tutorials/getting-started/quickstart)). No cluster-side installation is required, and no log forwarding pipeline needs to be configured first.
+
+---
+
+## Production
+
+Kubetail also scales up to production smoothly. You can use Kubetail to ensure your traffic flows are working as expected, and you can also use Kubetail to spot check your service logs in real-time to make sure they aren't producing any errors.
+
+### Complement your existing logging stack
+
+Kubetail is not a replacement for a full observability platform. Tools like Datadog, Grafana, ClickHouse, VictoriaMetrics, Honeycomb, Dash0, and Loki are designed for long-term log retention, alerting, metric correlation, and historical analysis at scale. Kubetail's strength is real-time visibility and live log tailing, which pairs well with platforms that are optimized for storage and querying.
+
+A common pattern is to use Kubetail for live debugging and your primary logging platform for everything else: metrics dashboards, alerts, and post-incident analysis.
+
+### Debugging outages
+
+Kubetail has an important operational advantage during incidents: **it only requires the kube-apiserver to be reachable**. It does not depend on an external logging service being up, or a remote storage backend responding. When your cluster is on fire and your observability stack is degraded, Kubetail can still give you a live view into what your containers are doing right now.
