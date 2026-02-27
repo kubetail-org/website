@@ -15,7 +15,7 @@
     "@astrojs/cloudflare": "^12.6.12",
     "@astrojs/starlight": "^0.37.6",
     "@tailwindcss/vite": "^4.2.0",
-    "astro": "^5.6.1",
+    "astro": "^5.18.0",
     "sharp": "^0.34.2",
     "starlight-blog": "^0.25.2",
     "tailwindcss": "^4.2.0"
@@ -24,7 +24,12 @@
   "pnpm": {
     "overrides": {
       "starlight-contextual-menu": "npm:@kubetail/starlight-contextual-menu@0.1.5-patch.2"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp",
+      "workerd"
+    ]
   },
   "devDependencies": {
     "@astrojs/sitemap": "^3.7.0",
