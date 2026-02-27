@@ -8,6 +8,8 @@ import starlightLlmsTxt from 'starlight-llms-txt';
 
 import tailwindcss from '@tailwindcss/vite';
 
+import cloudflare from '@astrojs/cloudflare';
+
 // https://astro.build/config
 export default defineConfig({
   site: 'https://www.kubetail.com',
@@ -130,4 +132,6 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
       },
     },
   },
+
+  adapter: cloudflare(),
 });
