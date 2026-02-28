@@ -24,6 +24,21 @@ The `kubetail` CLI Tool is the primary entrypoint for Kubetail on your desktop. 
         **MacPorts**
         ```sh
         sudo port install kubetail
+
+        **Nix (Flake)**
+        ```sh
+        nix profile add github:kubetail-org/kubetail-nix
+        ```
+
+        **Nix (Classic)**
+        ```sh
+        nix-env -i -f https://github.com/kubetail-org/kubetail-nix/archive/refs/heads/main.tar.gz
+        ```
+
+        **asdf**
+        ```sh
+        asdf plugin add kubetail https://github.com/kubetail-org/asdf-kubetail.git
+        asdf install kubetail latest
         ```
     </TabItem>
     <TabItem label="Linux">
