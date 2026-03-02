@@ -1,0 +1,147 @@
+---
+title: Instalação
+description: "Instale a CLI do Kubetail no macOS, Linux ou Windows usando Homebrew, apt, winget, krew, snap e mais — ou baixe o binário ou use o script de instalação."
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+A ferramenta CLI `kubetail` é o principal ponto de entrada do Kubetail no seu desktop. Para instalá-la, você pode usar o seu gerenciador de pacotes favorito:
+
+<Tabs syncKey="os">
+    <TabItem label="macOS">
+        **Homebrew**
+        ```sh
+        brew install kubetail
+        ```
+
+        **Krew**
+        ```sh
+        kubectl krew install kubetail
+        ```
+
+        **MacPorts**
+        ```sh
+        sudo port install kubetail
+        ```
+
+        **Nix (Flake)**
+        ```sh
+        nix profile add github:kubetail-org/kubetail-nix
+        ```
+
+        **Nix (Classic)**
+        ```sh
+        nix-env -i -f https://github.com/kubetail-org/kubetail-nix/archive/refs/heads/main.tar.gz
+        ```
+
+        **asdf**
+        ```sh
+        asdf plugin add kubetail https://github.com/kubetail-org/asdf-kubetail.git
+        asdf install kubetail latest
+        ```
+    </TabItem>
+    <TabItem label="Linux">
+        **Homebrew**
+        ```sh
+        brew install kubetail
+        ```
+
+        **Krew**
+        ```sh
+        kubectl krew install kubetail
+        ```
+
+        **Snap**
+        ```sh
+        sudo snap install kubetail
+        ```
+
+        **Ubuntu/Mint (apt)**
+        ```sh
+        sudo add-apt-repository ppa:kubetail/kubetail
+        sudo apt update && sudo apt install kubetail-cli
+        ```
+
+        **Fedora/CentOS/RHEL/Amazonlinux/Mageia (copr)**
+        ```sh
+        dnf copr enable kubetail/kubetail
+        dnf install kubetail
+        ```
+
+        **SUSE (zypper)**
+        ```sh
+        zypper addrepo 'https://download.opensuse.org/repositories/home:/kubetail/$releasever/' kubetail
+        zypper refresh && zypper install kubetail-cli
+        ```
+
+        **Alpine (apk)**
+        ```sh
+        apk add kubetail --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing
+        ```
+
+        **Arch (AUR)**
+        ```sh
+        yay -S --noconfirm kubetail-cli
+        ```
+
+        **Gentoo (GURU)**
+        ```sh
+        ACCEPT_KEYWORDS="~$(portageq envvar ARCH)" emerge dev-util/kubetail
+        ```
+
+        **Nix (Flake)**
+        ```sh
+        nix profile add github:kubetail-org/kubetail-nix
+        ```
+
+        **Nix (Classic)**
+        ```sh
+        nix-env -i -f https://github.com/kubetail-org/kubetail-nix/archive/refs/heads/main.tar.gz
+        ```
+
+        **asdf**
+        ```sh
+        asdf plugin add kubetail https://github.com/kubetail-org/asdf-kubetail.git
+        asdf install kubetail latest
+        ```
+    </TabItem>
+    <TabItem label="Windows">
+        **Winget**
+        ```sh
+        winget install kubetail
+        ```
+
+        **Krew**
+        ```sh
+        krew install kubetail
+        ```
+
+        **Chocolatey**
+        ```sh
+        choco install kubetail
+        ```
+
+        **Scoop**
+        ```sh
+        scoop install kubetail
+        ```
+    </TabItem>
+</Tabs>
+
+<hr />
+
+Se preferir, você também pode baixá-la a partir dos [binários de release](https://github.com/kubetail-org/kubetail/releases/latest) ou usar o nosso script de instalação:
+
+```sh
+curl -sS https://www.kubetail.com/install.sh | bash
+```
+
+<br />
+<br />
+
+<Aside type="tip">
+Além de executar o Kubetail no desktop, você também pode executá-lo nestes ambientes:
+
+* [Cluster](/pt/docs/guides/cluster/installation)
+* [Docker](/pt/docs/guides/docker/installation)
+</Aside>

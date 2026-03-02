@@ -1,0 +1,123 @@
+---
+title: "RBAC & Permissions"
+description: "Kubetail Helm chart が作成する RBAC リソース、ServiceAccounts、ClusterRoles、ClusterRoleBindings と、各コンポーネントに必要な権限を説明します。"
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Kubetail はアクセス制御を Kubernetes RBAC に委譲します。このページでは、Helm chart がどの RBAC リソースを作成し、各コンポーネントがそれらをどのように利用するかを説明します。
+
+---
+
+## 概要
+
+Helm chart は各コンポーネントごとに専用の ServiceAccount、ClusterRole、ClusterRoleBinding を作成します。各コンポーネントは自身の役割に必要な権限だけで動作し、最小権限の原則が一貫して適用されます。
+
+| Component | Kind | ServiceAccount |
+|-----------|------|---------------|
+| Dashboard | Deployment | `kubetail-dashboard` |
+| Cluster API | Deployment | `kubetail-cluster-api` |
+| Cluster Agent | DaemonSet | `kubetail-cluster-agent` |
+
+---
+
+## Dashboard
+
+Dashboard は、ワークロードを列挙し、ユーザーに代わってログをストリーミングするために、Kubernetes API への広範な読み取りアクセスを必要とします。また、ユーザー認証情報を検証するために token review を作成する権限も必要です。
+
+**ClusterRole** - クラスタ全体の読み取りアクセス:
+
+```yaml
+rules:
+  - apiGroups: [""]
+    resources: [namespaces, nodes]
+    verbs: [get, list, watch]
+  - apiGroups: ["", apps, batch]
+    resources:
+      - cronjobs
+      - daemonsets
+      - deployments
+      - jobs
+      - pods
+      - pods/log
+      - replicasets
+      - statefulsets
+    verbs: [get, list, watch]
+  - apiGroups: [authentication.k8s.io]
+    resources: [tokenreviews]
+    verbs: [create]
+```
+
+**Role** - `kubetail-system` 内での namespace スコープのアクセス:
+
+```yaml
+rules:
+  - apiGroups: [discovery.k8s.io]
+    resources: [endpointslices]
+    verbs: [list, watch]
+```
+
+`endpointslices` の権限は、Dashboard が Cluster API Pod の健全性をリアルタイムで監視するために使用します。
+
+---
+
+## Cluster API
+
+Cluster API は、GraphQL API 経由でもワークロードメタデータを提供するため、Dashboard と同じワークロードリソースへの読み取りアクセスを必要とします。
+
+**ClusterRole** - クラスタ全体の読み取りアクセス:
+
+```yaml
+rules:
+  - apiGroups: [""]
+    resources: [nodes]
+    verbs: [get, list, watch]
+  - apiGroups: ["", apps, batch]
+    resources:
+      - cronjobs
+      - daemonsets
+      - deployments
+      - jobs
+      - pods
+      - pods/log
+      - replicasets
+      - statefulsets
+    verbs: [get, list, watch]
+```
+
+**Role** - `kubetail-system` 内での namespace スコープのアクセス:
+
+```yaml
+rules:
+  - apiGroups: [discovery.k8s.io]
+    resources: [endpointslices]
+    verbs: [list, watch]
+```
+
+`endpointslices` の権限により、Cluster API はどの Cluster Agent Pod が ready かを追跡でき、健全な agent にログリクエストをルーティングできます。
+
+---
+
+## Cluster Agent
+
+Cluster Agent はノードのファイルシステムからログファイルを直接読み取るため、ログ取得のために Kubernetes API へのアクセスは必要ありません。この ServiceAccount は、Cluster API からのリクエストを認可できるようにするためだけに使われます。agent はデータを返す前に、受信した bearer token を Kubernetes API に対して検証します。
+
+Cluster Agent の ServiceAccount には、既定で ClusterRole も Role も付与されません。認可判断は、呼び出し元が渡したトークンを使って Kubernetes の `SubjectAccessReview` API を呼び出すことで行われるため、実際にアクセスできる範囲は呼び出し元自身の RBAC 権限によって決まります。
+
+---
+
+## 認可の仕組み
+
+ユーザーが Dashboard でログビューを開くと、次の認可フローが実行されます。
+
+1. Dashboard は、認証済みユーザーに代わって短命な Kubernetes ServiceAccount トークンを作成します。
+2. Dashboard はそのトークンを `Authorization` ヘッダーで Cluster API に転送します。
+3. Cluster API はそのトークンを該当する Cluster Agent に転送します。
+4. 各 Cluster Agent は Kubernetes の `SubjectAccessReview` API を呼び出してトークンを検証し、トークン保持者が要求された namespace の `pods/log` に対して `get` 権限を持つか確認します。
+5. チェックが成功すれば、agent はログデータをストリーミングします。失敗した場合は permission denied エラーを返します。
+
+つまり、ある Pod に対して `kubectl logs` を実行できないユーザーは、どのような接続方法であっても Kubetail でそのログを閲覧できません。Kubetail 固有の追加権限は不要です。
+
+<Aside type="tip">
+ユーザーに必要な権限を理解するには、[セキュリティとプライバシー](/ja/docs/concepts/security-and-privacy) のページを参照してください。
+</Aside>

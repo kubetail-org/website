@@ -1,0 +1,52 @@
+---
+title: Erweiterte Funktionen
+description: "Erweiterte Funktionen des Kubetail-Dashboards, die die Kubetail API erfordern: Logdateigrößen, Zeitstempel des letzten Events und grep-basierte Logsuche auf den Nodes."
+---
+
+import { Aside } from "@astrojs/starlight/components";
+import { Image } from "astro:assets";
+
+import homePageWithLogMetadataLight from "@/assets/screenshots/light/home-page-with-log-metadata.webp";
+import homePageWithLogMetadataDark from "@/assets/screenshots/dark/home-page-with-log-metadata.webp";
+import consoleWithSearchLight from "@/assets/screenshots/light/logging-console-with-search.webp";
+import consoleWithSearchDark from "@/assets/screenshots/dark/logging-console-with-search.webp";
+
+Erweiterte Funktionen erfordern, dass die **Kubetail API** in Ihrem Cluster installiert wird. Sobald die Kubetail API installiert ist, werden Log-Anfragen nicht mehr über den kube-apiserver, sondern über einen dedizierten In-Cluster-Service geleitet. Dadurch werden Funktionen verfügbar, die die Kubernetes API nicht bietet.
+
+---
+
+## Installation der Kubetail API
+
+Wenn Sie das CLI-Tool `kubetail` verwenden, können Sie die Kubetail API mit dem Befehl `kubetail cluster` installieren:
+
+```sh
+kubetail cluster install
+```
+
+Dadurch wird die API mit dem Kubetail-Helm-Chart installiert, sodass Sie sie anschließend bei Bedarf unabhängig mit Helm verwalten können. Weitere Details finden Sie in der [`cluster`-Befehlsreferenz](/de/docs/reference/cli#kubetail-cluster).
+
+Sie können die Kubetail API auch direkt mit Helm installieren. Anweisungen dazu finden Sie im [Leitfaden zur Cluster-Installation](/de/docs/guides/cluster/installation).
+
+---
+
+## Metadaten zu Logdateien
+
+Sobald die Kubetail API installiert ist, zeigt die Workload-Liste die Größen der Logdateien und die Zeitstempel des letzten Events an:
+
+<Image src={homePageWithLogMetadataLight} alt="Kubetail home page showing workloads with log file sizes and last event timestamps" class="dark:sl-hidden" />
+<Image src={homePageWithLogMetadataDark} alt="Kubetail home page showing workloads with log file sizes and last event timestamps" class="light:sl-hidden" />
+
+Diese Metadaten werden vom Cluster Agent direkt aus den Logdateien auf jedem Node gesammelt und über die Cluster API bereitgestellt. Allein über die Kubernetes API sind sie nicht verfügbar.
+
+---
+
+## Logsuche
+
+Wenn die Kubetail API installiert ist, erscheint im Header der Logging-Konsole ein Suchfeld, in das Sie einen einfachen String oder ein Muster im Format `/regex/` eingeben können, um den Log-Stream zu filtern. Das Matching erfolgt auf jedem Node, bevor Daten an das Dashboard gesendet werden. Dadurch werden nur passende Zeilen übertragen, was die Bandbreite auch bei Workloads mit hohem Volumen gering hält.
+
+<Image src={consoleWithSearchLight} alt="Kubetail logging console showing search" class="dark:sl-hidden" />
+<Image src={consoleWithSearchDark} alt="Kubetail logging console showing search" class="light:sl-hidden" />
+
+<Aside type="tip">
+Eine detaillierte Erklärung der Logging-Pipeline der Kubetail API finden Sie auf der Seite [Architektur](/de/docs/concepts/architecture#log-delivery-pipelines).
+</Aside>

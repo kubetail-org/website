@@ -1,0 +1,62 @@
+---
+title: 設定
+description: "Helm chart の `runtimeConfig` 値を上書きして、Kubetail のクラスタコンポーネントである Dashboard、Cluster API、Cluster Agent を設定します。"
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Kubetail をクラスタにデプロイすると、Dashboard、Cluster API、Cluster Agent の各コンポーネントは、コンテナにマウントされた YAML 設定ファイルを使って個別に設定されます。Helm chart は ConfigMap を通じてこれらのファイルを管理しますが、chart の `runtimeConfig` フィールドを上書きすることで任意の設定をカスタマイズできます。
+
+---
+
+## 設定の仕組み
+
+各コンポーネントは、起動時に `--config` フラグで渡された設定ファイルを読み込みます。
+
+```sh
+dashboard     --config /etc/kubetail/config.yaml
+cluster-api   --config /etc/kubetail/config.yaml
+cluster-agent --config /etc/kubetail/config.yaml
+```
+
+設定ファイルは Helm chart によって作成された ConfigMap からマウントされます。コンポーネントごとの設定を調整するには、Helm values の `kubetail.<component>.runtimeConfig` 以下に上書き値を指定します。
+
+```yaml
+kubetail:
+  dashboard:
+    runtimeConfig:
+      logging:
+        level: debug
+  clusterAPI:
+    runtimeConfig:
+      logging:
+        level: debug
+```
+
+<Aside type="tip">
+すべての設定ファイルは `${VARIABLE_NAME}` 構文による環境変数展開をサポートしています。これは実行時にシークレットを注入する場合に便利です。
+</Aside>
+
+---
+
+## Dashboard
+
+Dashboard は UI をホストし、ブラウザーからクラスタへのリクエストを中継する Web サーバーです。クラスタ環境では `kubetail-system` namespace の Deployment として動作します。
+
+完全な設定リファレンスは [Dashboard リファレンス](/ja/docs/reference/dashboard) を参照してください。
+
+---
+
+## Cluster API
+
+Cluster API は、Dashboard から各ノードで動作する Cluster Agent インスタンスへリクエストを中継するバックエンドサーバーです。クラスタ内では `kubetail-system` namespace の Deployment として動作します。
+
+完全な設定リファレンスは [Cluster API リファレンス](/ja/docs/reference/cluster-api) を参照してください。
+
+---
+
+## Cluster Agent
+
+Cluster Agent は各ノードで動作し、ノードのファイルシステムからコンテナのログファイルを直接読み取る小さな Rust 製プログラムです。クラスタ内では `kubetail-system` namespace の DaemonSet として動作します。
+
+完全な設定リファレンスは [Cluster Agent リファレンス](/ja/docs/reference/cluster-agent) を参照してください。

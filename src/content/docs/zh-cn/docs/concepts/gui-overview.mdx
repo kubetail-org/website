@@ -1,0 +1,66 @@
+---
+title: 概览
+description: "带您快速了解 Kubetail Web 仪表板：浏览工作负载、打开日志控制台，以及检查后端服务的健康状态。"
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+import homePageLight from '@/assets/screenshots/light/home-page.webp';
+import homePageDark from '@/assets/screenshots/dark/home-page.webp';
+import consolePageLight from '@/assets/screenshots/light/logging-console.webp';
+import consolePageDark from '@/assets/screenshots/dark/logging-console.webp';
+import healthStatusLight from '@/assets/screenshots/light/health-status.webp';
+import healthStatusDark from '@/assets/screenshots/dark/health-status.webp';
+
+Kubetail Web 仪表板是一个基于浏览器的图形界面，可让您从更高的视角查看 Kubernetes 工作负载，并实时跟踪多个日志流。
+
+您可以通过两种方式运行该仪表板：
+
+- **在桌面端运行** — 使用 `kubetail` CLI 启动本地仪表板服务器，它会使用您的 kubeconfig 文件对集群进行认证。无需任何集群侧安装。（参见 [在桌面端运行 > 安装](/zh-cn/docs/guides/desktop/installation)）
+- **在集群中运行** — 使用 Helm 或 YAML 清单将仪表板部署为 Kubernetes 工作负载，然后通过 `kubectl port-forward`、`kubectl proxy` 或 ingress 资源访问它。（参见 [在集群中运行 > 安装](/zh-cn/docs/guides/cluster/installation)）
+
+---
+
+## 工作负载
+
+打开仪表板后，您首先会看到一份 Kubernetes 工作负载列表：
+
+<Image src={homePageLight} alt="Kubetail dashboard home page showing a list of Kubernetes workloads" class="dark:sl-hidden" />
+<Image src={homePageDark} alt="Kubetail dashboard home page showing a list of Kubernetes workloads" class="light:sl-hidden" />
+
+在这里，您可以：
+
+- 点击任意工作负载旁边的 **View**，在新标签页中打开它的日志控制台
+- 通过复选框选择多个工作负载，然后点击 **Open in Console**，以单一时间线的形式查看它们合并后的日志
+
+---
+
+## 日志
+
+当您选好想查看的日志并进入控制台后，就会看到日志的实时 tail：
+
+<Image src={consolePageLight} alt="Kubetail dashboard logging console showing web server log streams" class="dark:sl-hidden" />
+<Image src={consolePageDark} alt="Kubetail dashboard logging console showing web server log streams" class="light:sl-hidden" />
+
+仪表板支持两条日志传输管道：
+
+| 管道                                                               | 是否需要安装到集群中 | 功能                                                                 |
+|--------------------------------------------------------------------|----------------------|----------------------------------------------------------------------|
+| [Kubernetes API (Basic)](/zh-cn/docs/guides/dashboard/basic-features)     | 否                   | 实时日志 tail、基础过滤                                               |
+| [Kubetail API (Advanced)](/zh-cn/docs/guides/dashboard/advanced-features) | 是                   | 所有基础功能 + 日志文件大小、最后事件时间戳、搜索                    |
+
+默认情况下，仪表板使用 Kubernetes API 管道。只要在集群中安装 Kubetail API，就会自动启用高级管道。
+
+<Aside type="tip">
+想进一步了解每条管道的工作方式，请参阅[架构](/zh-cn/docs/concepts/architecture#log-delivery-pipelines)页面。
+</Aside>
+
+---
+
+## 健康状态
+
+点击右下角的状态圆点，即可查看仪表板后端服务器、集群 Kubernetes API 以及可选 Kubetail Cluster API 的健康状态：
+
+<Image src={healthStatusLight} alt="Health status dialog showing server, Kubernetes API, and Kubetail API status" class="dark:sl-hidden" />
+<Image src={healthStatusDark} alt="Health status dialog showing server, Kubernetes API, and Kubetail API status" class="light:sl-hidden" />

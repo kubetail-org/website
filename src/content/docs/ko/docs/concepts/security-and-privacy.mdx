@@ -1,0 +1,49 @@
+---
+title: 보안 및 개인정보 보호
+description: "Kubetail은 로그 데이터를 클러스터에서 데스크톱까지 사용자의 통제 아래에 둡니다. 모든 접근 제어는 Kubernetes RBAC에 위임됩니다."
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+Kubetail은 로그 데이터를 클러스터에서 데스크톱까지 사용자의 통제 아래에 두고, 누가 그 데이터에 접근할 수 있는지는 클러스터 관리자가 계속 통제할 수 있도록 설계되었습니다. 이 페이지에서는 Kubetail이 설계 차원에서 어떻게 개인정보 보호와 보안을 처리하는지 설명합니다.
+
+---
+
+## 로그 개인정보 보호
+
+Kubetail에는 클라우드 로그 백엔드가 없기 때문에, 로그를 볼 때 데이터는 외부 서비스를 먼저 거치지 않고 클러스터에서 사용자 기기로 직접 이동합니다. 경로는 배포 토폴로지에 따라 달라집니다.
+
+- **데스크톱**: 로그는 디스크 위의 Pod 로그 파일에서 시작해 kube-apiserver(또는 설치되어 있다면 Kubetail API)를 거쳐 로컬 머신에서 실행 중인 Dashboard 서버로 전달되고, 마지막으로 브라우저에 도달합니다. 전체 경로가 클러스터와 데스크톱 내부에 머뭅니다.
+- **클러스터**: 로그는 디스크 위의 Pod 로그 파일에서 시작해 kube-apiserver(또는 Kubetail API)를 거쳐 클러스터 내부에서 실행 중인 Dashboard 서버로 전달됩니다. 이 모든 과정은 클러스터 내부 네트워크를 통해 이뤄집니다. `kubectl port-forward`, `kubectl proxy`, 또는 사용자가 제어하는 ingress로 연결한 이후에만 로그가 브라우저에 도달합니다.
+
+어느 경우든 로그 데이터는 처음부터 끝까지 사용자의 통제 아래에 있습니다(자세한 내용은 [아키텍처](/ko/docs/concepts/architecture)를 참고하세요).
+
+---
+
+## 접근 제어
+
+Kubetail은 모든 접근 제어를 Kubernetes RBAC에 위임하므로, 클러스터 관리자는 누가 어떤 로그를 볼 수 있는지에 대해 완전한 통제권을 유지합니다.
+
+### Kubetail CLI
+
+데스크톱에서 Kubetail은 활성 kubeconfig context의 RBAC 권한을 그대로 상속받습니다. 즉 `kubectl`이 사용하는 것과 동일한 권한입니다. 사용자가 어떤 Pod에 대해 `kubectl logs`를 실행할 수 있다면, Kubetail에서도 그 로그를 볼 수 있습니다. 그렇지 않다면 Kubetail은 요청을 거부합니다.
+
+Kubetail은 로그 스트림을 열기 전에 Kubernetes `SelfSubjectAccessReview` API를 사용해 권한을 확인합니다. 클러스터 관리자는 표준 Kubernetes RBAC 리소스를 사용해 필요한 만큼 세밀하게 접근 범위를 제한할 수 있습니다.
+
+### Kubetail API
+
+선택 사항인 Kubetail API가 클러스터에 설치되어 있으면, Dashboard 서버에서 Cluster API로 향하는 모든 요청에는 사용자의 Kubernetes service account token이 포함됩니다. Cluster API와 Cluster Agent는 데이터를 제공하기 전에 둘 다 이 토큰을 Kubernetes authorization API에 대조해 검증합니다.
+
+즉, Kubetail API를 통한 로그 접근은 다른 Kubernetes API 작업과 동일한 RBAC 정책의 적용을 받습니다. 별도의 권한 시스템이 추가되지 않습니다. 특정 namespace에서 `pods/log`에 대한 `get` 및 `watch` 권한이 없는 사용자는 어떤 방식으로 연결하더라도 그 namespace의 로그 데이터를 받을 수 없습니다.
+
+---
+
+## 요약
+
+| 속성 | 동작 |
+|---|---|
+| 로그 데이터가 사용자 환경을 벗어남 | 절대 아님 |
+| 클라우드 로그 백엔드 | 없음 |
+| 접근 제어 메커니즘 | Kubernetes RBAC |
+| 인증 방식(데스크톱) | kubeconfig 자격 증명 |
+| 인증 방식(클러스터) | Kubernetes service account token |

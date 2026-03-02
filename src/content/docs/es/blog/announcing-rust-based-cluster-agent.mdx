@@ -1,0 +1,56 @@
+---
+title: "Presentamos: el nuevo Cluster Agent basado en Rust"
+description: "El cluster agent de Kubetail ha sido reescrito en Rust, reduciendo el tamaño de la imagen un 57% (10MB) y el uso de memoria un 70% (~3MB) manteniendo el mismo conjunto de funcionalidades."
+date: 2025-09-26
+authors:
+  - name: Andres Morey
+    title: Lead Developer
+    url: https://github.com/amorey
+    picture: https://github.com/amorey.png
+---
+
+---
+
+**tl;dr** Migramos nuestro cluster agent de Go a Rust y ahora es más pequeño y usa menos memoria. Para usar el nuevo cluster agent simplemente actualiza a la última release (cli/v0.8.2, helm/v0.15.2). También puedes probarlo en vivo [aquí](https://www.kubetail.com/demo).
+
+---
+
+Hace poco decidimos migrar nuestro cluster agent de Go a Rust. Ahora me alegra decir que la reescritura está completa y el resultado es una imagen del cluster agent un 57% más pequeña (10MB) que usa un 70% menos de memoria (~3MB) mientras sigue usando una cantidad mínima de CPU (~0.1%).
+
+## Por qué empezamos con Go
+
+La primera versión de Kubetail fue diseñada para ejecutarse dentro del clúster y exponer los logs a los usuarios a través de un navegador web. En esa versión, la responsabilidad principal del backend era hacer solicitudes a la API de Kubernetes y retransmitir las respuestas al frontend en tiempo real. Después de evaluar varias opciones, incluyendo Python y JavaScript, decidí escribirlo en Go porque cuenta con buen soporte por parte de la API de Kubernetes, tiene un excelente soporte para multithreading y produce ejecutables rápidos e imágenes Docker pequeñas.
+
+La siguiente versión de Kubetail añadió la herramienta CLI `kubetail`, capaz de ejecutar el dashboard web localmente. Para implementar la CLI elegí Go nuevamente porque el lenguaje tiene buenas bibliotecas para la interacción en línea de comandos (gracias [spf13](https://github.com/spf13)!), un excelente soporte multiplataforma y, lo más importante, porque me permitía reutilizar la aplicación web en Go usada por el dashboard dentro del clúster.
+
+Hasta ese momento, Kubetail solo obtenía logs a través de la API de Kubernetes. Pero cuando quise añadir nuevas funcionalidades como el tamaño de los archivos de log y las marcas de tiempo del último evento —datos no expuestos por la API de Kubernetes— me di cuenta de que necesitábamos un agente con acceso directo a los archivos de log en bruto de cada nodo. Aunque podría haber usado un lenguaje diferente, elegí Go de nuevo porque era el lenguaje que mejor conocía y nos había servido bien hasta entonces. Por suerte, también tenía un excelente soporte para gRPC, que era una elección natural para la interfaz del agente.
+
+Dado el conjunto de funcionalidades de la aplicación en ese momento, estaba muy satisfecho con mi elección original de Go, ya que nos había servido bien tanto en el escritorio como dentro del clúster. Luego empecé a pensar en cómo implementar la funcionalidad más solicitada: la búsqueda en logs.
+
+## Por qué elegimos Rust a continuación
+
+Cuando empecé a pensar en la búsqueda en logs, sabía que quería usar grep en lugar de un índice de texto completo porque es suficiente para la mayoría de los casos de uso y no quería que nuestros usuarios tuvieran que asumir el coste en recursos de mantener un índice de texto completo. Al mismo tiempo, llevaba un tiempo usando `rg` personalmente para hacer grep de logs y me había impresionado su velocidad, así que cuando empecé a buscar una solución de grep me pregunté si podría usarlo de alguna manera. Fue entonces cuando me di cuenta de que estaba disponible como biblioteca, pero con una condición: estaba escrito en Rust.
+
+Antes de escribir código personalizado, exploré la idea de usar `rg` como ejecutable externo mediante `exec.Command` para interactuar con él a través de stdin/stdout. Esto funcionó para casos de uso básicos, pero se volvió difícil de manejar cuando empecé a añadir funcionalidades personalizadas como filtros de tiempo, manejo de secuencias de escape ANSI y soporte para líneas en formato JSON. Así que decidí sumergirme y escribir un grepper de archivos de log personalizado. Exploré brevemente la opción de usar Go, pero finalmente decidí que por razones de rendimiento y robustez quería usar la biblioteca detrás de `rg`, [ripgrep](https://github.com/BurntSushi/ripgrep), lo que significaba que el código tenía que escribirse en Rust.
+
+En ese momento, no quería reescribir todo el cluster agent en Rust, así que exploré formas de llamar a Rust desde Go (p. ej. [rustgo](https://words.filippo.io/rustgo/)) y opté por mantener el código Rust personalizado como un ejecutable separado y llamarlo desde Go usando `exec.Command`. Para que el código fuera lo más simple posible, usé un esquema de protocol buffers compartido con serialización/deserialización implementada en la interfaz stdin/stdout.
+
+Tras lanzar la funcionalidad de búsqueda, nuestra comunidad empezó a crecer y conocí a un par de hackers con mucha más experiencia en Rust que yo: Christopher Valerio ([freexploit](https://github.com/freexploit)) y Giannis Karagiannis ([gikaragia](https://github.com/gikaragia)). Inicialmente empezaron a hacer mejoras al código Rust y, a medida que fueron familiarizándose con la base de código, comenzamos a hablar sobre cómo eliminar la fricción entre Go y Rust en el cluster agent. Independientemente de la funcionalidad de búsqueda, el cluster agent se ejecuta en cada nodo del clúster, por lo que es importante que sea lo más eficiente y ligero posible, que es exactamente el caso de uso para el que Rust fue diseñado. Con estas ideas flotando en el ambiente, tuvimos una reunión de comunidad donde discutimos la idea de migrar todo el agente a Rust. Dijeron que estaban entusiasmados con trabajar en ello, así que dije: ¡adelante!
+
+## Cómo lo hicimos
+
+Una vez tomada la decisión, Christopher y Giannis se pusieron manos a la obra. Christopher definió la arquitectura de alto nivel inicial del proyecto y creó algunos issues iniciales en GitHub. Luego Giannis tomó el relevo y empezó a implementar el conjunto de funcionalidades, escribiendo pruebas y creando más issues para poder recibir ayuda de otros contribuidores. Giannis logró alcanzar la paridad de funcionalidades con el cluster agent en Go en apenas unas pocas semanas y, tras aproximadamente otra semana de pruebas, decidimos que el código estaba listo para fusionarse con main.
+
+Yo empecé a aprender Rust recientemente, así que Claude Code y Codex CLI fueron invaluables para ayudarme a revisar los pull requests de Giannis. Él también estaba usando los chatbots en su lado, así que fue una verdadera colaboración humano-bot mediada por los pull requests de GitHub. Una de las ventajas clave que tuvimos fue que, como el agente usa una interfaz gRPC bien definida, pudimos reutilizar el esquema de protocol buffers y simplemente hacer el cambio cuando el agente en Rust alcanzó la paridad de funcionalidades con la versión en Go. Para construir el servidor gRPC en Rust usamos [tonic](https://github.com/hyperium/tonic), que fue sencillo y solo tuvo pequeñas [diferencias](https://github.com/kubetail-org/kubetail/pull/640) respecto al servidor gRPC en Go.
+
+El resultado final es una imagen del cluster agent un 57% más pequeña (10MB) que usa un 70% menos de memoria (~3MB) mientras sigue usando una cantidad mínima de CPU (~0.1%). Además, el código es mucho más fácil de trabajar ahora porque todo está en el mismo lenguaje.
+
+## Hacia dónde vamos
+
+Nuestra misión es dar a los usuarios acceso a potentes herramientas de logging en un paquete simple y ligero, pero la API de Kubernetes tiene capacidades de logging limitadas, por lo que desbloquear funcionalidades más avanzadas requiere acceso directo a los archivos de log en bruto de cada nodo. Ahí es donde entra el cluster agent: es la base de todo lo que queremos construir a continuación.
+
+Por supuesto, los usuarios son comprensiblemente cautelosos a la hora de instalar agentes en sus clústeres. Además de ser útiles, los agentes deben ser pequeños, rápidos y seguros. La migración a Rust es nuestra respuesta a esos requisitos. Al reducir el tamaño de la imagen en más de la mitad y el uso de memoria en un 70%, hemos hecho que el agente de Kubetail sea lo suficientemente pequeño como para desplegarse incluso en los entornos más limitados en recursos.
+
+Pero esto es solo el comienzo. Rust nos permitirá llevar al límite lo que se puede hacer dentro del clúster en tiempo real, directamente con los archivos en disco, usando la menor cantidad posible de CPU y memoria. Ahora mismo nuestro enfoque está en los logs, pero el mismo enfoque se aplica a métricas, notificaciones y otros tipos de datos de observabilidad.
+
+Estamos entusiasmados con lo que viene y nos encantaría que formaras parte de ello. Si te gusta lo que estamos haciendo y quieres contribuir con código o compartir tu opinión como usuario, únete a nosotros en [Discord](https://discord.gg/CmsmWAVkvX).

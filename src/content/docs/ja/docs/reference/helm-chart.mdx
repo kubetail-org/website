@@ -1,0 +1,207 @@
+---
+title: Helm Chart リファレンス
+description: "Kubetail Helm Chart リファレンス。Kubernetes に Kubetail スタック全体をデプロイし、`runtimeConfig` で各コンポーネントを設定し、アップグレードやアンインストールを管理します。"
+---
+
+Kubetail Helm Chart は、Kubetail スタック全体を Kubernetes クラスタにデプロイします。これは [https://kubetail-org.github.io/helm-charts/](https://kubetail-org.github.io/helm-charts/) にある Helm chart リポジトリで公開されており、ソースコードは [kubetail-org/helm-charts](https://github.com/kubetail-org/helm-charts) リポジトリの `charts/kubetail` にあります。
+
+この chart は 3 つのコンポーネントをデプロイします。
+
+| Component | Kind | Description |
+|-----------|------|-------------|
+| Dashboard | Deployment | Web UI とバックエンド API |
+| Cluster API | Deployment | クラスタ操作用 GraphQL API |
+| Cluster Agent | DaemonSet | コンテナログファイルを読むノード単位の agent |
+
+## インストール
+
+`kubetail` Helm リポジトリを追加します。
+
+```sh
+helm repo add kubetail https://kubetail-org.github.io/helm-charts/
+```
+
+専用 namespace に chart をインストールします。
+
+```sh
+helm install kubetail kubetail/kubetail --namespace kubetail-system --create-namespace
+```
+
+既定では、chart は必要な secret (`KUBETAIL_DASHBOARD_SESSION_SECRET`) を自動生成し、Kubernetes Secret に保存するため、アップグレード後も保持されます。
+
+## アップグレード
+
+最新の chart index を取得してから、release をアップグレードします。
+
+```sh
+helm repo update kubetail
+helm upgrade kubetail kubetail/kubetail --namespace kubetail-system
+```
+
+## アンインストール
+
+```sh
+helm uninstall kubetail --namespace kubetail-system
+```
+
+## Values
+
+### Chart
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `fullnameOverride` | string | `null` | chart が計算した fullname を上書き |
+| `nameOverride` | string | `null` | chart 名を上書き |
+| `namespaceOverride` | string | `null` | release の namespace を上書き |
+
+### General
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `kubetail.allowedNamespaces` | array | `[]` | すべてのコンポーネントをこれらの namespace に制限 |
+| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_SECRET` | string | `null` | Base64 エンコードされた dashboard session secret（`null` の場合は自動生成） |
+| `kubetail.global.annotations` | map | `{}` | すべてのリソースに追加する annotation |
+| `kubetail.global.labels` | map | `{}` | すべてのリソースに追加する label |
+
+### Dashboard
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `kubetail.dashboard.enabled` | bool | `true` | Dashboard コンポーネントを有効化または無効化 |
+| `kubetail.dashboard.authMode` | string | `"auto"` | 認証モード (`auto`, `token`) |
+| `kubetail.dashboard.runtimeConfig` | map | *see values.yaml* | Dashboard のランタイム設定（[Dashboard リファレンス](/ja/docs/reference/dashboard) を参照） |
+| `kubetail.dashboard.image.registry` | string | `"ghcr.io"` | イメージレジストリ |
+| `kubetail.dashboard.image.repository` | string | `"kubetail-org/kubetail-dashboard"` | イメージリポジトリ |
+| `kubetail.dashboard.image.tag` | string | *see values.yaml* | イメージタグ |
+| `kubetail.dashboard.image.digest` | string | `null` | イメージタグを digest で上書き |
+| `kubetail.dashboard.image.pullPolicy` | string | `"IfNotPresent"` | イメージの pull policy |
+| `kubetail.dashboard.container.name` | string | `"kubetail-dashboard"` | コンテナ名 |
+| `kubetail.dashboard.container.extraEnv` | array | `[]` | 追加の環境変数 |
+| `kubetail.dashboard.container.extraEnvFrom` | array | `[]` | 追加の `envFrom` ソース |
+| `kubetail.dashboard.container.securityContext` | map | *see values.yaml* | コンテナの security context |
+| `kubetail.dashboard.container.resources` | map | `{}` | CPU/メモリの request と limit |
+| `kubetail.dashboard.podTemplate.annotations` | map | `{}` | 追加の Pod annotation |
+| `kubetail.dashboard.podTemplate.labels` | map | `{}` | 追加の Pod label |
+| `kubetail.dashboard.podTemplate.extraContainers` | array | `[]` | 追加の sidecar container |
+| `kubetail.dashboard.podTemplate.securityContext` | map | `{}` | Pod の security context |
+| `kubetail.dashboard.podTemplate.affinity` | map | `{}` | Pod affinity ルール |
+| `kubetail.dashboard.podTemplate.nodeSelector` | map | `{}` | Node selector |
+| `kubetail.dashboard.podTemplate.tolerations` | array | `[]` | Pod toleration |
+| `kubetail.dashboard.configMap.name` | string | `null` | ConfigMap 名を上書き |
+| `kubetail.dashboard.configMap.annotations` | map | `{}` | 追加の ConfigMap annotation |
+| `kubetail.dashboard.configMap.labels` | map | `{}` | 追加の ConfigMap label |
+| `kubetail.dashboard.deployment.name` | string | `null` | Deployment 名を上書き |
+| `kubetail.dashboard.deployment.annotations` | map | `{}` | 追加の Deployment annotation |
+| `kubetail.dashboard.deployment.labels` | map | `{}` | 追加の Deployment label |
+| `kubetail.dashboard.deployment.replicas` | int | `1` | replica 数 |
+| `kubetail.dashboard.deployment.revisionHistoryLimit` | int | `5` | revision history の上限 |
+| `kubetail.dashboard.deployment.strategy` | map | `{type: RollingUpdate}` | Deployment 更新戦略 |
+| `kubetail.dashboard.ingress.enabled` | bool | `false` | Ingress リソースを作成 |
+| `kubetail.dashboard.ingress.name` | string | `null` | Ingress 名を上書き |
+| `kubetail.dashboard.ingress.annotations` | map | `{}` | 追加の Ingress annotation |
+| `kubetail.dashboard.ingress.labels` | map | `{}` | 追加の Ingress label |
+| `kubetail.dashboard.ingress.rules` | array | `[]` | Ingress ルール |
+| `kubetail.dashboard.ingress.tls` | array | `[]` | Ingress の TLS 設定 |
+| `kubetail.dashboard.ingress.className` | string | `null` | Ingress class 名 |
+| `kubetail.dashboard.rbac.name` | string | `null` | RBAC リソース名を上書き |
+| `kubetail.dashboard.rbac.annotations` | map | `{}` | 追加の RBAC annotation |
+| `kubetail.dashboard.rbac.labels` | map | `{}` | 追加の RBAC label |
+| `kubetail.dashboard.secret.enabled` | bool | `true` | Secret リソースを作成 |
+| `kubetail.dashboard.secret.name` | string | `null` | Secret 名を上書き |
+| `kubetail.dashboard.secret.annotations` | map | `{}` | 追加の Secret annotation |
+| `kubetail.dashboard.secret.labels` | map | `{}` | 追加の Secret label |
+| `kubetail.dashboard.service.name` | string | `null` | Service 名を上書き |
+| `kubetail.dashboard.service.annotations` | map | `{}` | 追加の Service annotation |
+| `kubetail.dashboard.service.labels` | map | `{}` | 追加の Service label |
+| `kubetail.dashboard.service.ports.http` | int | `8080` | Service の HTTP ポート |
+| `kubetail.dashboard.serviceAccount.name` | string | `null` | ServiceAccount 名を上書き |
+| `kubetail.dashboard.serviceAccount.annotations` | map | `{}` | 追加の ServiceAccount annotation |
+| `kubetail.dashboard.serviceAccount.labels` | map | `{}` | 追加の ServiceAccount label |
+
+### Cluster API
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `kubetail.clusterAPI.enabled` | bool | `true` | Cluster API コンポーネントを有効化または無効化 |
+| `kubetail.clusterAPI.runtimeConfig` | map | *see values.yaml* | Cluster API のランタイム設定（[Cluster API リファレンス](/ja/docs/reference/cluster-api) を参照） |
+| `kubetail.clusterAPI.image.registry` | string | `"ghcr.io"` | イメージレジストリ |
+| `kubetail.clusterAPI.image.repository` | string | `"kubetail-org/kubetail-cluster-api"` | イメージリポジトリ |
+| `kubetail.clusterAPI.image.tag` | string | *see values.yaml* | イメージタグ |
+| `kubetail.clusterAPI.image.digest` | string | `null` | イメージタグを digest で上書き |
+| `kubetail.clusterAPI.image.pullPolicy` | string | `"IfNotPresent"` | イメージの pull policy |
+| `kubetail.clusterAPI.container.name` | string | `"kubetail-cluster-api"` | コンテナ名 |
+| `kubetail.clusterAPI.container.extraEnv` | array | `[]` | 追加の環境変数 |
+| `kubetail.clusterAPI.container.extraEnvFrom` | array | `[]` | 追加の `envFrom` ソース |
+| `kubetail.clusterAPI.container.securityContext` | map | *see values.yaml* | コンテナの security context |
+| `kubetail.clusterAPI.container.resources` | map | `{}` | CPU/メモリの request と limit |
+| `kubetail.clusterAPI.podTemplate.annotations` | map | `{}` | 追加の Pod annotation |
+| `kubetail.clusterAPI.podTemplate.labels` | map | `{}` | 追加の Pod label |
+| `kubetail.clusterAPI.podTemplate.extraContainers` | array | `[]` | 追加の sidecar container |
+| `kubetail.clusterAPI.podTemplate.securityContext` | map | `{}` | Pod の security context |
+| `kubetail.clusterAPI.podTemplate.affinity` | map | `{}` | Pod affinity ルール |
+| `kubetail.clusterAPI.podTemplate.nodeSelector` | map | `{}` | Node selector |
+| `kubetail.clusterAPI.podTemplate.tolerations` | array | `[]` | Pod toleration |
+| `kubetail.clusterAPI.configMap.name` | string | `null` | ConfigMap 名を上書き |
+| `kubetail.clusterAPI.configMap.annotations` | map | `{}` | 追加の ConfigMap annotation |
+| `kubetail.clusterAPI.configMap.labels` | map | `{}` | 追加の ConfigMap label |
+| `kubetail.clusterAPI.deployment.name` | string | `null` | Deployment 名を上書き |
+| `kubetail.clusterAPI.deployment.annotations` | map | `{}` | 追加の Deployment annotation |
+| `kubetail.clusterAPI.deployment.labels` | map | `{}` | 追加の Deployment label |
+| `kubetail.clusterAPI.deployment.replicas` | int | `1` | replica 数 |
+| `kubetail.clusterAPI.deployment.revisionHistoryLimit` | int | `5` | revision history の上限 |
+| `kubetail.clusterAPI.deployment.strategy` | map | `{type: RollingUpdate}` | Deployment 更新戦略 |
+| `kubetail.clusterAPI.rbac.name` | string | `null` | RBAC リソース名を上書き |
+| `kubetail.clusterAPI.rbac.annotations` | map | `{}` | 追加の RBAC annotation |
+| `kubetail.clusterAPI.rbac.labels` | map | `{}` | 追加の RBAC label |
+| `kubetail.clusterAPI.secret.enabled` | bool | `true` | Secret リソースを作成 |
+| `kubetail.clusterAPI.secret.name` | string | `null` | Secret 名を上書き |
+| `kubetail.clusterAPI.secret.annotations` | map | `{}` | 追加の Secret annotation |
+| `kubetail.clusterAPI.secret.labels` | map | `{}` | 追加の Secret label |
+| `kubetail.clusterAPI.service.name` | string | `null` | Service 名を上書き |
+| `kubetail.clusterAPI.service.annotations` | map | `{}` | 追加の Service annotation |
+| `kubetail.clusterAPI.service.labels` | map | `{}` | 追加の Service label |
+| `kubetail.clusterAPI.service.ports.http` | int | `8080` | Service の HTTP ポート |
+| `kubetail.clusterAPI.serviceAccount.name` | string | `null` | ServiceAccount 名を上書き |
+| `kubetail.clusterAPI.serviceAccount.annotations` | map | `{}` | 追加の ServiceAccount annotation |
+| `kubetail.clusterAPI.serviceAccount.labels` | map | `{}` | 追加の ServiceAccount label |
+
+### Cluster Agent
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `kubetail.clusterAgent.enabled` | bool | `true` | Cluster Agent コンポーネントを有効化または無効化 |
+| `kubetail.clusterAgent.runtimeConfig` | map | *see values.yaml* | Cluster Agent のランタイム設定（[Cluster Agent リファレンス](/ja/docs/reference/cluster-agent) を参照） |
+| `kubetail.clusterAgent.image.registry` | string | `"ghcr.io"` | イメージレジストリ |
+| `kubetail.clusterAgent.image.repository` | string | `"kubetail-org/kubetail-cluster-agent"` | イメージリポジトリ |
+| `kubetail.clusterAgent.image.tag` | string | *see values.yaml* | イメージタグ |
+| `kubetail.clusterAgent.image.digest` | string | `null` | イメージタグを digest で上書き |
+| `kubetail.clusterAgent.image.pullPolicy` | string | `"IfNotPresent"` | イメージの pull policy |
+| `kubetail.clusterAgent.container.name` | string | `"kubetail-cluster-agent"` | コンテナ名 |
+| `kubetail.clusterAgent.container.extraEnv` | array | `[]` | 追加の環境変数 |
+| `kubetail.clusterAgent.container.extraEnvFrom` | array | `[]` | 追加の `envFrom` ソース |
+| `kubetail.clusterAgent.container.securityContext` | map | *see values.yaml* | コンテナの security context |
+| `kubetail.clusterAgent.container.resources` | map | `{}` | CPU/メモリの request と limit |
+| `kubetail.clusterAgent.podTemplate.annotations` | map | `{}` | 追加の Pod annotation |
+| `kubetail.clusterAgent.podTemplate.labels` | map | `{}` | 追加の Pod label |
+| `kubetail.clusterAgent.podTemplate.extraContainers` | array | `[]` | 追加の sidecar container |
+| `kubetail.clusterAgent.podTemplate.securityContext` | map | `{fsGroup: 0}` | Pod の security context |
+| `kubetail.clusterAgent.podTemplate.affinity` | map | `{}` | Pod affinity ルール |
+| `kubetail.clusterAgent.podTemplate.nodeSelector` | map | `{}` | Node selector |
+| `kubetail.clusterAgent.podTemplate.tolerations` | array | *see values.yaml* | Pod toleration（master/control-plane ノードは既定で許容） |
+| `kubetail.clusterAgent.configMap.name` | string | `null` | ConfigMap 名を上書き |
+| `kubetail.clusterAgent.configMap.annotations` | map | `{}` | 追加の ConfigMap annotation |
+| `kubetail.clusterAgent.configMap.labels` | map | `{}` | 追加の ConfigMap label |
+| `kubetail.clusterAgent.daemonSet.name` | string | `null` | DaemonSet 名を上書き |
+| `kubetail.clusterAgent.daemonSet.annotations` | map | `{}` | 追加の DaemonSet annotation |
+| `kubetail.clusterAgent.daemonSet.labels` | map | `{}` | 追加の DaemonSet label |
+| `kubetail.clusterAgent.networkPolicy.enabled` | bool | `true` | NetworkPolicy リソースを作成 |
+| `kubetail.clusterAgent.networkPolicy.name` | string | `null` | NetworkPolicy 名を上書き |
+| `kubetail.clusterAgent.networkPolicy.annotations` | map | `{}` | 追加の NetworkPolicy annotation |
+| `kubetail.clusterAgent.networkPolicy.labels` | map | `{}` | 追加の NetworkPolicy label |
+| `kubetail.clusterAgent.service.name` | string | `null` | Service 名を上書き |
+| `kubetail.clusterAgent.service.annotations` | map | `{}` | 追加の Service annotation |
+| `kubetail.clusterAgent.service.labels` | map | `{}` | 追加の Service label |
+| `kubetail.clusterAgent.service.ports.grpc` | int | `50051` | Service の gRPC ポート |
+| `kubetail.clusterAgent.serviceAccount.name` | string | `null` | ServiceAccount 名を上書き |
+| `kubetail.clusterAgent.serviceAccount.annotations` | map | `{}` | 追加の ServiceAccount annotation |
+| `kubetail.clusterAgent.serviceAccount.labels` | map | `{}` | 追加の ServiceAccount label |

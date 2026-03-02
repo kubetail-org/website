@@ -1,0 +1,78 @@
+---
+title: Installation
+description: "Installez Kubetail dans votre cluster Kubernetes avec Helm ou un manifeste YAML, puis accedez au dashboard via `kubectl port-forward` ou `kubectl proxy`."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Pour executer Kubetail dans votre cluster Kubernetes, vous pouvez installer l'application et les ressources necessaires avec Helm, ou le faire manuellement avec des manifestes YAML.
+
+## Helm
+
+Pour installer Kubetail avec [helm](https://helm.sh), ajoutez d'abord le depot de charts de l'organisation Kubetail, puis installez le chart `kubetail`:
+
+```sh
+helm repo add kubetail https://kubetail-org.github.io/helm-charts/
+helm install kubetail kubetail/kubetail --namespace kubetail-system --create-namespace
+```
+
+Pour en savoir plus sur la configuration du chart Helm, consultez le fichier [values.yaml](https://github.com/kubetail-org/helm-charts/blob/main/charts/kubetail/values.yaml). Pour verifier que l'installation a fonctionne, vous pouvez inspecter les pods de l'application:
+
+```sh
+kubectl get pods -n kubetail-system
+```
+
+## Manifeste YAML
+
+Pour l'authentification basee sur le cluster, utilisez [kubetail-clusterauth.yaml](https://github.com/kubetail-org/helm-charts/releases/latest/download/kubetail-clusterauth.yaml):
+
+```sh
+kubectl apply -f https://github.com/kubetail-org/helm-charts/releases/latest/download/kubetail-clusterauth.yaml
+```
+
+Pour l'authentification basee sur un jeton, utilisez [kubetail-tokenauth.yaml](https://github.com/kubetail-org/helm-charts/releases/latest/download/kubetail-tokenauth.yaml):
+
+```sh
+kubectl apply -f https://github.com/kubetail-org/helm-charts/releases/latest/download/kubetail-tokenauth.yaml
+```
+
+Pour verifier que l'installation a fonctionne, vous pouvez inspecter les pods de l'application:
+
+```sh
+kubectl get pods -n kubetail-system
+```
+
+## Etapes suivantes
+
+Une fois que Kubetail s'execute dans votre cluster, vous pouvez y acceder avec vos methodes habituelles, comme `kubectl proxy` ou `kubectl port-forward`:
+
+* **`kubectl proxy`**
+
+  ```sh
+  kubectl proxy
+  ```
+
+  Consultez [http://localhost:8001/api/v1/namespaces/kubetail-system/services/kubetail-dashboard:8080/proxy/](http://localhost:8001/api/v1/namespaces/kubetail-system/services/kubetail-dashboard:8080/proxy/)
+
+
+* **`kubectl port-forward`**
+
+  ```sh
+  kubectl port-forward -n kubetail-system svc/kubetail-dashboard 8080:8080
+  ```
+
+  Consultez [http://localhost:8080](http://localhost:8080)
+
+Vous pouvez egalement exposer le dashboard web de Kubetail via un service ou un ingress pour en faciliter l'acces.
+
+Pour en savoir plus sur le dashboard Kubetail, consultez la documentation [ici](/fr/docs/concepts/gui-overview).
+
+<br />
+<br />
+
+<Aside type="tip">
+En plus d'executer Kubetail dans votre cluster, vous pouvez aussi l'executer dans ces environnements:
+
+* [Desktop](/fr/docs/guides/desktop/installation)
+* [Docker](/fr/docs/guides/docker/installation)
+</Aside>

@@ -1,0 +1,207 @@
+---
+title: Helm 차트 참조
+description: "Kubetail Helm 차트 참조. Kubernetes에 전체 Kubetail 스택을 배포하고, `runtimeConfig`로 각 구성 요소를 설정하며, 업그레이드와 제거를 관리합니다."
+---
+
+Kubetail Helm 차트는 전체 Kubetail 스택을 Kubernetes 클러스터에 배포합니다. 이 차트는 [https://kubetail-org.github.io/helm-charts/](https://kubetail-org.github.io/helm-charts/) 에 있는 Helm chart 저장소에 게시되며, 소스 코드는 [kubetail-org/helm-charts](https://github.com/kubetail-org/helm-charts) 저장소의 `charts/kubetail` 아래에 있습니다.
+
+이 chart는 3개의 구성 요소를 배포합니다.
+
+| Component | Kind | Description |
+|-----------|------|-------------|
+| Dashboard | Deployment | 웹 UI와 백엔드 API |
+| Cluster API | Deployment | 클러스터 작업용 GraphQL API |
+| Cluster Agent | DaemonSet | 컨테이너 로그 파일을 읽는 노드별 agent |
+
+## 설치
+
+`kubetail` Helm 저장소를 추가합니다.
+
+```sh
+helm repo add kubetail https://kubetail-org.github.io/helm-charts/
+```
+
+전용 namespace에 chart를 설치합니다.
+
+```sh
+helm install kubetail kubetail/kubetail --namespace kubetail-system --create-namespace
+```
+
+기본적으로 chart는 필요한 secret (`KUBETAIL_DASHBOARD_SESSION_SECRET`) 을 자동 생성하고 Kubernetes Secret에 저장하므로 업그레이드 후에도 유지됩니다.
+
+## 업그레이드
+
+최신 chart index를 가져온 다음 release를 업그레이드합니다.
+
+```sh
+helm repo update kubetail
+helm upgrade kubetail kubetail/kubetail --namespace kubetail-system
+```
+
+## 제거
+
+```sh
+helm uninstall kubetail --namespace kubetail-system
+```
+
+## Values
+
+### Chart
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `fullnameOverride` | string | `null` | chart가 계산한 fullname 덮어쓰기 |
+| `nameOverride` | string | `null` | chart 이름 덮어쓰기 |
+| `namespaceOverride` | string | `null` | release namespace 덮어쓰기 |
+
+### General
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `kubetail.allowedNamespaces` | array | `[]` | 모든 구성 요소를 이 namespace로 제한 |
+| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_SECRET` | string | `null` | Base64 인코딩된 dashboard session secret (`null`이면 자동 생성) |
+| `kubetail.global.annotations` | map | `{}` | 모든 리소스에 추가할 annotation |
+| `kubetail.global.labels` | map | `{}` | 모든 리소스에 추가할 label |
+
+### Dashboard
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `kubetail.dashboard.enabled` | bool | `true` | Dashboard 구성 요소 활성화 또는 비활성화 |
+| `kubetail.dashboard.authMode` | string | `"auto"` | 인증 모드 (`auto`, `token`) |
+| `kubetail.dashboard.runtimeConfig` | map | *see values.yaml* | Dashboard 런타임 설정([Dashboard 참조](/ko/docs/reference/dashboard) 참조) |
+| `kubetail.dashboard.image.registry` | string | `"ghcr.io"` | 이미지 레지스트리 |
+| `kubetail.dashboard.image.repository` | string | `"kubetail-org/kubetail-dashboard"` | 이미지 저장소 |
+| `kubetail.dashboard.image.tag` | string | *see values.yaml* | 이미지 태그 |
+| `kubetail.dashboard.image.digest` | string | `null` | 이미지 태그를 digest로 대체 |
+| `kubetail.dashboard.image.pullPolicy` | string | `"IfNotPresent"` | 이미지 pull policy |
+| `kubetail.dashboard.container.name` | string | `"kubetail-dashboard"` | 컨테이너 이름 |
+| `kubetail.dashboard.container.extraEnv` | array | `[]` | 추가 환경 변수 |
+| `kubetail.dashboard.container.extraEnvFrom` | array | `[]` | 추가 `envFrom` 소스 |
+| `kubetail.dashboard.container.securityContext` | map | *see values.yaml* | 컨테이너 security context |
+| `kubetail.dashboard.container.resources` | map | `{}` | CPU/메모리 request 및 limit |
+| `kubetail.dashboard.podTemplate.annotations` | map | `{}` | 추가 Pod annotation |
+| `kubetail.dashboard.podTemplate.labels` | map | `{}` | 추가 Pod label |
+| `kubetail.dashboard.podTemplate.extraContainers` | array | `[]` | 추가 sidecar 컨테이너 |
+| `kubetail.dashboard.podTemplate.securityContext` | map | `{}` | Pod security context |
+| `kubetail.dashboard.podTemplate.affinity` | map | `{}` | Pod affinity 규칙 |
+| `kubetail.dashboard.podTemplate.nodeSelector` | map | `{}` | Node selector |
+| `kubetail.dashboard.podTemplate.tolerations` | array | `[]` | Pod toleration |
+| `kubetail.dashboard.configMap.name` | string | `null` | ConfigMap 이름 덮어쓰기 |
+| `kubetail.dashboard.configMap.annotations` | map | `{}` | 추가 ConfigMap annotation |
+| `kubetail.dashboard.configMap.labels` | map | `{}` | 추가 ConfigMap label |
+| `kubetail.dashboard.deployment.name` | string | `null` | Deployment 이름 덮어쓰기 |
+| `kubetail.dashboard.deployment.annotations` | map | `{}` | 추가 Deployment annotation |
+| `kubetail.dashboard.deployment.labels` | map | `{}` | 추가 Deployment label |
+| `kubetail.dashboard.deployment.replicas` | int | `1` | replica 수 |
+| `kubetail.dashboard.deployment.revisionHistoryLimit` | int | `5` | revision history 한도 |
+| `kubetail.dashboard.deployment.strategy` | map | `{type: RollingUpdate}` | Deployment 업데이트 전략 |
+| `kubetail.dashboard.ingress.enabled` | bool | `false` | Ingress 리소스 생성 |
+| `kubetail.dashboard.ingress.name` | string | `null` | Ingress 이름 덮어쓰기 |
+| `kubetail.dashboard.ingress.annotations` | map | `{}` | 추가 Ingress annotation |
+| `kubetail.dashboard.ingress.labels` | map | `{}` | 추가 Ingress label |
+| `kubetail.dashboard.ingress.rules` | array | `[]` | Ingress 규칙 |
+| `kubetail.dashboard.ingress.tls` | array | `[]` | Ingress TLS 설정 |
+| `kubetail.dashboard.ingress.className` | string | `null` | Ingress class 이름 |
+| `kubetail.dashboard.rbac.name` | string | `null` | RBAC 리소스 이름 덮어쓰기 |
+| `kubetail.dashboard.rbac.annotations` | map | `{}` | 추가 RBAC annotation |
+| `kubetail.dashboard.rbac.labels` | map | `{}` | 추가 RBAC label |
+| `kubetail.dashboard.secret.enabled` | bool | `true` | Secret 리소스 생성 |
+| `kubetail.dashboard.secret.name` | string | `null` | Secret 이름 덮어쓰기 |
+| `kubetail.dashboard.secret.annotations` | map | `{}` | 추가 Secret annotation |
+| `kubetail.dashboard.secret.labels` | map | `{}` | 추가 Secret label |
+| `kubetail.dashboard.service.name` | string | `null` | Service 이름 덮어쓰기 |
+| `kubetail.dashboard.service.annotations` | map | `{}` | 추가 Service annotation |
+| `kubetail.dashboard.service.labels` | map | `{}` | 추가 Service label |
+| `kubetail.dashboard.service.ports.http` | int | `8080` | Service HTTP 포트 |
+| `kubetail.dashboard.serviceAccount.name` | string | `null` | ServiceAccount 이름 덮어쓰기 |
+| `kubetail.dashboard.serviceAccount.annotations` | map | `{}` | 추가 ServiceAccount annotation |
+| `kubetail.dashboard.serviceAccount.labels` | map | `{}` | 추가 ServiceAccount label |
+
+### Cluster API
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `kubetail.clusterAPI.enabled` | bool | `true` | Cluster API 구성 요소 활성화 또는 비활성화 |
+| `kubetail.clusterAPI.runtimeConfig` | map | *see values.yaml* | Cluster API 런타임 설정([Cluster API 참조](/ko/docs/reference/cluster-api) 참조) |
+| `kubetail.clusterAPI.image.registry` | string | `"ghcr.io"` | 이미지 레지스트리 |
+| `kubetail.clusterAPI.image.repository` | string | `"kubetail-org/kubetail-cluster-api"` | 이미지 저장소 |
+| `kubetail.clusterAPI.image.tag` | string | *see values.yaml* | 이미지 태그 |
+| `kubetail.clusterAPI.image.digest` | string | `null` | 이미지 태그를 digest로 대체 |
+| `kubetail.clusterAPI.image.pullPolicy` | string | `"IfNotPresent"` | 이미지 pull policy |
+| `kubetail.clusterAPI.container.name` | string | `"kubetail-cluster-api"` | 컨테이너 이름 |
+| `kubetail.clusterAPI.container.extraEnv` | array | `[]` | 추가 환경 변수 |
+| `kubetail.clusterAPI.container.extraEnvFrom` | array | `[]` | 추가 `envFrom` 소스 |
+| `kubetail.clusterAPI.container.securityContext` | map | *see values.yaml* | 컨테이너 security context |
+| `kubetail.clusterAPI.container.resources` | map | `{}` | CPU/메모리 request 및 limit |
+| `kubetail.clusterAPI.podTemplate.annotations` | map | `{}` | 추가 Pod annotation |
+| `kubetail.clusterAPI.podTemplate.labels` | map | `{}` | 추가 Pod label |
+| `kubetail.clusterAPI.podTemplate.extraContainers` | array | `[]` | 추가 sidecar 컨테이너 |
+| `kubetail.clusterAPI.podTemplate.securityContext` | map | `{}` | Pod security context |
+| `kubetail.clusterAPI.podTemplate.affinity` | map | `{}` | Pod affinity 규칙 |
+| `kubetail.clusterAPI.podTemplate.nodeSelector` | map | `{}` | Node selector |
+| `kubetail.clusterAPI.podTemplate.tolerations` | array | `[]` | Pod toleration |
+| `kubetail.clusterAPI.configMap.name` | string | `null` | ConfigMap 이름 덮어쓰기 |
+| `kubetail.clusterAPI.configMap.annotations` | map | `{}` | 추가 ConfigMap annotation |
+| `kubetail.clusterAPI.configMap.labels` | map | `{}` | 추가 ConfigMap label |
+| `kubetail.clusterAPI.deployment.name` | string | `null` | Deployment 이름 덮어쓰기 |
+| `kubetail.clusterAPI.deployment.annotations` | map | `{}` | 추가 Deployment annotation |
+| `kubetail.clusterAPI.deployment.labels` | map | `{}` | 추가 Deployment label |
+| `kubetail.clusterAPI.deployment.replicas` | int | `1` | replica 수 |
+| `kubetail.clusterAPI.deployment.revisionHistoryLimit` | int | `5` | revision history 한도 |
+| `kubetail.clusterAPI.deployment.strategy` | map | `{type: RollingUpdate}` | Deployment 업데이트 전략 |
+| `kubetail.clusterAPI.rbac.name` | string | `null` | RBAC 리소스 이름 덮어쓰기 |
+| `kubetail.clusterAPI.rbac.annotations` | map | `{}` | 추가 RBAC annotation |
+| `kubetail.clusterAPI.rbac.labels` | map | `{}` | 추가 RBAC label |
+| `kubetail.clusterAPI.secret.enabled` | bool | `true` | Secret 리소스 생성 |
+| `kubetail.clusterAPI.secret.name` | string | `null` | Secret 이름 덮어쓰기 |
+| `kubetail.clusterAPI.secret.annotations` | map | `{}` | 추가 Secret annotation |
+| `kubetail.clusterAPI.secret.labels` | map | `{}` | 추가 Secret label |
+| `kubetail.clusterAPI.service.name` | string | `null` | Service 이름 덮어쓰기 |
+| `kubetail.clusterAPI.service.annotations` | map | `{}` | 추가 Service annotation |
+| `kubetail.clusterAPI.service.labels` | map | `{}` | 추가 Service label |
+| `kubetail.clusterAPI.service.ports.http` | int | `8080` | Service HTTP 포트 |
+| `kubetail.clusterAPI.serviceAccount.name` | string | `null` | ServiceAccount 이름 덮어쓰기 |
+| `kubetail.clusterAPI.serviceAccount.annotations` | map | `{}` | 추가 ServiceAccount annotation |
+| `kubetail.clusterAPI.serviceAccount.labels` | map | `{}` | 추가 ServiceAccount label |
+
+### Cluster Agent
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `kubetail.clusterAgent.enabled` | bool | `true` | Cluster Agent 구성 요소 활성화 또는 비활성화 |
+| `kubetail.clusterAgent.runtimeConfig` | map | *see values.yaml* | Cluster Agent 런타임 설정([Cluster Agent 참조](/ko/docs/reference/cluster-agent) 참조) |
+| `kubetail.clusterAgent.image.registry` | string | `"ghcr.io"` | 이미지 레지스트리 |
+| `kubetail.clusterAgent.image.repository` | string | `"kubetail-org/kubetail-cluster-agent"` | 이미지 저장소 |
+| `kubetail.clusterAgent.image.tag` | string | *see values.yaml* | 이미지 태그 |
+| `kubetail.clusterAgent.image.digest` | string | `null` | 이미지 태그를 digest로 대체 |
+| `kubetail.clusterAgent.image.pullPolicy` | string | `"IfNotPresent"` | 이미지 pull policy |
+| `kubetail.clusterAgent.container.name` | string | `"kubetail-cluster-agent"` | 컨테이너 이름 |
+| `kubetail.clusterAgent.container.extraEnv` | array | `[]` | 추가 환경 변수 |
+| `kubetail.clusterAgent.container.extraEnvFrom` | array | `[]` | 추가 `envFrom` 소스 |
+| `kubetail.clusterAgent.container.securityContext` | map | *see values.yaml* | 컨테이너 security context |
+| `kubetail.clusterAgent.container.resources` | map | `{}` | CPU/메모리 request 및 limit |
+| `kubetail.clusterAgent.podTemplate.annotations` | map | `{}` | 추가 Pod annotation |
+| `kubetail.clusterAgent.podTemplate.labels` | map | `{}` | 추가 Pod label |
+| `kubetail.clusterAgent.podTemplate.extraContainers` | array | `[]` | 추가 sidecar 컨테이너 |
+| `kubetail.clusterAgent.podTemplate.securityContext` | map | `{fsGroup: 0}` | Pod security context |
+| `kubetail.clusterAgent.podTemplate.affinity` | map | `{}` | Pod affinity 규칙 |
+| `kubetail.clusterAgent.podTemplate.nodeSelector` | map | `{}` | Node selector |
+| `kubetail.clusterAgent.podTemplate.tolerations` | array | *see values.yaml* | Pod toleration(기본적으로 master/control-plane 노드 허용) |
+| `kubetail.clusterAgent.configMap.name` | string | `null` | ConfigMap 이름 덮어쓰기 |
+| `kubetail.clusterAgent.configMap.annotations` | map | `{}` | 추가 ConfigMap annotation |
+| `kubetail.clusterAgent.configMap.labels` | map | `{}` | 추가 ConfigMap label |
+| `kubetail.clusterAgent.daemonSet.name` | string | `null` | DaemonSet 이름 덮어쓰기 |
+| `kubetail.clusterAgent.daemonSet.annotations` | map | `{}` | 추가 DaemonSet annotation |
+| `kubetail.clusterAgent.daemonSet.labels` | map | `{}` | 추가 DaemonSet label |
+| `kubetail.clusterAgent.networkPolicy.enabled` | bool | `true` | NetworkPolicy 리소스 생성 |
+| `kubetail.clusterAgent.networkPolicy.name` | string | `null` | NetworkPolicy 이름 덮어쓰기 |
+| `kubetail.clusterAgent.networkPolicy.annotations` | map | `{}` | 추가 NetworkPolicy annotation |
+| `kubetail.clusterAgent.networkPolicy.labels` | map | `{}` | 추가 NetworkPolicy label |
+| `kubetail.clusterAgent.service.name` | string | `null` | Service 이름 덮어쓰기 |
+| `kubetail.clusterAgent.service.annotations` | map | `{}` | 추가 Service annotation |
+| `kubetail.clusterAgent.service.labels` | map | `{}` | 추가 Service label |
+| `kubetail.clusterAgent.service.ports.grpc` | int | `50051` | Service gRPC 포트 |
+| `kubetail.clusterAgent.serviceAccount.name` | string | `null` | ServiceAccount 이름 덮어쓰기 |
+| `kubetail.clusterAgent.serviceAccount.annotations` | map | `{}` | 추가 ServiceAccount annotation |
+| `kubetail.clusterAgent.serviceAccount.labels` | map | `{}` | 추가 ServiceAccount label |

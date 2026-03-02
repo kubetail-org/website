@@ -1,0 +1,170 @@
+---
+title: Architecture
+description: "Comment les composants de Kubetail s'assemblent — CLI, Dashboard, Cluster API et Cluster Agent — à travers les topologies de déploiement poste, cluster et Docker."
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+Kubetail est composé d'un petit nombre d'outils et de services bien ciblés. Certains sont requis; d'autres sont optionnels et débloquent des capacités supplémentaires. Cette page décrit en détail les topologies de déploiement, les pipelines de livraison des logs et les composants individuels.
+
+---
+
+## Topologies de déploiement
+
+Kubetail peut être déployé de trois manières distinctes selon votre environnement et vos besoins d'accès. Chaque topologie utilise les mêmes composants sous-jacents mais diffère dans la manière dont ils sont installés, accessibles et configurés.
+
+### Poste
+
+Dans la topologie la plus courante, la CLI `kubetail` est installée sur votre machine locale et utilise votre fichier kubeconfig pour s'authentifier auprès de vos clusters. C'est pratique parce que `kubetail` hérite des mêmes permissions RBAC que `kubectl` et vous pouvez accéder à vos logs sans effectuer d'autres modifications.
+
+Sur votre poste, l'exécution de `kubetail serve` démarre localement le Dashboard Server, qui sert l'interface du Dashboard et relaie pour vous les requêtes de logs vers l'API Kubernetes du cluster. Vous pouvez aussi utiliser `kubetail logs` pour diffuser les logs directement vers votre terminal. Aucune installation côté cluster n'est nécessaire pour commencer, mais si vous installez la Kubetail API dans votre cluster, `kubetail` l'utilisera automatiquement pour activer les fonctionnalités avancées, comme la recherche.
+
+Voir le [guide d'installation sur poste](/fr/docs/guides/desktop/installation) pour les instructions.
+
+### Cluster
+
+L'ensemble de la stack Kubetail peut être installé comme ressources Kubernetes dans votre cluster à l'aide de Helm ou de manifests YAML. Dans cette topologie, le Dashboard Server s'exécute comme un Deployment dans le namespace `kubetail-system` et est accessible depuis votre navigateur via `kubectl port-forward`, `kubectl proxy` ou une ressource ingress. C'est l'approche privilégiée pour les environnements d'équipe partagés ou lorsque vous souhaitez un accès persistant et toujours disponible sans dépendre d'une CLI locale.
+
+Voir le [guide d'installation dans le cluster](/fr/docs/guides/cluster/installation) pour les instructions.
+
+### Docker
+
+La CLI `kubetail` a été empaquetée sous forme d'image Docker ([`kubetail/kubetail-cli`](https://hub.docker.com/r/kubetail/kubetail-cli)) afin de pouvoir être exécutée dans un conteneur sans installation locale. En local, vous pouvez monter votre fichier `.kube/config` dans le conteneur et utiliser `docker run` ou `docker-compose` pour démarrer le dashboard. L'image peut aussi être déployée comme pod dans un cluster, en utilisant l'option `--in-cluster` pour s'authentifier avec les identifiants du service account du pod plutôt qu'avec un fichier kubeconfig.
+
+Voir l'[introduction à Docker](/fr/docs/guides/docker/introduction) pour plus d'informations sur les options de déploiement avec Docker.
+
+---
+
+## Pipelines de livraison des logs
+
+Par défaut, Kubetail utilise l'API Kubernetes pour récupérer les logs. Pour activer des fonctionnalités avancées comme l'horodatage du dernier événement et la recherche, vous pouvez installer la Kubetail Cluster API et le Kubetail Cluster Agent (désignés collectivement comme la "Kubetail API"). La suite décrit chaque mode plus en détail.
+
+### Kubernetes API (par défaut)
+
+Lorsqu'aucune Cluster API n'est configurée, les logs transitent par l'API Kubernetes. Par exemple, voici le chemin d'une requête entre le tableau de bord web et les fichiers sur disque via l'API Kubernetes:
+
+```
++---------------------------------+
+| Kubetail Dashboard UI (Browser) |
++---------------------------------+
+          │
+          │ GraphQL over WebSocket
+          ▼
++---------------------------------+
+| Kubetail Dashboard Server       |
++---------------------------------+
+          │
+          │ HTTP GET /api/v1/namespaces/{ns}/pods/{pod}/log
+          ▼
++---------------------------------+
+| kube-apiserver                  |
++---------------------------------+
+          │
+          │ HTTP → kubelet /containerLogs
+          ▼
++---------------------------------+
+| kubelet (node)                  |
++---------------------------------+
+          │
+          │ file read
+          ▼
++---------------------------------+
+| Pod log file (disk)             |
++---------------------------------+
+```
+
+Ce chemin fonctionne immédiatement avec n'importe quel cluster Kubernetes. Chaque vue de logs ouverte maintient une connexion HTTP longue durée entre le Dashboard Server et le kube-apiserver par conteneur en cours de tail. Le filtrage de texte est appliqué sur le Kubetail Dashboard Server au fur et à mesure de l'arrivée du flux de logs.
+
+### Kubetail API (optionnelle)
+
+Lorsque la Cluster API et le Cluster Agent sont déployés, le Kubetail Dashboard Server route les requêtes via la stack "Kubetail API". Par exemple, voici le chemin d'une requête entre le tableau de bord web et les fichiers sur disque via la Kubetail API:
+
+```
++---------------------------------+
+| Kubetail Dashboard UI (Browser) |
++---------------------------------+
+          │
+          │ GraphQL over WebSocket
+          ▼
++---------------------------------+
+| Kubetail Dashboard Server       |
++---------------------------------+
+          │
+          │ GraphQL over WebSocket
+          ▼
++---------------------------------+
+| Cluster API                     |
++---------------------------------+
+          │
+          │ gRPC - one stream per log file
+          ▼
++---------------------------------+
+| Cluster Agent (one per node)    |
++---------------------------------+
+          │
+          │ file read + inotify watches
+          ▼
++---------------------------------+
+| Pod log file (disk)             |
++---------------------------------+
+```
+
+Dans ce pipeline, les données de logs ne touchent jamais le kube-apiserver et le filtrage de texte a lieu sur le nœud avant le transfert. Le kube-apiserver n'est utilisé que pour les requêtes de métadonnées de workloads et les vérifications d'autorisation.
+
+---
+
+## Composants
+
+### Kubetail CLI
+
+La CLI `kubetail` est le principal point d'entrée de Kubetail sur le poste. L'outil est écrit en Go et embarque le Dashboard afin de pouvoir exécuter l'interface web localement. Ses deux commandes principales sont `kubetail serve`, qui démarre le serveur du Dashboard et ouvre l'interface web, et `kubetail logs`, qui diffuse les logs directement vers votre terminal. La sous-commande `kubetail cluster` gère les ressources optionnelles côté cluster en utilisant un client Helm embarqué.
+
+Voir la [référence de la CLI](/fr/docs/reference/cli) pour la liste complète des commandes et des options.
+
+### Kubetail Dashboard
+
+Le Kubetail Dashboard se compose de deux parties déployées ensemble:
+
+- **Dashboard UI** — une application monopage basée sur React, construite avec Vite et servie comme ressources statiques par le Dashboard Server. Le navigateur communique exclusivement avec le Dashboard Server via GraphQL: queries et mutations sur HTTP, et souscriptions de logs en temps réel via une connexion WebSocket persistante. Toutes les requêtes vers l'API Kubernetes ou vers les services Kubetail côté cluster transitent par le serveur.
+- **Dashboard Server** — un serveur HTTP basé sur Go qui sert les ressources statiques de l'UI, gère l'authentification et les sessions, et récupère les données de logs pour le compte du navigateur. Il prend en charge deux backends de logs: l'API Kubernetes (par défaut, sans installation supplémentaire requise) et la Kubetail API (optionnelle, si les ressources côté cluster sont installées).
+
+Voir la [référence du Dashboard](/fr/docs/reference/dashboard) pour les options de configuration.
+
+### Kubetail Cluster API
+
+La Cluster API est un serveur HTTP basé sur Go qui s'exécute comme un Deployment unique à l'intérieur du cluster. Elle expose une API GraphQL au Dashboard Server et sert de répartiteur gRPC vers les Cluster Agents présents sur chaque nœud.
+
+Lorsqu'une requête de logs arrive, la Cluster API distribue la requête aux Cluster Agents concernés, récupère leurs réponses en streaming et les fusionne en un seul flux renvoyé au Dashboard Server. Comme les données de logs circulent entièrement sur le réseau interne du cluster, elles ne touchent jamais le kube-apiserver. La Cluster API débloque aussi des capacités indisponibles en mode Kubernetes API, comme la recherche et les métadonnées de fichiers de logs (tailles, horodatages).
+
+Voir la [référence de la Cluster API](/fr/docs/reference/cluster-api) pour les options de configuration.
+
+### Kubetail Cluster Agent
+
+Le Cluster Agent est un serveur gRPC basé sur Rust qui s'exécute comme DaemonSet — un pod par nœud. C'est le seul composant Kubetail qui touche directement le système de fichiers, en lisant les fichiers de logs de conteneurs depuis `/var/log/containers` sur le nœud. Il:
+
+- surveille les fichiers de logs des pods à l'aide de notifications du système de fichiers au niveau du système d'exploitation (`inotify` sur Linux), afin de détecter les nouvelles lignes sans polling
+- diffuse les nouvelles lignes de logs vers la Cluster API en gRPC au fur et à mesure de leur écriture
+- applique un filtrage de texte basé sur ripgrep sur le nœud avant que les données ne le quittent, de sorte que seules les lignes correspondantes sont transférées
+- met en cache les résultats Kubernetes SubjectAccessReview afin d'autoriser les requêtes sans appels répétés à l'API
+
+Voir la [référence du Cluster Agent](/fr/docs/reference/cluster-agent) pour les options de configuration.
+
+---
+
+## Protocoles de communication
+
+| Lien | Protocole | Notes |
+|---|---|---|
+| Navigateur ↔ Dashboard Server | GraphQL sur WebSocket (graphql-ws) + HTTPS | Queries et souscriptions temps réel sur une seule connexion |
+| Dashboard Server ↔ kube-apiserver | HTTP/HTTPS (client-go) | Mode Kubernetes API uniquement; un flux par conteneur |
+| Dashboard Server ↔ Cluster API | gRPC sur HTTP/2 | Mode Cluster API uniquement; TLS optionnel |
+| Cluster API ↔ Cluster Agent | gRPC sur HTTP/2 | mTLS optionnel; dispatch via grpc-dispatcher-go |
+| Cluster Agent ↔ disque du nœud | E/S locale de fichiers + inotify | Pas de réseau; lecture directe de `/var/log/containers/` |
+
+<br />
+---
+<br />
+
+<Aside type="tip">
+Pour mieux comprendre les implications de performance de chaque topologie, consultez la page [Performance](/fr/docs/concepts/performance).
+</Aside>

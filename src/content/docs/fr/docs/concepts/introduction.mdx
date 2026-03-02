@@ -1,0 +1,29 @@
+---
+title: Introduction
+description: "Kubetail est un tableau de bord de logs Kubernetes en temps réel. Consultez les logs de tous les conteneurs d'un workload dans une seule chronologie, dans votre navigateur ou votre terminal."
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+**Kubetail** est un tableau de bord de logs généraliste pour Kubernetes, optimisé pour le tail en temps réel des logs sur des workloads multi-conteneurs. Avec Kubetail, vous pouvez consulter les logs de tous les conteneurs d'un workload (par exemple un Deployment ou un DaemonSet) fusionnés dans une seule chronologie, livrée à votre navigateur ou à votre terminal.
+
+Le point d'entrée principal est l'outil CLI `kubetail`, qui peut lancer un tableau de bord web local sur votre poste ou diffuser les logs bruts directement vers votre terminal. Par défaut, Kubetail utilise l'API Kubernetes de votre cluster pour récupérer les logs directement depuis celui-ci, donc il fonctionne immédiatement sans qu'il soit nécessaire de transférer les logs vers un service externe. Il suit également les événements de cycle de vie des conteneurs afin de garder votre chronologie de logs synchronisée lorsque les conteneurs démarrent, s'arrêtent ou sont remplacés. Cela permet de suivre sans rupture le parcours des requêtes lorsqu'elles passent d'un conteneur éphémère à un autre à travers les services.
+
+Pour des fonctionnalités plus avancées comme la taille des fichiers de logs, l'horodatage du dernier événement et la recherche, vous pouvez installer la **Kubetail API** dans votre cluster. Elle se compose d'un serveur API et d'un petit cluster agent exécuté sur chaque nœud (voir [Architecture](/fr/docs/concepts/architecture) pour plus de détails). Le cluster agent est écrit en Rust et conçu pour être extrêmement performant (~3MB de mémoire, ~4.00m de CPU). Kubetail prend aussi en charge plusieurs options de déploiement: vous pouvez exécuter le tableau de bord web dans votre cluster et l'exposer via un ingress, ou exécuter la CLI dans un conteneur Docker sur votre poste ou dans un cluster (voir [Topologies de déploiement](/fr/docs/concepts/architecture#deployment-topologies)).
+
+Notre objectif est de construire la plateforme de logging pour Kubernetes la plus puissante et la plus conviviale, et nous aimerions beaucoup votre aide. Si vous remarquez un bug ou avez une suggestion, merci de créer une issue GitHub ou de nous envoyer un e-mail à hello@kubetail.com.
+
+Bonne consultation de logs.
+
+<br />
+<br />
+
+<Aside type="tip">
+Si vous avez besoin d'aide ou souhaitez faire une suggestion:
+
+* Envoyez-nous un e-mail à [hello@kubetail.com](mailto:hello@kubetail.com)
+* Créez une [issue GitHub](https://github.com/kubetail-org/kubetail/issues)
+* Discutez avec nous sur [Discord](https://discord.gg/CmsmWAVkvX)
+* Rejoignez notre [Slack](https://join.slack.com/t/kubetail/shared_invite/zt-2cq01cbm8-e1kbLT3EmcLPpHSeoFYm1w)
+* Envoyez-nous un [tweet](https://x.com/kubetail)
+</Aside>

@@ -1,0 +1,66 @@
+---
+title: Visión general
+description: "Un recorrido por el dashboard web de Kubetail: navegar por workloads, abrir la consola de logs y comprobar el estado de salud de los servicios backend."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+import homePageLight from '@/assets/screenshots/light/home-page.webp';
+import homePageDark from '@/assets/screenshots/dark/home-page.webp';
+import consolePageLight from '@/assets/screenshots/light/logging-console.webp';
+import consolePageDark from '@/assets/screenshots/dark/logging-console.webp';
+import healthStatusLight from '@/assets/screenshots/light/health-status.webp';
+import healthStatusDark from '@/assets/screenshots/dark/health-status.webp';
+
+El dashboard web de Kubetail es una interfaz gráfica basada en navegador que le ofrece una vista general de sus workloads de Kubernetes y le permite seguir varios flujos de logs en tiempo real.
+
+Puede ejecutar el dashboard de dos maneras:
+
+- **En su escritorio** — use la CLI `kubetail` para iniciar un servidor de dashboard local que se autentique contra su clúster usando su archivo kubeconfig. No requiere instalación del lado del clúster. (Consulte [Ejecutar en el escritorio > Instalación](/es/docs/guides/desktop/installation))
+- **En su clúster** — despliegue el dashboard como un workload de Kubernetes usando Helm o manifiestos YAML y acceda a él mediante `kubectl port-forward`, `kubectl proxy` o un recurso de ingress. (Consulte [Ejecutar en el clúster > Instalación](/es/docs/guides/cluster/installation))
+
+---
+
+## Workloads
+
+Cuando abra el dashboard, lo primero que verá será una lista de todos sus workloads de Kubernetes:
+
+<Image src={homePageLight} alt="Kubetail dashboard home page showing a list of Kubernetes workloads" class="dark:sl-hidden" />
+<Image src={homePageDark} alt="Kubetail dashboard home page showing a list of Kubernetes workloads" class="light:sl-hidden" />
+
+Desde aquí puede:
+
+- Hacer clic en **View** junto a cualquier workload para abrir su consola de logs en una nueva pestaña
+- Seleccionar varios workloads usando sus casillas y luego hacer clic en **Open in Console** para ver sus logs combinados en una sola línea temporal
+
+---
+
+## Logs
+
+Una vez que seleccione los logs que desea ver y entre en la consola, verá un tail en tiempo real de esos logs:
+
+<Image src={consolePageLight} alt="Kubetail dashboard logging console showing web server log streams" class="dark:sl-hidden" />
+<Image src={consolePageDark} alt="Kubetail dashboard logging console showing web server log streams" class="light:sl-hidden" />
+
+El dashboard admite dos canalizaciones de entrega de logs:
+
+| Canalización                                                       | ¿Requiere instalación en el clúster? | Funciones                                                           |
+|--------------------------------------------------------------------|--------------------------------------|---------------------------------------------------------------------|
+| [Kubernetes API (Basic)](/es/docs/guides/dashboard/basic-features)     | No                                   | Tail de logs en tiempo real, filtrado básico                        |
+| [Kubetail API (Advanced)](/es/docs/guides/dashboard/advanced-features) | Sí                                   | Todas las funciones básicas + tamaños de archivos de log, marcas de tiempo del último evento y búsqueda |
+
+De forma predeterminada, el dashboard usa la canalización basada en Kubernetes API. Instalar la Kubetail API en el clúster habilita automáticamente la canalización avanzada.
+
+<Aside type="tip">
+Para ver con más detalle cómo funciona cada canalización, consulte la página de [Arquitectura](/es/docs/concepts/architecture#log-delivery-pipelines).
+</Aside>
+
+---
+
+## Estado de salud
+
+Haga clic en el punto de estado de la esquina inferior derecha para ver el estado de salud del servidor backend del dashboard, de la API de Kubernetes de su clúster y de la opcional Kubetail Cluster API:
+
+<Image src={healthStatusLight} alt="Health status dialog showing server, Kubernetes API, and Kubetail API status" class="dark:sl-hidden" />
+<Image src={healthStatusDark} alt="Health status dialog showing server, Kubernetes API, and Kubetail API status" class="light:sl-hidden" />

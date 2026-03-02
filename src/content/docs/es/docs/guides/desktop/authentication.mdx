@@ -1,0 +1,52 @@
+---
+title: Autenticación
+description: "Kubetail usa su kubeconfig local para autenticarse y hereda todos los tipos estándar de credenciales: certificados de cliente, bearer tokens, plugins exec y proveedores OIDC."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+La herramienta CLI `kubetail` usa su archivo local de **kubeconfig** para autenticarse frente a sus clústeres de Kubernetes. Los permisos dentro del clúster se gestionan mediante RBAC.
+
+---
+
+## Kubeconfig
+
+Cuando ejecuta un comando `kubetail` que requiere autenticación (por ejemplo, `kubetail serve`, `kubetail logs`), Kubetail lee su archivo kubeconfig local y usa las credenciales definidas allí para conectarse a cada context del clúster. Se admiten todos los tipos estándar de credenciales de kubeconfig:
+
+| Tipo de credencial        | Campo(s) de kubeconfig                                     |
+|---------------------------|------------------------------------------------------------|
+| Certificado / clave de cliente | `client-certificate`, `client-key`                    |
+| Bearer token              | `token`, `tokenFile`                                       |
+| Plugin de credenciales exec | `exec` (por ejemplo, `aws eks get-token`, `gke-gcloud-auth-plugin`) |
+| OIDC / auth-provider      | `auth-provider`                                            |
+
+Kubetail observa el archivo kubeconfig para detectar cambios y recoge nuevos o actualizados contexts sin necesidad de reiniciar.
+
+<Aside type="tip">
+Para usar un archivo kubeconfig distinto, puede:
+
+* usar la opción de CLI `--kubeconfig`
+* usar la opción `general.kubeconfig` en su archivo local de configuración
+* usar la variable de entorno estándar `KUBECONFIG`
+</Aside>
+
+---
+
+## Permisos RBAC
+
+`kubetail` usa los permisos del usuario del kubeconfig. Como mínimo, necesita acceso de lectura a los recursos que supervisa:
+
+| Recurso      | Grupo API | Verbos           |
+|--------------|-----------|------------------|
+| cronjobs     | batch     | get, list, watch |
+| daemonsets   | apps      | get, list, watch |
+| deployments  | apps      | get, list, watch |
+| jobs         | batch     | get, list, watch |
+| namespaces   | core      | get, list, watch |
+| nodes        | core      | get, list, watch |
+| pods         | core      | get, list, watch |
+| pods/log     | core      | get, list, watch |
+| replicasets  | apps      | get, list, watch |
+| statefulsets | apps      | get, list, watch |
+
+`kubetail` detectará automáticamente cuando un usuario solo tenga acceso a un conjunto limitado de namespaces.

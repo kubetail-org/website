@@ -1,0 +1,56 @@
+---
+title: "发布：全新基于 Rust 的集群代理"
+description: "Kubetail 集群代理已用 Rust 重写，镜像体积缩减 57%（10MB），内存占用降低 70%（约 3MB），功能保持不变。"
+date: 2025-09-26
+authors:
+  - name: Andres Morey
+    title: Lead Developer
+    url: https://github.com/amorey
+    picture: https://github.com/amorey.png
+---
+
+---
+
+**tl;dr** 我们将集群代理从 Go 迁移至 Rust，现在它更小、占用内存更少。要使用新的集群代理，只需升级到最新版本（cli/v0.8.2，helm/v0.15.2）即可。也可以在[这里](https://www.kubetail.com/demo)在线体验。
+
+---
+
+近期，我们决定将集群代理从 Go 迁移至 Rust。现在重写工作已经完成，结果是一个镜像体积缩小 57%（10MB）、内存使用减少 70%（约 3MB）、CPU 占用依然极低（约 0.1%）的集群代理。
+
+## 最初为何选择 Go
+
+Kubetail 的第一个版本设计为在集群内运行，通过 Web 浏览器向用户提供日志。该版本后端的主要职责是向 Kubernetes API 发出请求，并将响应实时转发给前端。在评估了 Python、JavaScript 等选项后，我选择了 Go，因为它得到 Kubernetes API 的良好支持，具有出色的多线程能力，并能生成快速的可执行文件和小型 Docker 镜像。
+
+下一个版本的 Kubetail 新增了能在本地运行 Web 仪表板的 `kubetail` CLI 工具。实现 CLI 工具时我再次选择了 Go，因为它有优秀的 CLI 交互库（感谢 [spf13](https://github.com/spf13)！），跨平台支持出色，最重要的是可以复用集群内仪表板使用的基于 Go 的 Web 应用。
+
+在此之前，Kubetail 只通过 Kubernetes API 获取日志。但当我想添加日志文件大小、最后事件时间戳等 Kubernetes API 未暴露的数据的新功能时，我意识到需要一个能直接访问每个节点原始日志文件的代理。虽然可以使用其他语言，但我再次选择了 Go，因为它是我最熟悉的语言，而且一直运作良好。幸运的是，Go 对 gRPC 也有很好的支持，这是代理接口的自然之选。
+
+鉴于当时应用的功能集，我对最初选择 Go 非常满意，它在桌面端和集群端都表现良好。然后我开始思考如何实现呼声最高的功能：日志搜索。
+
+## 之后为何选择 Rust
+
+开始思考日志搜索时，我就知道想用 grep 而不是全文索引，因为 grep 对大多数使用场景已经足够，也不想让用户承担维护全文索引的资源开销。与此同时，我个人用 `rg` grep 日志已有一段时间，对其速度印象深刻，在寻找 grep 解决方案时，我好奇是否能加以利用。就在这时，我发现它可以作为库使用——但有一个条件：它是用 Rust 编写的。
+
+在编写自定义代码之前，我探索了通过 `exec.Command` 将 `rg` 作为外部可执行文件、通过 stdin/stdout 交互的方案。这在基本用例下运行良好，但随着我添加时间过滤、ANSI 转义序列处理、JSON 格式行支持等自定义功能，变得越来越难以管理。于是我决定着手编写自定义日志文件 grepper。我短暂考虑过用 Go，但最终出于性能和健壮性的考虑，决定使用 `rg` 背后的库 [ripgrep](https://github.com/BurntSushi/ripgrep)，这意味着代码必须用 Rust 编写。
+
+当时我不想把整个集群代理重写成 Rust，所以研究了从 Go 调用 Rust 的方法（如 [rustgo](https://words.filippo.io/rustgo/)），最终选择将自定义 Rust 代码保留为独立可执行文件，并通过 `exec.Command` 从 Go 调用。为了让代码尽可能简单，我使用了共享的 protocol buffers 模式，并在 stdin/stdout 接口实现序列化/反序列化。
+
+搜索功能发布后，社区不断壮大，我结识了两位 Rust 经验远超我的开发者：Christopher Valerio（[freexploit](https://github.com/freexploit)）和 Giannis Karagiannis（[gikaragia](https://github.com/gikaragia)）。起初他们开始改进 Rust 代码，随着对代码库的熟悉，我们开始讨论如何消除集群代理中 Go 和 Rust 之间的阻抗不匹配。抛开搜索功能不谈，集群代理运行在集群的每个节点上，因此其性能和轻量化极为重要，这正是 Rust 大放异彩的使用场景。带着这些想法，我们召开了一次社区会议，讨论将整个代理迁移至 Rust 的构想。他们都表示非常愿意参与，于是我们说：就这么干！
+
+## 实施过程
+
+决定做出后，Christopher 和 Giannis 立即投入工作。Christopher 定义了项目的初始高层架构，并在 GitHub 上创建了一些初始 issue。随后 Giannis 加入，开始实现功能集、编写测试，并创建更多 issue 以获得其他贡献者的帮助。Giannis 仅用几周时间就实现了与基于 Go 的集群代理的功能对等，经过约一周的测试后，我们认为代码已准备好合并到 main 分支。
+
+我自己最近才开始学习 Rust，因此 Claude Code 和 Codex CLI 在帮我审查 Giannis 的 pull request 方面发挥了重要作用。他在自己那边也在使用这些聊天机器人，这是一次真正的人机协作，通过 GitHub pull request 来完成。我们拥有的一个关键优势是，代理使用定义良好的 gRPC 接口，因此我们能够复用 protocol buffers 模式，并在基于 Rust 的代理达到与基于 Go 的版本功能对等时直接切换。构建基于 Rust 的 gRPC 服务器时，我们使用了 [tonic](https://github.com/hyperium/tonic)，使用起来很直观，与基于 Go 的 gRPC 服务器相比只有少量[差异](https://github.com/kubetail-org/kubetail/pull/640)。
+
+最终结果是一个镜像体积缩小 57%（10MB）、内存使用减少 70%（约 3MB）、CPU 占用依然极低（约 0.1%）的集群代理。而且由于现在代码全部使用同一种语言编写，维护起来也方便了很多。
+
+## 未来展望
+
+我们的使命是在简单轻量的包装中为用户提供强大的日志工具，但 Kubernetes API 的日志能力有限，解锁更高级的功能需要直接访问每个节点上的原始日志文件。这正是集群代理的用武之地——它是我们接下来所有构建工作的基础。
+
+当然，用户对在集群中安装代理持谨慎态度是可以理解的。除了有用之外，代理还必须小巧、快速且安全。Rust 迁移正是我们对这些需求的回应。通过将镜像体积缩减一半以上、内存使用降低 70%，Kubetail 代理已经足够小，可以在资源最受限的环境中部署。
+
+但这只是开始。Rust 将使我们能够以最少的 CPU 和内存，实时直接处理集群内磁盘上的文件，突破可能性的边界。目前我们专注于日志，但同样的方式也适用于指标、通知和其他类型的可观测性数据。
+
+我们对接下来的工作充满期待，希望您能与我们同行。如果您认可我们的工作并希望贡献代码或作为用户分享反馈，欢迎在 [Discord](https://discord.gg/CmsmWAVkvX) 上加入我们。

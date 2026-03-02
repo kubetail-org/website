@@ -1,0 +1,62 @@
+---
+title: Konfiguration
+description: "Konfigurieren Sie die Cluster-Komponenten von Kubetail, Dashboard, Cluster API und Cluster Agent, indem Sie `runtimeConfig`-Werte im Helm-Chart ueberschreiben."
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Wenn Kubetail in einem Cluster bereitgestellt wird, wird jede Komponente, also Dashboard, Cluster API und Cluster Agent, unabhaengig ueber eine YAML-Konfigurationsdatei konfiguriert, die in den Container eingebunden wird. Das Helm-Chart verwaltet diese Dateien ueber ConfigMaps fuer Sie, aber Sie koennen jede Einstellung anpassen, indem Sie die Felder `runtimeConfig` des Charts ueberschreiben.
+
+---
+
+## Wie die Konfiguration funktioniert
+
+Jede Komponente liest ihre Konfiguration aus einer Datei, die beim Start ueber das Flag `--config` uebergeben wird:
+
+```sh
+dashboard     --config /etc/kubetail/config.yaml
+cluster-api   --config /etc/kubetail/config.yaml
+cluster-agent --config /etc/kubetail/config.yaml
+```
+
+Die Konfigurationsdatei wird aus einer ConfigMap eingebunden, die vom Helm-Chart erstellt wird. Um die Einstellungen einer Komponente anzupassen, uebergeben Sie Ihre Ueberschreibungen in Ihren Helm-Werten unter `kubetail.<component>.runtimeConfig`:
+
+```yaml
+kubetail:
+  dashboard:
+    runtimeConfig:
+      logging:
+        level: debug
+  clusterAPI:
+    runtimeConfig:
+      logging:
+        level: debug
+```
+
+<Aside type="tip">
+Alle Konfigurationsdateien unterstuetzen die Erweiterung von Umgebungsvariablen mit der Syntax `${VARIABLE_NAME}`. Das ist nuetzlich, um Secrets zur Laufzeit zu injizieren.
+</Aside>
+
+---
+
+## Dashboard
+
+Das Dashboard ist der Webserver, der die UI bereitstellt und Anfragen aus dem Browser an den Cluster weiterleitet. In der Cluster-Umgebung laeuft es als Deployment im Namespace `kubetail-system`.
+
+Die vollstaendige Konfigurationsreferenz finden Sie in der [Dashboard-Referenz](/de/docs/reference/dashboard).
+
+---
+
+## Cluster API
+
+Die Cluster API ist der Backend-Server, der Anfragen vom Dashboard an die auf jedem Knoten laufenden Cluster-Agent-Instanzen weiterleitet. Im Cluster laeuft sie als Deployment im Namespace `kubetail-system`.
+
+Die vollstaendige Konfigurationsreferenz finden Sie in der [Cluster-API-Referenz](/de/docs/reference/cluster-api).
+
+---
+
+## Cluster Agent
+
+Der Cluster Agent ist das kleine, auf Rust basierende Programm, das auf jedem Knoten laeuft und Container-Logdateien direkt aus dem Dateisystem des Knotens liest. Im Cluster laeuft er als DaemonSet im Namespace `kubetail-system`.
+
+Die vollstaendige Konfigurationsreferenz finden Sie in der [Cluster-Agent-Referenz](/de/docs/reference/cluster-agent).

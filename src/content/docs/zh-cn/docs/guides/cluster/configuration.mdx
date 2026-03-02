@@ -1,0 +1,62 @@
+---
+title: 配置
+description: "通过覆盖 Helm chart 中的 `runtimeConfig` 值来配置 Kubetail 的集群组件，包括 Dashboard、Cluster API 和 Cluster Agent。"
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+当 Kubetail 部署在集群中时，每个组件，即 Dashboard、Cluster API 和 Cluster Agent，都会通过挂载到容器中的 YAML 配置文件单独进行配置。Helm chart 会通过 ConfigMap 为您管理这些文件，但您可以通过覆盖 chart 的 `runtimeConfig` 字段来自定义任何设置。
+
+---
+
+## 配置如何工作
+
+每个组件都会在启动时通过 `--config` 标志读取配置文件：
+
+```sh
+dashboard     --config /etc/kubetail/config.yaml
+cluster-api   --config /etc/kubetail/config.yaml
+cluster-agent --config /etc/kubetail/config.yaml
+```
+
+配置文件来自 Helm chart 创建的 ConfigMap 挂载。要自定义组件设置，请在 Helm values 的 `kubetail.<component>.runtimeConfig` 下传入您的覆盖值：
+
+```yaml
+kubetail:
+  dashboard:
+    runtimeConfig:
+      logging:
+        level: debug
+  clusterAPI:
+    runtimeConfig:
+      logging:
+        level: debug
+```
+
+<Aside type="tip">
+所有配置文件都支持使用 `${VARIABLE_NAME}` 语法展开环境变量，这对于在运行时注入机密信息很有用。
+</Aside>
+
+---
+
+## Dashboard
+
+Dashboard 是承载 UI 并将浏览器请求代理到集群的 Web 服务器。在集群环境中，它作为 `kubetail-system` namespace 中的 Deployment 运行。
+
+完整配置参考请参阅 [Dashboard 参考](/zh-cn/docs/reference/dashboard)。
+
+---
+
+## Cluster API
+
+Cluster API 是后端服务器，用于将 Dashboard 的请求代理到运行在每个节点上的 Cluster Agent 实例。在集群中，它作为 `kubetail-system` namespace 中的 Deployment 运行。
+
+完整配置参考请参阅 [Cluster API 参考](/zh-cn/docs/reference/cluster-api)。
+
+---
+
+## Cluster Agent
+
+Cluster Agent 是一个运行在每个节点上的小型 Rust 程序，它直接从节点文件系统读取容器日志文件。在集群中，它作为 `kubetail-system` namespace 中的 DaemonSet 运行。
+
+完整配置参考请参阅 [Cluster Agent 参考](/zh-cn/docs/reference/cluster-agent)。

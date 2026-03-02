@@ -1,0 +1,187 @@
+---
+title: クイックスタート
+description: "Kubetail CLI をインストールすれば、数分で Kubernetes ログの tail を始められます。`kubetail serve` で Web ダッシュボードを起動することも、ターミナルへ直接ストリームすることもできます。"
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+## インストール
+
+`kubetail` CLI ツールは、デスクトップで Kubetail を使うための主要なエントリーポイントです。インストールには、お好みのパッケージマネージャーを使用できます。
+
+<Tabs syncKey="os">
+    <TabItem label="macOS">
+        **Homebrew**
+        ```sh
+        brew install kubetail
+        ```
+
+        **Krew**
+        ```sh
+        kubectl krew install kubetail
+        ```
+
+        **MacPorts**
+        ```sh
+        sudo port install kubetail
+        ```
+
+        **Nix (Flake)**
+        ```sh
+        nix profile add github:kubetail-org/kubetail-nix
+        ```
+
+        **Nix (Classic)**
+        ```sh
+        nix-env -i -f https://github.com/kubetail-org/kubetail-nix/archive/refs/heads/main.tar.gz
+        ```
+
+        **asdf**
+        ```sh
+        asdf plugin add kubetail https://github.com/kubetail-org/asdf-kubetail.git
+        asdf install kubetail latest
+        ```
+    </TabItem>
+    <TabItem label="Linux">
+        **Homebrew**
+        ```sh
+        brew install kubetail
+        ```
+
+        **Krew**
+        ```sh
+        kubectl krew install kubetail
+        ```
+
+        **Snap**
+        ```sh
+        sudo snap install kubetail
+        ```
+
+        **Ubuntu/Mint (apt)**
+        ```sh
+        sudo add-apt-repository ppa:kubetail/kubetail
+        sudo apt update && sudo apt install kubetail-cli
+        ```
+
+        **Fedora/CentOS/RHEL/Amazonlinux/Mageia (copr)**
+        ```sh
+        dnf copr enable kubetail/kubetail
+        dnf install kubetail
+        ```
+
+        **SUSE (zypper)**
+        ```sh
+        zypper addrepo 'https://download.opensuse.org/repositories/home:/kubetail/$releasever/' kubetail
+        zypper refresh && zypper install kubetail-cli
+        ```
+
+        **Alpine (apk)**
+        ```sh
+        apk add kubetail --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing
+        ```
+
+        **Arch (AUR)**
+        ```sh
+        yay -S --noconfirm kubetail-cli
+        ```
+
+        **Gentoo (GURU)**
+        ```sh
+        ACCEPT_KEYWORDS="~$(portageq envvar ARCH)" emerge dev-util/kubetail
+        ```
+
+        **Nix (Flake)**
+        ```sh
+        nix profile add github:kubetail-org/kubetail-nix
+        ```
+
+        **Nix (Classic)**
+        ```sh
+        nix-env -i -f https://github.com/kubetail-org/kubetail-nix/archive/refs/heads/main.tar.gz
+        ```
+
+        **asdf**
+        ```sh
+        asdf plugin add kubetail https://github.com/kubetail-org/asdf-kubetail.git
+        asdf install kubetail latest
+        ```
+    </TabItem>
+    <TabItem label="Windows">
+        **Winget**
+        ```sh
+        winget install kubetail
+        ```
+
+        **Krew**
+        ```sh
+        krew install kubetail
+        ```
+
+        **Chocolatey**
+        ```sh
+        choco install kubetail
+        ```
+
+        **Scoop**
+        ```sh
+        scoop install kubetail
+        ```
+    </TabItem>
+</Tabs>
+
+<br />
+---
+
+リリース済みの[バイナリ](https://github.com/kubetail-org/kubetail/releases/latest)をダウンロードするか、インストールスクリプトを使うこともできます。
+
+```sh
+curl -sS https://www.kubetail.com/install.sh | bash
+```
+---
+
+## 使い方
+
+インストールが終われば、すぐにログの tail を始められます。`kubetail` CLI ツールは認証に kubeconfig ファイルを使うため、`kubectl` と同じクラスターにアクセスできます。すべてのコマンド一覧は [CLI リファレンス](/ja/docs/reference/cli) を参照してください。
+
+* **Web ダッシュボード**
+
+    [`serve`](/ja/docs/reference/cli#kubetail-serve) コマンドを使って Web ダッシュボードを起動します（[http://localhost:7500](http://localhost:7500) で開きます）:
+
+    ```sh
+    kubetail serve
+    ```
+
+* **ターミナル**
+
+    [`logs`](/ja/docs/reference/cli#kubetail-logs) コマンドを使ってログをターミナルへ直接ストリームします:
+
+    ```sh
+    kubetail logs -f deployments/my-app
+    ```
+
+* **設定**
+
+    [`config init`](/ja/docs/reference/cli#kubetail-config) コマンドを使って、`~/.kubetail/config.yaml` にローカル設定ファイルを作成します:
+
+    ```sh
+    kubetail config init
+    ```
+
+* **高度な機能**
+
+    [`cluster install`](/ja/docs/reference/cli#kubetail-cluster) コマンドでクラスター側のリソースをインストールし、検索などの高度な機能を有効にします:
+
+    ```sh
+    kubetail cluster install
+    ```
+
+<br />
+<br />
+
+<Aside type="tip">
+Kubetail はデスクトップだけでなく、次の環境でも実行できます。
+
+* [Cluster](/ja/docs/guides/cluster/installation)
+* [Docker](/ja/docs/guides/docker/installation)
+</Aside>

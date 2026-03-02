@@ -1,0 +1,42 @@
+---
+title: Merci, OCV
+description: "Kubetail a rejoint le programme Catalyst d'Open Core Ventures — un mentorat de 12 semaines qui a aidé à faire évoluer le projet d'un projet passion vers un effort communautaire."
+date: 2025-07-30
+authors:
+  - name: Andres Morey
+    title: Lead Developer
+    url: https://github.com/amorey
+    picture: https://github.com/amorey.png
+---
+
+Si nous réussissons notre mission de construire une nouvelle couche de logging pour Kubernetes qui fonctionne dans chaque cluster, ce sera en grande partie grâce à [Open Core Ventures](https://www.opencoreventures.com/) (OCV) et à leur programme [Catalyst](https://www.opencoreventures.com/blog/announcing-the-ocv-open-source-project-sponsorship-program) dirigé par Alex Smith.
+
+OCV est une société de capital-risque fondée par Sid Sijbandij (cofondateur de GitLab) qui finance des entreprises open source en phase initiale fondées sur les principes [Open Core](https://www.opencoreventures.com/open-core). Dans le cadre de leurs efforts de sensibilisation à l'open source, ils ont lancé un programme appelé Catalyst qui offre une petite bourse et beaucoup de mentorat aux mainteneurs de projets open source souhaitant développer leurs projets. Au cours de 12 semaines, ils vous apprennent à construire une communauté open source et à commercialiser efficacement votre produit afin qu'il puisse croître et trouver sa traction. Kubetail a récemment participé au programme, et pour nous ce fut un [changement de jeu](https://www.opencoreventures.com/blog/creator-of-kubetail-and-yc-alum-open-source-is-having-its-internet-moment).
+
+## Avant
+
+Avant de travailler sur Kubetail, j'ai cofondé une startup appelée [Octopart](https://octopart.com) qui faisait partie du batch W07 de Y Combinator. En tant que startup, nous ne nous en sommes pas trop mal sortis, alors quand j'ai commencé à travailler sur Kubetail, j'ai suivi une approche similaire : je me suis concentré sur la construction d'un MVP et dès qu'il fut prêt, je l'ai posté sur Hacker News (HN). Heureusement, le post a atteint la première page pendant quelques heures et nous avons terminé avec quelques centaines d'étoiles GitHub et un petit nombre d'utilisateurs réels (~10).
+
+Ensuite, Kubetail est entré dans le [Creux du Désespoir](https://x.com/paulg/status/1316661104911806465). C'est la partie de la courbe d'une startup après votre lancement initial quand le buzz retombe et que vous vous retrouvez avec une poignée d'utilisateurs, aucune validation externe, et seulement votre optimisme intérieur pour vous maintenir à flot. Je n'étais pas étranger au creux, alors j'ai fait ce que j'avais fait précédemment et j'ai juste mis la tête dans le travail et continué à coder.
+
+Pendant cette période, je me suis concentré sur la mise à disposition de notre MVP (le [Tableau de bord Kubetail](https://github.com/kubetail-org/kubetail/tree/d095230347832643152df5d38dc5de3f3741ebe3)) de manière aussi simple que possible. En réponse aux retours de quelques premiers utilisateurs, j'ai modifié l'architecture pour qu'il puisse s'exécuter sur le bureau d'un utilisateur en plus de fonctionner dans le cluster. Je me suis également concentré sur la facilitation de la recherche et du téléchargement de l'application via Homebrew et d'autres référentiels de packages. Et en arrière-plan, je me suis concentré sur l'implémentation de notre fonctionnalité la plus demandée, la recherche.
+
+Pendant plus d'un an, j'ai travaillé seul tandis que la croissance du projet stagnait. Puis j'ai reçu un e-mail inattendu de OCV qui a conduit à notre acceptation dans le programme de parrainage Catalyst qui a tout changé.
+
+## Catalyst
+
+En tant que participant au Catalyst, j'ai reçu un mentorat pratique d'Alex et de l'équipe OCV qui s'est avéré inestimable pour moi en tant que quelqu'un ayant des compétences techniques mais sans aucune expérience en construction de communauté ou en gestion d'un projet open source. Avec l'aide de Catalyst, j'ai modifié ma routine de pur codage pour équilibrer le développement avec l'engagement communautaire et le soutien aux contributeurs.
+
+Avant de faire Catalyst, Kubetail n'avait aucune communauté. Nous avions un serveur Discord mais j'étais le seul dedans, travaillant seul chaque jour. Ensuite, Alex m'a guidé semaine après semaine en suggérant des choses sur lesquelles me concentrer et de nouvelles choses à essayer. Avec son aide, Kubetail est passé d'environ 300 étoiles à plus de 1 300 en l'espace de 12 semaines. Et encore plus significativement, la communauté a décollé. Avant Catalyst, nous avions 3 contributeurs et aucun utilisateur sur Discord. Maintenant nous avons 35 contributeurs et une communauté Discord dynamique avec 61 membres.
+
+Pendant Catalyst, tout s'est mis en place et nous étions enfin prêts à lancer notre fonctionnalité de recherche de logs, mais cette fois avec une communauté derrière nous et le mentorat d'OCV pour nous aider à promouvoir la fonctionnalité auprès de nouveaux utilisateurs. Cette fois quand nous avons annoncé la fonctionnalité, Kubetail s'est retrouvé sur la première page de HN pendant plus d'un jour et a été vu par des dizaines de milliers d'utilisateurs sur Reddit et Twitter. Cela s'est traduit par une augmentation des téléchargements mensuels de moins de 100 à plus de 400 et a transformé Kubetail d'un petit projet passion en une entreprise ambitieuse portée par la communauté. Le moment fort de Catalyst pour moi s'est produit aux alentours de cette époque quand j'ai pu partager notre étape de 1 000 étoiles GitHub avec un nouveau mainteneur Kubetail ([rxinui](https://github.com/rxinui)) et le reste de notre communauté.
+
+![Célébration Discord](../../../../assets/blog/1000-stars-discord-celebration.png)
+
+## En avant
+
+Je ne me fais aucune illusion sur la difficulté du chemin à parcourir. Nous travaillons sur un problème technique difficile et nous opérons dans un espace avec de nombreuses entreprises bien financées comme Datadog, Grafana, New Relic et ClickHouse qui ont déjà l'attention de la plupart de nos utilisateurs potentiels. De plus, les utilisateurs s'attendent déjà à beaucoup de fonctionnalités des outils d'observabilité, nous aurons donc besoin de nombreux ingénieurs talentueux pour accomplir le travail, et pour cela nous avons besoin de ressources que nous n'avons pas encore trouvé comment obtenir.
+
+Cependant, je n'ai jamais été aussi optimiste quant à nos chances de succès. Chaque fois que j'apprends quelque chose de nouveau d'un de nos contributeurs expérimentés ou que je vois à quel point nos jeunes contributeurs sont enthousiastes quand l'un de leurs pull requests est fusionné, cela m'énergise. Chaque fois que je révise un pull request d'un utilisateur résolvant son propre problème ou que j'engage une conversation avec quelqu'un à propos d'une nouvelle fonctionnalité, cela me rend encore plus confiant que j'ai choisi la meilleure façon de construire un produit — ensemble en tant que partie d'une communauté open source.
+
+Pour moi, un projet open source est comme une marmite qui peut produire des produits de haute qualité que les utilisateurs adorent utiliser et qui sont bons pour eux aussi. Mais bien sûr, l'ingrédient magique derrière chaque produit est la communauté, et quand il s'agit de la communauté de Kubetail, je dois ici donner un grand merci à Alex et au reste de l'équipe OCV.

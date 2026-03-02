@@ -1,0 +1,105 @@
+---
+title: Ingress
+description: "Kubernetes Ingress를 사용해 Kubetail Dashboard를 클러스터 외부로 노출합니다. Traefik, HTTP Basic 인증, cert-manager를 통한 TLS 예제가 포함됩니다."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Kubetail을 클러스터에 설치하면 기본적으로 Dashboard는 `kubectl port-forward` 또는 `kubectl proxy`를 통해 접근할 수 있습니다. 로컬 프록시 명령을 실행하지 않고도 지속적이고 브라우저 친화적인 접근을 원한다면 Kubernetes Ingress 리소스를 사용해 노출할 수도 있습니다.
+
+---
+
+## 개요
+
+Helm chart에는 Dashboard용 Ingress 리소스를 생성하는 기본 지원이 포함되어 있습니다. 기본적으로 비활성화되어 있지만 chart values를 사용해 활성화하고 설정할 수 있습니다.
+
+Dashboard Service는 클러스터 내부에서 포트 `8080`을 수신 대기합니다. Ingress 컨트롤러는 해당 포트로 트래픽을 라우팅해야 합니다.
+
+---
+
+## Ingress 활성화
+
+Ingress를 활성화하려면 `kubetail.dashboard.ingress.enabled`를 `true`로 설정하고 최소 하나의 규칙을 구성하세요.
+
+```yaml
+kubetail:
+  dashboard:
+    ingress:
+      enabled: true
+      name: kubetail
+      annotations:
+        traefik.ingress.kubernetes.io/router.middlewares: kubetail-system-kubetail-auth@kubernetescrd
+      className: traefik
+      rules:
+        - host: kubetail.example.com
+          http:
+            paths:
+              - path: /
+                pathType: Prefix
+```
+
+그런 다음 해당 values를 release에 적용합니다.
+
+```sh
+helm upgrade kubetail kubetail/kubetail \
+  --namespace kubetail-system \
+  --values values.yaml
+```
+
+---
+
+## TLS 종료
+
+HTTPS를 활성화하려면 인증서가 들어 있는 Secret을 참조하는 `tls` 블록을 추가하세요.
+
+```yaml
+kubetail:
+  dashboard:
+    ingress:
+      enabled: true
+      className: nginx
+      rules:
+        - host: kubetail.example.com
+          http:
+            paths:
+              - path: /
+                pathType: Prefix
+                backend:
+                  service:
+                    name: kubetail-dashboard
+                    port:
+                      number: 8080
+      tls:
+        - hosts:
+            - kubetail.example.com
+          secretName: kubetail-tls
+```
+
+[cert-manager](https://cert-manager.io)를 사용 중이라면 적절한 annotation을 Ingress에 추가해 인증서 발급을 자동화할 수 있습니다.
+
+```yaml
+kubetail:
+  dashboard:
+    ingress:
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+```
+
+<Aside type="tip">
+Dashboard를 HTTPS로 제공할 때는 Dashboard의 `runtimeConfig`에서 `session.cookie.secure: true`를 설정해 세션 쿠키가 보안 연결에서만 전송되도록 하세요.
+
+```yaml
+kubetail:
+  dashboard:
+    runtimeConfig:
+      session:
+        cookie:
+          secure: true
+```
+</Aside>
+
+---
+
+<Aside>
+Ingress로 노출되는 것은 Dashboard뿐입니다. Cluster API와 Cluster Agent는 클러스터 내부 네트워크를 통해 통신하므로 외부 노출이 필요하지 않습니다.
+</Aside>

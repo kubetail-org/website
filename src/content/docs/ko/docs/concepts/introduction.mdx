@@ -1,0 +1,29 @@
+---
+title: 소개
+description: "Kubetail은 Kubernetes용 실시간 로그 대시보드입니다. 하나의 워크로드에 포함된 모든 컨테이너의 로그를 브라우저나 터미널에서 단일 타임라인으로 tail 할 수 있습니다."
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+**Kubetail**은 Kubernetes용 범용 로그 대시보드로, 멀티 컨테이너 워크로드 전반의 로그를 실시간으로 tail 하는 데 최적화되어 있습니다. Kubetail을 사용하면 하나의 워크로드(예: Deployment 또는 DaemonSet)에 포함된 모든 컨테이너의 로그를 하나의 시간순 타임라인으로 합쳐 브라우저나 터미널에서 볼 수 있습니다.
+
+주요 진입점은 `kubetail` CLI 도구입니다. 이 도구는 데스크톱에서 로컬 웹 대시보드를 실행하거나 원시 로그를 터미널로 직접 스트리밍할 수 있습니다. 기본적으로 Kubetail은 클러스터의 Kubernetes API를 사용해 로그를 클러스터에서 직접 가져오기 때문에, 외부 서비스로 로그를 전달하지 않아도 바로 사용할 수 있습니다. 또한 컨테이너 라이프사이클 이벤트를 추적해 컨테이너가 시작되거나 중지되거나 교체되어도 로그 타임라인이 계속 동기화되도록 유지합니다. 덕분에 요청이 서비스 간을 오가며 한 에페메럴 컨테이너에서 다른 컨테이너로 이동하는 과정을 끊김 없이 따라갈 수 있습니다.
+
+로그 파일 크기, 마지막 이벤트 타임스탬프, 검색 같은 더 고급 기능을 원한다면 클러스터에 **Kubetail API**를 설치할 수 있습니다. 이 API는 API 서버와 각 노드에서 실행되는 작은 Cluster Agent로 구성됩니다(자세한 내용은 [아키텍처](/ko/docs/concepts/architecture)를 참고하세요). Cluster Agent는 Rust로 작성되었고 매우 높은 성능을 목표로 설계되었습니다(메모리 약 3MB, CPU 약 4.00m). Kubetail은 여러 배포 옵션도 지원합니다. 웹 대시보드를 클러스터 내부에서 실행하고 ingress로 노출할 수도 있고, CLI를 Docker 컨테이너로 데스크톱이나 클러스터 내부에서 실행할 수도 있습니다([배포 토폴로지](/ko/docs/concepts/architecture#deployment-topologies) 참고).
+
+우리의 목표는 Kubernetes를 위한 가장 강력하고 사용하기 쉬운 로깅 플랫폼을 만드는 것입니다. 함께해 주시면 좋겠습니다. 버그를 발견하거나 제안이 있다면 GitHub Issue를 만들거나 hello@kubetail.com으로 메일을 보내 주세요.
+
+즐겁게 로그를 tail 하세요.
+
+<br />
+<br />
+
+<Aside type="tip">
+도움이 필요하거나 제안하고 싶은 내용이 있다면:
+
+* [hello@kubetail.com](mailto:hello@kubetail.com)으로 이메일 보내기
+* [GitHub Issue](https://github.com/kubetail-org/kubetail/issues) 만들기
+* [Discord](https://discord.gg/CmsmWAVkvX)에서 대화하기
+* [Slack](https://join.slack.com/t/kubetail/shared_invite/zt-2cq01cbm8-e1kbLT3EmcLPpHSeoFYm1w) 참여하기
+* [tweet](https://x.com/kubetail) 보내기
+</Aside>

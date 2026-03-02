@@ -1,0 +1,24 @@
+---
+title: "Presentamos: búsqueda de logs en tiempo real para Kubernetes"
+description: "Kubetail ahora soporta búsqueda de logs en tiempo real impulsada por ripgrep. Instala el agente de clúster de Kubetail para hacer grep de los logs de contenedores en el nodo antes de que ningún dato salga de tu clúster."
+date: 2025-05-01
+authors:
+  - name: Andres Morey
+    title: Lead Developer
+    url: https://github.com/amorey
+    picture: https://github.com/amorey.png
+---
+
+Desde que Kubetail se lanzó el año pasado, la funcionalidad más solicitada ha sido la búsqueda en logs. Ahora me alegra decir que por fin tenemos búsqueda de logs disponible en nuestra última release oficial (cli/v0.4.3, helm/v0.10.1). Puedes verla en acción aquí:
+
+[https://www.kubetail.com/demo](https://www.kubetail.com/demo)
+
+Implementar la búsqueda llevó tiempo porque la API de Kubernetes no la soporta de forma nativa, así que tuvimos que construir la funcionalidad desde cero. Consideramos implementarla rápidamente usando grep en el lado del cliente, pero eso no habría sido una buena experiencia de usuario, ya que cada búsqueda podría haber desencadenado una descarga completa de muchos archivos de log, lo que habría sido lento y consumiría mucho ancho de banda. Hay formas de evitarlo, pero habría requerido más intervención del usuario, lo que tampoco es una buena experiencia.
+
+En cambio, implementamos la búsqueda creando un ejecutable personalizado basado en Rust que envuelve [ripgrep](https://github.com/BurntSushi/ripgrep). ¿Por qué Rust? Porque es increíblemente rápido. La mayor parte del backend de Kubetail está escrita en Go, pero para este componente de bajo nivel que lee archivos de log en disco queríamos que fuera lo más rápido posible. El resultado: un escaneo completo de un archivo de 1GB tarda ~250ms. En cada consulta, el ejecutable escanea únicamente los archivos de log del contenedor relevantes en cada nodo y transmite de vuelta solo las líneas que coinciden a tu navegador. La mayoría de las consultas pueden detenerse antes de tiempo, lo que significa que pueden incluso devolver resultados antes de completar el escaneo. Puedes pensar en la búsqueda de Kubetail como un "grep remoto" para tus logs de Kubernetes. Ya no necesitas descargar un archivo de log entero solo para hacer grep localmente.
+
+Para habilitar la búsqueda, necesitas instalar los "Cluster Resources" de Kubetail en tu clúster. Esto se puede hacer fácilmente haciendo clic en "Install" desde la interfaz gráfica o ejecutando `kubetail cluster install` desde la CLI. Esta acción desplegará un Kubetail Cluster Agent en cada nodo, así como una instancia de la Kubetail Cluster API. Cuando la Cluster API esté disponible, el dashboard la usará para acceder a las funcionalidades personalizadas de Kubetail, como la búsqueda en los nodos. En caso contrario, el dashboard deshabilitará esas funcionalidades en la interfaz gráfica y usará la API de Kubernetes como alternativa.
+
+Apenas estamos comenzando con la búsqueda en logs y hay mucho margen para mejorarla. Si eres un hacker de Rust, Go o React, o un diseñador de UI al que le apasionan los logs, ven a ayudarnos a construir la plataforma de logging de código abierto más amigable para Kubernetes. ¡Únete a nuestra comunidad en [Discord](https://discord.gg/CmsmWAVkvX)!
+
+Andres

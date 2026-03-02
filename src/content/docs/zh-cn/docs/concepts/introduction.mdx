@@ -1,0 +1,29 @@
+---
+title: 简介
+description: "Kubetail 是一个面向 Kubernetes 的实时日志仪表板。您可以在浏览器或终端中，以单一时间线的形式 tail 一个工作负载中所有容器的日志。"
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+**Kubetail** 是一个面向 Kubernetes 的通用日志仪表板，专门针对多容器工作负载的实时日志 tail 场景进行了优化。借助 Kubetail，您可以将一个工作负载（例如 Deployment 或 DaemonSet）中所有容器的日志合并到一条按时间顺序排列的时间线上，并在浏览器或终端中查看。
+
+它的主要入口是 `kubetail` CLI 工具。该工具既可以在桌面端启动本地 Web 仪表板，也可以将原始日志直接流式输出到终端。默认情况下，Kubetail 使用集群的 Kubernetes API 直接从集群中获取日志，因此开箱即用，无需先将日志转发到外部服务。它还会跟踪容器生命周期事件，以便在容器启动、停止或被替换时保持日志时间线同步。这使得您能够无缝跟踪请求如何在不同服务之间、从一个短生命周期容器流转到另一个短生命周期容器。
+
+如果您需要更高级的功能，例如日志文件大小、最后事件时间戳和搜索，可以在集群中安装 **Kubetail API**。它由一个 API 服务器和运行在每个节点上的一个小型 Cluster Agent 组成（详情见[架构](/zh-cn/docs/concepts/architecture)）。Cluster Agent 使用 Rust 编写，目标是实现极高性能（约 3MB 内存、约 4.00m CPU）。Kubetail 还支持多种部署方式: 您可以在集群中运行 Web 仪表板并通过 ingress 暴露出来，也可以在桌面端或集群内部通过 Docker 容器运行 CLI（参见[部署拓扑](/zh-cn/docs/concepts/architecture#deployment-topologies)）。
+
+我们的目标是构建面向 Kubernetes、最强大且最易用的日志平台，也非常希望得到您的帮助。如果您发现 bug 或有建议，请创建 GitHub Issue，或发邮件至 hello@kubetail.com。
+
+祝您 tail 日志愉快。
+
+<br />
+<br />
+
+<Aside type="tip">
+如果您需要帮助或想提出建议:
+
+* 发邮件至 [hello@kubetail.com](mailto:hello@kubetail.com)
+* 创建一个 [GitHub Issue](https://github.com/kubetail-org/kubetail/issues)
+* 在 [Discord](https://discord.gg/CmsmWAVkvX) 上与我们交流
+* 加入我们的 [Slack](https://join.slack.com/t/kubetail/shared_invite/zt-2cq01cbm8-e1kbLT3EmcLPpHSeoFYm1w)
+* 给我们发一条 [tweet](https://x.com/kubetail)
+</Aside>

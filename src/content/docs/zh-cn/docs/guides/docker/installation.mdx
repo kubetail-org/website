@@ -1,0 +1,66 @@
+---
+title: 安装
+description: "从 Docker Hub (`kubetail/kubetail-cli`) 或 GHCR 拉取 `kubetail-cli` 镜像，以便在不进行本地安装的情况下在容器中运行 Kubetail CLI。"
+---
+
+如果要在容器中运行 Kubetail CLI 工具 (`kubetail`)，可以使用 Docker 镜像 [`kubetail-cli`](https://hub.docker.com/r/kubetail/kubetail-cli)。该镜像会在每次发布时同步发布到 Docker Hub 和 GitHub Container Registry：
+
+| Registry | Image |
+|----------|-------|
+| Docker Hub | `kubetail/kubetail-cli` |
+| GHCR | `ghcr.io/kubetail-org/kubetail-cli` |
+
+有两个变体可用：
+
+| 标签后缀 | 基础镜像 | 说明 |
+|----------|----------|------|
+| _(无)_ | `scratch` | 最小镜像，占用最小 |
+| `-alpine` | `alpine` | 包含 shell 和标准工具 |
+
+## Docker Run
+
+如果要通过 `docker run` 在本地使用 CLI 工具，需要将本地 `.kube/config` 文件挂载到 `kubetail-cli` 容器中：
+
+```sh
+docker run --rm -it \
+  -v ~/.kube/config:/root/.kube/config:ro \
+  kubetail/kubetail-cli logs \
+  --kubeconfig /root/.kube/config \
+  -f \
+  deployments/my-app
+```
+
+您也可以使用 `sh` 入口点启动一个交互式会话：
+
+```sh
+docker run --rm -it \
+  -v ~/.kube/config:/root/.kube/config:ro \
+  --entrypoint sh \
+  kubetail/kubetail-cli
+```
+
+## Docker Compose
+
+如果要通过 `docker-compose` 在本地使用 CLI 工具，可以从这个配置文件 [docker-compose.yml](https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/docker-compose.yml) 开始：
+
+```sh
+curl -LO https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/docker-compose.yml
+docker-compose up
+```
+
+这会将本地 `.kube/config` 文件挂载到 `kubetail-cli` 容器中，并在 [http://localhost:7500](http://localhost:7500) 启动仪表板服务器。
+
+## Kubernetes Pod
+
+如果要在集群内部使用 CLI 工具，可以从这个清单 [`kubetail-cli-pod.yaml`](https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/kubetail-cli-pod.yaml) 开始：
+
+```sh
+kubectl add -f https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/kubetail-cli-pod.yaml
+```
+
+这会在默认 namespace 中启动一个 `kubetail-cli` 容器，并可访问同一 namespace 中的 Pod 日志。Pod 运行后，您可以通过 `exec` 进入容器，并使用 `--in-cluster` 标志运行 CLI 命令：
+
+```sh
+kubectl exec -it kubetail-cli -- sh
+# ./kubetail logs --in-cluster -f deployments/my-app
+```

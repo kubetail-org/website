@@ -1,0 +1,483 @@
+---
+title: CLI リファレンス
+description: "Kubetail CLI リファレンス。`serve`、`logs`（ソース、フィルター、時間範囲）、`cluster`（install/upgrade/uninstall/repo）、`config init`、設定ファイル形式を扱います。"
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+`kubetail` CLI は、デスクトップ環境で Kubetail を使うための主要なエントリーポイントです。Web ダッシュボードの起動、ターミナルへのログのストリーミング、クラスタ内の Kubetail リソース管理に利用できます。
+
+## グローバルフラグ
+
+これらのフラグはすべてのコマンドで利用できます。
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--kubeconfig` | | kubeconfig ファイルへのパス |
+| `--in-cluster` | `false` | In-Cluster Kubernetes 設定を使用 |
+| `-c, --config` | `~/.kubetail/config.yaml` | 設定ファイルへのパス |
+
+## コマンド
+
+### `kubetail serve`
+
+dashboard server を起動し、標準ブラウザーで Web UI を開きます。
+
+```sh
+kubetail serve [flags]
+```
+
+**フラグ**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-p, --port` | `7500` | 待ち受けポート番号 |
+| `--host` | `localhost` | バインドするホストアドレス |
+| `-l, --log-level` | `info` | ログレベル (`debug`, `info`, `warn`, `error`, `disabled`) |
+| `--skip-open` | `false` | ブラウザーを開かない |
+
+**例**
+
+```sh
+# dashboard を起動する（http://localhost:7500 で開く）
+kubetail serve
+
+# カスタムポートを使う
+kubetail serve --port 8080
+
+# ブラウザーを開かずに起動する
+kubetail serve --skip-open
+```
+
+---
+
+### `kubetail logs`
+
+コンテナ、または複数の workload container のログを取得します。
+
+```sh
+kubetail logs [source1] [source2] ... [flags]
+```
+
+**ソース**
+
+ソースは、どの Pod やコンテナからログをストリーミングするかを指定します。ソースは次の構文を使用します。
+
+```
+[namespace:]<resource>[/name[/container]]
+```
+
+| Example | Description |
+|---------|-------------|
+| `web-abc123` | default namespace にある `web-abc123` という Pod |
+| `deployments/web` | default namespace にある `web` Deployment |
+| `deployments/*` | default namespace にあるすべての Deployment |
+| `deployments/web/container1` | Deployment 内の特定コンテナ |
+| `deployments/web/*` | Deployment 内のすべてのコンテナ |
+| `frontend:web-abc123` | `frontend` namespace にある Pod |
+| `frontend:deployments/web` | `frontend` namespace にある Deployment |
+
+複数のソースを指定できます。
+
+```sh
+kubetail logs <source1> <source2>
+```
+
+**フラグ**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--kube-context` | | 使用する kubeconfig context |
+| `-h, --head[=N]` | `10` | 先頭 N 件のレコードを返す |
+| `-t, --tail[=N]` | `10` | 末尾 N 件のレコードを返す |
+| `--all` | `false` | すべてのレコードを返す |
+| `-f, --follow` | `false` | 新しいレコードをストリーミングする |
+| `--since` | | 指定した時点以降のレコードを含める（含む） |
+| `--until` | | 指定した時点までのレコードを含める（含む） |
+| `--after` | | 指定した時点より後のレコードのみを含める |
+| `--before` | | 指定した時点より前のレコードのみを含める |
+| `-g, --grep` | | 正規表現でレコードを絞り込む（`--force` が必要） |
+| `--region` | | region でソース Pod を絞り込む（カンマ区切り） |
+| `--zone` | | zone でソース Pod を絞り込む（カンマ区切り） |
+| `--os` | | OS でソース Pod を絞り込む（カンマ区切り） |
+| `--arch` | | CPU アーキテクチャでソース Pod を絞り込む（カンマ区切り） |
+| `--node` | | node 名でソース Pod を絞り込む（カンマ区切り） |
+| `--raw` | `false` | メタデータなしで生ログメッセージのみを出力 |
+| `--columns` | | 出力列を設定する（既定値を上書き） |
+| `--add-columns` | | 既定の出力列に追加する |
+| `--remove-columns` | | 既定の出力列から削除する |
+| `--with-cursors` | `false` | ページングカーソルを表示する |
+| `--hide-header` | `false` | テーブルヘッダーを隠す |
+| `--all-containers` | `false` | Pod 内のすべてのコンテナのログを表示する |
+| `--force` | `false` | コマンドを強制実行する（`--grep` 使用時に必須） |
+
+`--columns`、`--add-columns`、`--remove-columns` は、カンマ区切りの列名リストを受け付けます: `timestamp`, `dot`, `node`, `region`, `zone`, `os`, `arch`, `namespace`, `pod`, `container`。
+
+`--head`、`--tail`、`--all` は相互排他的です。`--since` と `--after`、`--until` と `--before` もそれぞれ相互排他的です。
+
+`--since`、`--until`、`--after`、`--before` は次を受け付けます。
+- ISO 8601 タイムスタンプ（例: `2006-01-02T15:04:05Z07:00`）
+- 現在時刻からの ISO 8601 duration（例: 30 分前を表す `PT30M`）- `--since` と `--until` のみ
+
+**既定の動作**: `--since` が指定されていない場合は tail モード（直近 10 件）。`--since` が指定された場合は head モードになります。
+
+**例**
+
+```sh
+# Pod の直近 10 件を表示する
+kubetail logs nginx
+
+# Deployment を tail する
+kubetail logs deployments/web
+
+# 新しいレコードを追跡する
+kubetail logs deployments/web --follow
+
+# すべてのレコードを返し、そのまま追跡する
+kubetail logs deployments/web --all --follow
+
+# 最初の 100 件を返す
+kubetail logs nginx --head=100
+
+# 過去 30 分間のレコードを返す
+kubetail logs nginx --since PT30M --all
+
+# 2 つのタイムスタンプの間のレコードを返す
+kubetail logs nginx --since 2006-01-02T15:04:05Z --until 2007-01-02T15:04:05Z --all
+
+# 正規表現でフィルターする（--force が必要）
+kubetail logs nginx --grep "GET /about" --force
+
+# region で Pod を絞り込む
+kubetail logs deployments/web --region=us-east-1
+
+# 生ログメッセージのみを出力する
+kubetail logs nginx --raw
+```
+
+---
+
+### `kubetail cluster`
+
+Helm を内部的に使用して Kubetail のクラスタリソースを管理します（Helm を別途インストールする必要はありません）。
+
+```sh
+kubetail cluster <subcommand> [flags]
+```
+
+#### `kubetail cluster install`
+
+クラスタ内に新しい Kubetail release を作成します。
+
+```sh
+kubetail cluster install [flags]
+```
+
+**フラグ**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--kube-context` | | 使用する kubeconfig context 名 |
+
+**例**
+
+```sh
+kubetail cluster install
+```
+
+#### `kubetail cluster upgrade`
+
+既存の Kubetail release を、ローカルで利用可能な最新の chart version にアップグレードします。
+
+```sh
+kubetail cluster upgrade [flags]
+```
+
+**フラグ**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--kube-context` | | 使用する kubeconfig context 名 |
+
+**例**
+
+```sh
+kubetail cluster upgrade
+```
+
+#### `kubetail cluster uninstall`
+
+既存の Kubetail release をクラスタから削除します。
+
+```sh
+kubetail cluster uninstall [flags]
+```
+
+**フラグ**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--kube-context` | | 使用する kubeconfig context 名 |
+
+**例**
+
+```sh
+kubetail cluster uninstall
+```
+
+#### `kubetail cluster list`
+
+現在インストールされている Kubetail release を一覧表示します。
+
+```sh
+kubetail cluster list [flags]
+```
+
+**フラグ**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--kube-context` | | 使用する kubeconfig context 名 |
+
+**例**
+
+```sh
+kubetail cluster list
+```
+
+#### `kubetail cluster repo`
+
+Kubetail の Helm chart リポジトリを管理します (`https://kubetail-org.github.io/helm-charts/`)。
+
+```sh
+kubetail cluster repo <subcommand>
+```
+
+| Subcommand | Description |
+|------------|-------------|
+| `add` | Kubetail chart repository を Helm に追加する |
+| `update` | Kubetail chart repository を Helm で更新する |
+| `remove` | Kubetail chart repository を Helm から削除する |
+
+**例**
+
+```sh
+kubetail cluster repo add
+kubetail cluster repo update
+kubetail cluster repo remove
+```
+
+---
+
+### `kubetail config`
+
+Kubetail CLI の設定を管理します。
+
+```sh
+kubetail config <subcommand>
+```
+
+#### `kubetail config init`
+
+既定の設定ファイルを作成します。
+
+```sh
+kubetail config init [flags]
+```
+
+**フラグ**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--path` | `~/.kubetail/config.yaml` | 設定ファイルの出力先パス |
+| `--format` | `yaml` | 設定ファイル形式 (`yaml`, `json`, `toml`) |
+| `--force` | `false` | 既存の設定ファイルを上書きする |
+
+**例**
+
+```sh
+# ~/.kubetail/config.yaml に既定設定を作成する
+kubetail config init
+
+# JSON 形式で設定を作成する
+kubetail config init --format json
+
+# 既存の設定ファイルを上書きする
+kubetail config init --force
+
+# カスタムパスに設定を書き出す
+kubetail config init --path /etc/kubetail/config.yaml
+```
+
+## 設定
+
+CLI は YAML（または JSON/TOML）の設定ファイルで構成できます。既定では `~/.kubetail/config.yaml` から読み込まれます。`kubetail config init` で既定の設定ファイルを生成するか、グローバルフラグ `-c` / `--config` でカスタムパスを指定してください。
+
+<Tabs>
+  <TabItem label="YAML">
+    ```yaml
+    ## Kubetail CLI Configuration File
+    # 
+    # このファイルは kubetail CLI ツールの動作を定義します。
+    # logs コマンドの既定値や dashboard server の設定も含まれます。
+    #
+
+    ## version ##
+    #
+    # 設定ファイルのスキーマバージョン
+    #
+    version: 1
+
+    ## general ##
+    #
+    general:
+
+      ## kubeconfig ##
+      #
+      # CLI リクエストで使用する kubeconfig ファイルへのパスです。
+      # 空の場合は既定のパス（~/.kube/config）または KUBECONFIG 環境変数が使用されます。
+      #
+      # 既定値: ""
+      #
+      kubeconfig: ""
+
+    ## commands ##
+    #
+    commands:
+
+      ## logs ##
+      #
+      # `logs` サブコマンド固有の設定
+      #
+      logs:
+
+        ## kube-context ##
+        #
+        # 使用する Kubernetes context です。
+        # 空の場合は現在アクティブな context が使われます。
+        #
+        # 既定値: ""
+        #
+        kube-context: ""
+
+        ## head ##
+        #
+        # ログバッファの先頭から表示する行数
+        #
+        # 既定値: 10
+        #
+        head: 10
+
+        ## tail ##
+        #
+        # ログバッファの末尾から表示する行数
+        #
+        # 既定値: 10
+        #
+        tail: 10
+
+        ## columns ##
+        #
+        # `logs` レコードの出力列一式です。
+        # 使用可能な値: timestamp,dot,node,region,zone,os,arch,namespace,pod,container
+        #
+        # 既定値: ["timestamp", "dot"]
+        #
+        columns:
+          - timestamp
+          - dot
+
+      ## serve ##
+      #
+      # dashboard server の設定
+      #
+      serve:
+
+        ## host ##
+        #
+        # server がバインドするネットワークインターフェースです。
+        #
+        # 既定値: localhost
+        #
+        host: localhost
+
+        ## port ##
+        #
+        # server が待ち受ける TCP ポートです。
+        #
+        # 既定値: 7500
+        #
+        port: 7500
+
+        ## skip-open ##
+        #
+        # true の場合、server 起動時に CLI はブラウザーを自動で開きません。
+        #
+        # 既定値: false
+        #
+        skip-open: false
+    ```
+  </TabItem>
+  <TabItem label="TOML">
+    ```toml
+    # Kubetail CLI Configuration File
+    #
+    # kubetail CLI ツールの動作を定義します。
+    # logs コマンドの既定値と dashboard server 設定を含みます。
+
+    # 設定ファイルのスキーマバージョン
+    version = 1
+
+    [general]
+    # kubeconfig へのパス。空の場合は ~/.kube/config または KUBECONFIG を使用します。
+    kubeconfig = ""
+
+    [commands.logs]
+    # 使用する Kubernetes context。空の場合はアクティブな context を使用します。
+    kube-context = ""
+
+    # ログバッファの先頭から表示する行数
+    head = 10
+
+    # ログバッファの末尾から表示する行数
+    tail = 10
+
+    # `logs` レコードの出力列一式です。
+    # 使用可能な値: timestamp,dot,node,region,zone,os,arch,namespace,pod,container
+    columns = ["timestamp", "dot"]
+
+    [commands.serve]
+    # server がバインドするネットワークインターフェース
+    host = "localhost"
+
+    # server が待ち受ける TCP ポート
+    port = 7500
+
+    # true の場合、server 起動時にブラウザーを自動で開きません
+    skip-open = false
+    ```
+  </TabItem>
+  <TabItem label="JSON">
+    ```json
+    {
+      "version": 1,
+      "general": {
+        "kubeconfig": ""
+      },
+      "commands": {
+        "logs": {
+          "kube-context": "",
+          "head": 10,
+          "tail": 10,
+          "columns": ["timestamp", "dot"]
+        },
+        "serve": {
+          "host": "localhost",
+          "port": 7500,
+          "skip-open": false
+        }
+      }
+    }
+    ```
+  </TabItem>
+</Tabs>

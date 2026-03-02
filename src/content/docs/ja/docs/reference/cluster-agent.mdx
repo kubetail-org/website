@@ -1,0 +1,156 @@
+---
+title: Cluster Agent リファレンス
+description: "Kubetail Cluster Agent リファレンス。Docker イメージのバリアント、起動フラグ、各クラスタノードで動作する Rust 製 gRPC サーバー向け YAML 設定を扱います。"
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Kubetail Cluster Agent は、Kubernetes クラスタ内の各ノードで DaemonSet として動作する Rust ベースの gRPC サーバーです。ノードのファイルシステムからコンテナのログファイルを直接読み取り、必要に応じて Cluster API にストリーミングします。サーバー実行ファイルは Kubetail リポジトリ内の [crates/cluster_agent](https://github.com/kubetail-org/kubetail/tree/main/crates/cluster_agent) にあるソースコードからビルドされ、通常は `kubetail-cluster-agent` Docker イメージを使ってデプロイされます（下記参照）。`kubetail-cluster-agent` を単独コンテナとして実行することも可能ですが、公式の Kubetail [Helm Chart](/ja/docs/reference/helm-chart) を使ったデプロイを推奨します。
+
+## Docker イメージ
+
+`kubetail-cluster-agent` Docker イメージは、各リリースごとに Docker Hub と GitHub Container Registry に公開されます。
+
+| Registry | Image |
+|----------|-------|
+| Docker Hub | `kubetail/kubetail-cluster-agent` |
+| GHCR | `ghcr.io/kubetail-org/kubetail-cluster-agent` |
+
+2 つのバリアントが利用できます。
+
+| タグ接尾辞 | ベースイメージ | 説明 |
+|------------|----------------|------|
+| _(なし)_ | `scratch` | 最小構成のイメージで、最も軽量です |
+| `-alpine` | `alpine` | シェルと標準ユーティリティを含みます |
+
+## エントリーポイント
+
+デフォルトのコンテナエントリーポイントは `/cluster-agent/cluster-agent` です。
+
+```sh
+cluster-agent --config <FILE> [flags]
+```
+
+## フラグ
+
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--config` | `-c` | | 設定ファイルへのパス（**必須**） |
+| `--addr` | `-a` | | 接続を待ち受けるアドレス（設定を上書き） |
+
+## 設定
+
+Cluster Agent は設定ファイルのみで構成されます。パスは毎回 `-c` / `--config` で渡す必要があります。設定ファイルでは標準的なシェル構文を使って環境変数を参照できます。
+
+```sh
+cluster-agent --config /etc/kubetail/cluster-agent.yaml
+```
+
+<Tabs>
+  <TabItem label="YAML">
+    ```yaml
+    ## Kubetail Cluster Agent Configuration File
+    #
+    # このファイルは kubetail cluster agent の動作を定義します。
+    # Kubernetes クラスタ内で実行され、コンテナログをストリーミングおよび処理します。
+    #
+
+    ## addr ##
+    #
+    # gRPC サーバーがバインドするネットワークアドレスとポートです。
+    #
+    # 既定値: :50051
+    #
+    addr: :50051
+
+    ## container-logs-dir ##
+    #
+    # Kubernetes がコンテナログファイルを保存するディレクトリのパスです。
+    # 通常はホストノードのファイルシステムからマウントされます。
+    #
+    # 既定値: /var/log/containers
+    #
+    container-logs-dir: /var/log/containers
+
+    ## logging ##
+    #
+    # agent のログ出力設定
+    #
+    logging:
+
+      ## enabled ##
+      #
+      # agent のログ出力を有効にするかどうか
+      #
+      # 既定値: true
+      #
+      enabled: true
+
+      ## level ##
+      #
+      # 出力する最小ログレベルです。
+      # 有効な値: debug, info, warn, error
+      #
+      # 既定値: info
+      #
+      level: info
+
+      ## format ##
+      #
+      # ログ出力の形式です。
+      # 有効な値: json, pretty
+      #
+      # 既定値: json
+      #
+      format: json
+
+    ## tls ##
+    #
+    # 安全な gRPC 接続のための TLS 設定
+    #
+    tls:
+
+      ## enabled ##
+      #
+      # gRPC 接続で TLS を有効にするかどうか
+      #
+      # 既定値: false
+      #
+      enabled: false
+
+      ## cert-file ##
+      #
+      # TLS 証明書ファイルへのパスです。
+      #
+      # 既定値: ""
+      #
+      cert-file: ""
+
+      ## key-file ##
+      #
+      # TLS 秘密鍵ファイルへのパスです。
+      #
+      # 既定値: ""
+      #
+      key-file: ""
+
+      ## ca-file ##
+      #
+      # クライアント証明書の検証に使用する CA 証明書ファイルへのパスです。
+      # client-auth が require-and-verify に設定されている場合に必要です。
+      #
+      # 既定値: ""
+      #
+      ca-file: ""
+
+      ## client-auth ##
+      #
+      # 受信 gRPC 接続に対するクライアント認証ポリシーです。
+      # 有効な値: none, require-and-verify
+      #
+      # 既定値: none
+      #
+      client-auth: none
+    ```
+  </TabItem>
+</Tabs>

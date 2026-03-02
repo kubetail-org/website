@@ -1,0 +1,17 @@
+---
+title: À propos
+description: "Kubetail est un tableau de bord de logs Kubernetes gratuit et open source. Découvrez l'histoire du projet et l'équipe qui le porte."
+template: splash
+---
+
+Kubetail est un tableau de bord de logs pour Kubernetes qui vous permet de consulter plusieurs flux de logs simultanément, en temps réel. Avec Kubetail, vous pouvez suivre facilement les requêtes lorsqu'elles passent d'un service à l'autre dans votre cluster. Il a été conçu de zéro par des développeurs, pour des développeurs, afin de rendre la journalisation avec Kubernetes simple, agréable et privée.
+
+Nous avons commencé à travailler sur Kubetail en développant des applications cloud hébergées sur Kubernetes, frustrés par la difficulté de déboguer les applications avec `kubectl` et Kubernetes Dashboard. Même si ces outils fonctionnaient bien pour des conteneurs uniques et durables, ils étaient difficiles à utiliser avec plusieurs conteneurs éphémères. Nous nous sommes alors demandé: à quel point serait-il difficile de créer pour Kubernetes un tableau de bord centré sur les logs, facile à utiliser et capable de gérer nativement les conteneurs éphémères?
+
+Cela a été nettement plus difficile que prévu, mais nous avons constaté que tous les outils logiciels nécessaires existaient déjà pour construire l'outil que nous voulions utiliser nous-mêmes. En utilisant l'[API Kubernetes](https://kubernetes.io/docs/concepts/overview/kubernetes-api/), [Go](https://go.dev/), [React](https://react.dev/) et toute une série d'autres outils open source, nous avons construit un tableau de bord web open source qui s'exécute sur votre bureau ou dans votre cluster et vous permet de consulter vos logs sans que les données quittent jamais votre contrôle.
+
+Nous utilisons Kubetail nous-mêmes, donc vous pouvez être sûr que nous faisons le maximum pour en faire le meilleur outil de logs pour Kubernetes. Vos retours nous intéressent ([hello@kubetail.com](mailto:hello@kubetail.com)), alors essayez-le et dites-nous ce que vous en pensez.
+
+Avec affection,
+
+L'équipe Kubetail

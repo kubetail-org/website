@@ -1,0 +1,66 @@
+---
+title: インストール
+description: "Docker Hub (`kubetail/kubetail-cli`) または GHCR から `kubetail-cli` イメージを取得し、ローカルにインストールせずに Kubetail CLI をコンテナで実行します。"
+---
+
+Kubetail CLI ツール (`kubetail`) をコンテナ内で実行するには、Docker イメージ [`kubetail-cli`](https://hub.docker.com/r/kubetail/kubetail-cli) を使用できます。このイメージは、各リリースごとに Docker Hub と GitHub Container Registry に公開されます。
+
+| Registry | Image |
+|----------|-------|
+| Docker Hub | `kubetail/kubetail-cli` |
+| GHCR | `ghcr.io/kubetail-org/kubetail-cli` |
+
+2 つのバリアントが利用できます。
+
+| タグ接尾辞 | ベースイメージ | 説明 |
+|------------|----------------|------|
+| _(なし)_ | `scratch` | 最小構成のイメージで、最も軽量です |
+| `-alpine` | `alpine` | シェルと標準ユーティリティを含みます |
+
+## Docker Run
+
+CLI ツールを `docker run` でローカル利用するには、ローカルの `.kube/config` ファイルを `kubetail-cli` コンテナにマウントする必要があります。
+
+```sh
+docker run --rm -it \
+  -v ~/.kube/config:/root/.kube/config:ro \
+  kubetail/kubetail-cli logs \
+  --kubeconfig /root/.kube/config \
+  -f \
+  deployments/my-app
+```
+
+`sh` エントリーポイントを使って対話セッションを開始することもできます。
+
+```sh
+docker run --rm -it \
+  -v ~/.kube/config:/root/.kube/config:ro \
+  --entrypoint sh \
+  kubetail/kubetail-cli
+```
+
+## Docker Compose
+
+CLI ツールを `docker-compose` でローカル利用するには、この設定ファイル [docker-compose.yml](https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/docker-compose.yml) を出発点として使えます。
+
+```sh
+curl -LO https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/docker-compose.yml
+docker-compose up
+```
+
+これにより、ローカルの `.kube/config` が `kubetail-cli` コンテナにマウントされ、ダッシュボードサーバーが [http://localhost:7500](http://localhost:7500) で起動します。
+
+## Kubernetes Pod
+
+CLI ツールをクラスタ内で使うには、このマニフェスト [`kubetail-cli-pod.yaml`](https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/kubetail-cli-pod.yaml) を出発点として利用できます。
+
+```sh
+kubectl add -f https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/kubetail-cli-pod.yaml
+```
+
+これにより、同じ namespace の Pod ログにアクセスできる `kubetail-cli` コンテナが default namespace 内で起動します。Pod が起動したら、`exec` で入り、`--in-cluster` フラグを使って CLI コマンドを実行できます。
+
+```sh
+kubectl exec -it kubetail-cli -- sh
+# ./kubetail logs --in-cluster -f deployments/my-app
+```

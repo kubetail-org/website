@@ -1,0 +1,33 @@
+---
+title: Docker Run
+description: "Verwenden Sie `docker run` mit dem Image `kubetail-cli`, um Kubernetes-Logs zu verfolgen oder eine interaktive Shell zu oeffnen. Binden Sie Ihre kubeconfig fuer den Clusterzugriff ein."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Um das CLI-Tool lokal mit `docker run` zu verwenden, muessen Sie Ihre lokale Datei `.kube/config` in einen `kubetail-cli`-Container einbinden:
+
+```sh
+docker run --rm -it \
+  -v ~/.kube/config:/root/.kube/config:ro \
+  kubetail/kubetail-cli logs \
+  --kubeconfig /root/.kube/config \
+  -f \
+  deployments/my-app
+```
+
+Sie koennen auch den Entry-Point `sh` verwenden, um eine interaktive Sitzung zu starten:
+
+```sh
+docker run --rm -it \
+  -v ~/.kube/config:/root/.kube/config:ro \
+  --entrypoint sh \
+  kubetail/kubetail-cli
+```
+
+<Aside type="tip">
+Sie koennen das Docker-Image `kubetail-cli` auch verwenden mit:
+
+* [Docker Compose](/de/docs/guides/docker/docker-compose)
+* [Kubernetes Pod](/de/docs/guides/docker/kubernetes-pod)
+</Aside>

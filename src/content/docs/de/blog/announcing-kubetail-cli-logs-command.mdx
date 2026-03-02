@@ -1,0 +1,71 @@
+---
+title: Neuer Kubetail CLI-Befehl „logs"
+description: "Der neue logs-CLI-Befehl von Kubetail ermöglicht es, Kubernetes-Workload-Logs im Terminal zu verfolgen und zu durchsuchen – mit Zeitbereichs- und Knoteneigenschaftsfiltern."
+date: 2025-03-26
+authors:
+  - name: Andres Morey
+    title: Lead Developer
+    url: https://github.com/amorey
+    picture: https://github.com/amorey.png
+---
+
+Um die Überwachung und Fehlersuche bei Multi-Container-Workloads auf Kubernetes zu vereinfachen, haben wir dem Kubetail CLI-Tool einen neuen `logs`-Befehl hinzugefügt. Mit dem neuen `logs`-Befehl können Sie Ihre Kubernetes-Workload-Logs jetzt in Echtzeit direkt im Terminal durchsuchen. Außerdem lassen sich Logs nach Zeitraum und anderen Quelleigenschaften wie Knoten und Zone filtern.
+
+Um das Kubetail CLI-Tool zu installieren, können Sie es von der [Release-Seite](https://github.com/kubetail-org/kubetail/releases/latest) herunterladen oder Homebrew verwenden:
+
+```console
+brew install kubetail
+```
+
+Hier sind einige Beispiele, was Sie mit dem neuen `logs`-Befehl tun können:
+
+```console
+# Tail 'web' deployment in the 'default' namespace
+kubetail logs deployments/web
+
+# Tail 'web' deployment in the 'frontend' namespace
+kubetail logs frontend:deployments/web
+
+# Return last 100 records
+kubetail logs deployments/web --tail=100
+
+# Return first 100 records
+kubetail logs deployments/web --head=100
+
+# Stream new records
+kubetail logs deployments/web --follow
+
+# Return all records
+kubetail logs deployments/web --all
+
+# Return first 10 records starting from 30 minutes ago
+kubetail logs deployments/web --since PT30M
+
+# Return last 10 records leading up to 30 minutes ago
+kubetail logs deployments/web --until PT30M
+
+# Return first 10 records between two exact timestamps
+kubetail logs deployments/web --since 2006-01-02T15:04:05Z07:00 --until 2007-01-02T15:04:05Z07:00
+
+# Return last 10 records that match "GET /about"
+kubetail logs deployments/web --grep "GET /about" --force
+
+# Return first 10 records that match "GET /about"
+kubetail logs deployments/web --grep "GET /about" --head --force
+
+# Return last 10 records that match "GET /about" or "GET /contact"
+kubetail logs deployments/web --grep "GET /(about|contact)" --force
+
+# Stream new records that match "GET /about"
+kubetail logs deployments/web --grep "GET /about" --follow --force
+```
+
+Der `logs`-Befehl nutzt Ihre lokale kube-config-Datei zur Authentifizierung mit Ihrem Cluster. Um den Cluster zu wechseln, ändern Sie einfach den kube-config-Kontext. Alternativ können Sie das Flag `--kube-context` verwenden:
+
+```console
+kubetail logs --kube-context minikube deployments/web
+```
+
+Sie werden feststellen, dass bei der Verwendung von `--grep` auch `--force` angegeben werden muss. Das liegt daran, dass die Filterung clientseitig erfolgt – das Tool lädt kontinuierlich Logs aus Ihrem Cluster herunter, bis die gewünschte Anzahl an Treffern gefunden wurde. Dies kann zu unerwartet großen Downloads führen, weshalb wir eine zusätzliche Flag-Prüfung eingebaut haben. Wir arbeiten bereits an einer neuen Funktion, um dieses Problem zu umgehen.
+
+Probieren Sie den neuen `logs`-Befehl aus und lassen Sie uns wissen, was Sie davon halten!

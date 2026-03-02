@@ -10,6 +10,22 @@ import ThemeSelect from "virtual:starlight/components/ThemeSelect";
 const shouldRenderSearch =
   config.pagefind ||
   config.components.Search !== "@astrojs/starlight/components/Search.astro";
+
+const locale = Astro.locals.starlightRoute?.locale;
+const base = locale ? `/${locale}` : '';
+
+const navLabels: Record<string, { about: string; docs: string; faq: string; blog: string }> = {
+  'zh-cn': { about: '关于', docs: '文档', faq: '常见问题', blog: '博客' },
+  ja: { about: 'について', docs: 'ドキュメント', faq: 'よくある質問', blog: 'ブログ' },
+  ko: { about: '소개', docs: '문서', faq: '자주 묻는 질문', blog: '블로그' },
+  de: { about: 'Über uns', docs: 'Dokumentation', faq: 'FAQ', blog: 'Blog' },
+  es: { about: 'Acerca de', docs: 'Documentación', faq: 'Preguntas frecuentes', blog: 'Blog' },
+  pt: { about: 'Sobre', docs: 'Documentação', faq: 'Perguntas frequentes', blog: 'Blog' },
+  fr: { about: 'À propos', docs: 'Documentation', faq: 'FAQ', blog: 'Blog' },
+};
+
+const defaultLabels = { about: 'About', docs: 'Documentation', faq: 'FAQ', blog: 'Blog' };
+const t = (locale && navLabels[locale]) || defaultLabels;
 ---
 
 <div class="header">
@@ -17,10 +33,10 @@ const shouldRenderSearch =
     <SiteTitle />
   </div>
   <nav class="nav-links sl-hidden md:sl-flex print:hidden">
-    <a href="/about">About</a>
-    <a href="/docs/concepts/introduction">Documentation</a>
-    <a href="/faq">FAQ</a>
-    <a href="/blog">Blog</a>
+    <a href={`${base}/about`}>{t.about}</a>
+    <a href={`${base}/docs/concepts/introduction`}>{t.docs}</a>
+    <a href={`${base}/faq`}>{t.faq}</a>
+    <a href={`${base}/blog`}>{t.blog}</a>
   </nav>
   <div class="sl-flex print:hidden">
     {shouldRenderSearch && <Search />}

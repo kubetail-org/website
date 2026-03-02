@@ -1,0 +1,484 @@
+---
+title: Referencia da CLI
+description: "Referencia da CLI do Kubetail: `serve`, `logs` (fontes, filtros, intervalos de tempo), `cluster` (install/upgrade/uninstall/repo), `config init` e o formato do arquivo de configuracao."
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+A CLI `kubetail` e o principal ponto de entrada do Kubetail no seu desktop. Voce pode usa-la para iniciar o dashboard web, transmitir logs para o terminal ou gerenciar recursos do Kubetail no cluster.
+
+## Flags globais
+
+Estas flags estao disponiveis em todos os comandos:
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--kubeconfig` | | Caminho para o arquivo kubeconfig |
+| `--in-cluster` | `false` | Usar configuracao Kubernetes in-cluster |
+| `-c, --config` | `~/.kubetail/config.yaml` | Caminho para o arquivo de configuracao |
+
+## Comandos
+
+### `kubetail serve`
+
+Inicie o dashboard server e abra a Web UI no navegador padrao.
+
+```sh
+kubetail serve [flags]
+```
+
+**Flags**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-p, --port` | `7500` | Numero da porta a escutar |
+| `--host` | `localhost` | Endereco do host ao qual se vincular |
+| `-l, --log-level` | `info` | Nivel de log (`debug`, `info`, `warn`, `error`, `disabled`) |
+| `--skip-open` | `false` | Nao abrir o navegador |
+
+**Exemplos**
+
+```sh
+# Iniciar o dashboard (abre em http://localhost:7500)
+kubetail serve
+
+# Usar uma porta personalizada
+kubetail serve --port 8080
+
+# Iniciar sem abrir o navegador
+kubetail serve --skip-open
+```
+
+---
+
+### `kubetail logs`
+
+Buscar logs de um contêiner ou de um conjunto de workload containers.
+
+```sh
+kubetail logs [source1] [source2] ... [flags]
+```
+
+**Fontes**
+
+Uma fonte identifica de quais Pods ou contêineres os logs devem ser transmitidos. As fontes usam a seguinte sintaxe:
+
+```
+[namespace:]<resource>[/name[/container]]
+```
+
+| Example | Description |
+|---------|-------------|
+| `web-abc123` | Pod chamado `web-abc123` no namespace padrao |
+| `deployments/web` | Deployment `web` no namespace padrao |
+| `deployments/*` | Todos os Deployments no namespace padrao |
+| `deployments/web/container1` | Contêiner especifico em um Deployment |
+| `deployments/web/*` | Todos os contêineres em um Deployment |
+| `frontend:web-abc123` | Pod no namespace `frontend` |
+| `frontend:deployments/web` | Deployment no namespace `frontend` |
+
+Varias fontes podem ser especificadas:
+
+```sh
+kubetail logs <source1> <source2>
+```
+
+**Flags**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--kube-context` | | Contexto kubeconfig a usar |
+| `-h, --head[=N]` | `10` | Retornar os primeiros N registros |
+| `-t, --tail[=N]` | `10` | Retornar os ultimos N registros |
+| `--all` | `false` | Retornar todos os registros |
+| `-f, --follow` | `false` | Transmitir novos registros |
+| `--since` | | Incluir registros a partir do ponto especificado (inclusivo) |
+| `--until` | | Incluir registros ate o ponto especificado (inclusivo) |
+| `--after` | | Incluir registros estritamente apos o ponto especificado |
+| `--before` | | Incluir registros estritamente antes do ponto especificado |
+| `-g, --grep` | | Filtrar registros por expressao regular (requer `--force`) |
+| `--region` | | Filtrar Pods de origem por region (separado por virgulas) |
+| `--zone` | | Filtrar Pods de origem por zona (separado por virgulas) |
+| `--os` | | Filtrar Pods de origem por sistema operacional (separado por virgulas) |
+| `--arch` | | Filtrar Pods de origem por arquitetura de CPU (separado por virgulas) |
+| `--node` | | Filtrar Pods de origem por nome do no (separado por virgulas) |
+| `--raw` | `false` | Exibir apenas mensagens de log brutas, sem metadados |
+| `--columns` | | Definir colunas de saida (sobrescreve os padroes) |
+| `--add-columns` | | Adicionar colunas de saida aos padroes |
+| `--remove-columns` | | Remover colunas de saida dos padroes |
+| `--with-cursors` | `false` | Mostrar cursores de paginacao |
+| `--hide-header` | `false` | Ocultar o cabecalho da tabela |
+| `--all-containers` | `false` | Mostrar logs de todos os contêineres em um Pod |
+| `--force` | `false` | Forcar o comando (requerido ao usar `--grep`) |
+
+As flags `--columns`, `--add-columns` e `--remove-columns` aceitam uma lista de nomes de colunas separada por virgulas: `timestamp`, `dot`, `node`, `region`, `zone`, `os`, `arch`, `namespace`, `pod`, `container`.
+
+As flags `--head`, `--tail` e `--all` sao mutuamente exclusivas. As flags `--since` e `--after` tambem sao mutuamente exclusivas, assim como `--until` e `--before`.
+
+As flags `--since`, `--until`, `--after` e `--before` aceitam:
+- Um timestamp ISO 8601 (por exemplo, `2006-01-02T15:04:05Z07:00`)
+- Uma duracao ISO 8601 relativa a agora (por exemplo, `PT30M` para 30 minutos atras) - apenas para `--since` e `--until`
+
+**Comportamento padrao**: modo tail (ultimos 10 registros), a menos que `--since` seja especificado, caso em que o modo head e usado.
+
+**Exemplos**
+
+```sh
+# Fazer tail dos ultimos 10 registros de um Pod
+kubetail logs nginx
+
+# Fazer tail de um Deployment
+kubetail logs deployments/web
+
+# Seguir novos registros
+kubetail logs deployments/web --follow
+
+# Retornar todos os registros e continuar seguindo
+kubetail logs deployments/web --all --follow
+
+# Retornar os primeiros 100 registros
+kubetail logs nginx --head=100
+
+# Retornar registros dos ultimos 30 minutos
+kubetail logs nginx --since PT30M --all
+
+# Retornar registros entre dois timestamps
+kubetail logs nginx --since 2006-01-02T15:04:05Z --until 2007-01-02T15:04:05Z --all
+
+# Filtrar por regex (requer --force)
+kubetail logs nginx --grep "GET /about" --force
+
+# Filtrar Pods por region
+kubetail logs deployments/web --region=us-east-1
+
+# Exibir apenas mensagens de log brutas
+kubetail logs nginx --raw
+```
+
+---
+
+### `kubetail cluster`
+
+Gerencie recursos do Kubetail no cluster usando Helm internamente (o Helm nao precisa ser instalado separadamente).
+
+```sh
+kubetail cluster <subcommand> [flags]
+```
+
+#### `kubetail cluster install`
+
+Criar um novo release do Kubetail no cluster.
+
+```sh
+kubetail cluster install [flags]
+```
+
+**Flags**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--kube-context` | | Nome do contexto kubeconfig a usar |
+
+**Exemplos**
+
+```sh
+kubetail cluster install
+```
+
+#### `kubetail cluster upgrade`
+
+Atualizar um release existente do Kubetail para a versao mais recente do chart disponivel localmente.
+
+```sh
+kubetail cluster upgrade [flags]
+```
+
+**Flags**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--kube-context` | | Nome do contexto kubeconfig a usar |
+
+**Exemplos**
+
+```sh
+kubetail cluster upgrade
+```
+
+#### `kubetail cluster uninstall`
+
+Remover um release existente do Kubetail do cluster.
+
+```sh
+kubetail cluster uninstall [flags]
+```
+
+**Flags**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--kube-context` | | Nome do contexto kubeconfig a usar |
+
+**Exemplos**
+
+```sh
+kubetail cluster uninstall
+```
+
+#### `kubetail cluster list`
+
+Listar os releases do Kubetail atualmente instalados.
+
+```sh
+kubetail cluster list [flags]
+```
+
+**Flags**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--kube-context` | | Nome do contexto kubeconfig a usar |
+
+**Exemplos**
+
+```sh
+kubetail cluster list
+```
+
+#### `kubetail cluster repo`
+
+Gerenciar o repositorio de charts Helm do Kubetail (`https://kubetail-org.github.io/helm-charts/`).
+
+```sh
+kubetail cluster repo <subcommand>
+```
+
+| Subcommand | Description |
+|------------|-------------|
+| `add` | Adicionar o repositorio de charts do Kubetail ao Helm |
+| `update` | Atualizar o repositorio de charts do Kubetail no Helm |
+| `remove` | Remover o repositorio de charts do Kubetail do Helm |
+
+**Exemplos**
+
+```sh
+kubetail cluster repo add
+kubetail cluster repo update
+kubetail cluster repo remove
+```
+
+---
+
+### `kubetail config`
+
+Gerenciar a configuracao da CLI do Kubetail.
+
+```sh
+kubetail config <subcommand>
+```
+
+#### `kubetail config init`
+
+Criar um arquivo de configuracao padrao.
+
+```sh
+kubetail config init [flags]
+```
+
+**Flags**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--path` | `~/.kubetail/config.yaml` | Caminho de destino do arquivo de configuracao |
+| `--format` | `yaml` | Formato do arquivo de configuracao (`yaml`, `json`, `toml`) |
+| `--force` | `false` | Sobrescrever um arquivo de configuracao existente |
+
+**Exemplos**
+
+```sh
+# Criar a configuracao padrao em ~/.kubetail/config.yaml
+kubetail config init
+
+# Criar a configuracao em formato JSON
+kubetail config init --format json
+
+# Sobrescrever um arquivo de configuracao existente
+kubetail config init --force
+
+# Gravar a configuracao em um caminho personalizado
+kubetail config init --path /etc/kubetail/config.yaml
+```
+
+## Configuracao
+
+A CLI pode ser configurada usando um arquivo de configuracao YAML (ou JSON/TOML). Por padrao, ele e lido de `~/.kubetail/config.yaml`. Use `kubetail config init` para gerar um arquivo de configuracao padrao ou passe um caminho personalizado com a flag global `-c` / `--config`.
+
+<Tabs>
+  <TabItem label="YAML">
+    ```yaml
+    ## Kubetail CLI Configuration File
+    # 
+    # Este arquivo define o comportamento da ferramenta kubetail CLI,
+    # incluindo os padroes do comando logs e as configuracoes do dashboard server.
+    #
+
+    ## version ##
+    #
+    # Versao do esquema do arquivo de configuracao
+    #
+    version: 1
+
+    ## general ##
+    #
+    general:
+
+      ## kubeconfig ##
+      #
+      # Caminho para o arquivo kubeconfig usado nas requisicoes da CLI.
+      # Se estiver vazio, o caminho padrao (~/.kube/config) ou a variavel de ambiente KUBECONFIG sera usado.
+      #
+      # Valor padrao: ""
+      #
+      kubeconfig: ""
+
+    ## commands ##
+    #
+    commands:
+
+      ## logs ##
+      #
+      # Configuracoes especificas do subcomando 'logs'
+      #
+      logs:
+
+        ## kube-context ##
+        #
+        # O contexto Kubernetes especifico a ser usado.
+        # Se estiver vazio, o contexto ativo atual sera usado.
+        #
+        # Valor padrao: ""
+        #
+        kube-context: ""
+
+        ## head ##
+        #
+        # Numero de linhas a mostrar a partir do inicio do buffer de logs
+        #
+        # Valor padrao: 10
+        #
+        head: 10
+
+        ## tail ##
+        #
+        # Numero de linhas a mostrar a partir do fim do buffer de logs
+        #
+        # Valor padrao: 10
+        #
+        tail: 10
+
+        ## columns ##
+        #
+        # Conjunto completo de colunas de saida para registros de 'logs'.
+        # Valores permitidos: timestamp,dot,node,region,zone,os,arch,namespace,pod,container
+        #
+        # Valor padrao: ["timestamp", "dot"]
+        #
+        columns:
+          - timestamp
+          - dot
+
+      ## serve ##
+      #
+      # Configuracoes do dashboard server
+      #
+      serve:
+
+        ## host ##
+        #
+        # A interface de rede a que o server deve se vincular.
+        #
+        # Valor padrao: localhost
+        #
+        host: localhost
+
+        ## port ##
+        #
+        # A porta TCP em que o server ira escutar.
+        #
+        # Valor padrao: 7500
+        #
+        port: 7500
+
+        ## skip-open ##
+        #
+        # Se true, a CLI nao abrira o navegador automaticamente
+        # quando o server iniciar.
+        #
+        # Valor padrao: false
+        #
+        skip-open: false
+    ```
+  </TabItem>
+  <TabItem label="TOML">
+    ```toml
+    # Kubetail CLI Configuration File
+    #
+    # Define o comportamento da ferramenta kubetail CLI, incluindo
+    # os padroes do comando logs e as configuracoes do dashboard server.
+
+    # Versao do esquema do arquivo de configuracao
+    version = 1
+
+    [general]
+    # Caminho para o kubeconfig. Se estiver vazio, usa ~/.kube/config ou KUBECONFIG.
+    kubeconfig = ""
+
+    [commands.logs]
+    # Contexto Kubernetes especifico a ser usado. Se estiver vazio, usa o contexto ativo.
+    kube-context = ""
+
+    # Numero de linhas a mostrar a partir do inicio do buffer de logs
+    head = 10
+
+    # Numero de linhas a mostrar a partir do fim do buffer de logs
+    tail = 10
+
+    # Conjunto completo de colunas de saida para registros de 'logs'.
+    # Valores permitidos: timestamp,dot,node,region,zone,os,arch,namespace,pod,container
+    columns = ["timestamp", "dot"]
+
+    [commands.serve]
+    # Interface de rede a que o server se vincula
+    host = "localhost"
+
+    # Porta TCP em que o server escuta
+    port = 7500
+
+    # Se true, nao abre automaticamente o navegador ao iniciar o server
+    skip-open = false
+    ```
+  </TabItem>
+  <TabItem label="JSON">
+    ```json
+    {
+      "version": 1,
+      "general": {
+        "kubeconfig": ""
+      },
+      "commands": {
+        "logs": {
+          "kube-context": "",
+          "head": 10,
+          "tail": 10,
+          "columns": ["timestamp", "dot"]
+        },
+        "serve": {
+          "host": "localhost",
+          "port": 7500,
+          "skip-open": false
+        }
+      }
+    }
+    ```
+  </TabItem>
+</Tabs>

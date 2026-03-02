@@ -1,0 +1,61 @@
+---
+title: 基础功能
+description: "无需额外安装即可使用的 Kubetail 仪表板功能：多集群支持、工作负载过滤、实时日志 tail，以及容器级日志过滤。"
+---
+
+import { Image } from "astro:assets";
+
+import clusterPickerLight from '@/assets/screenshots/light/cluster-picker.webp';
+import clusterPickerDark from '@/assets/screenshots/dark/cluster-picker.webp';
+import workloadSearchLight from '@/assets/screenshots/light/workload-search.webp';
+import workloadSearchDark from '@/assets/screenshots/dark/workload-search.webp';
+import consolePageLight from '@/assets/screenshots/light/logging-console.webp';
+import consolePageDark from '@/assets/screenshots/dark/logging-console.webp';
+
+默认情况下，Kubetail 使用您的 **Kubernetes API** 来观察工作负载并获取日志数据。这里介绍的所有功能，都可以在 Kubetail Web 仪表板中直接使用，而无需额外安装。
+
+---
+
+## 多个集群
+
+Kubetail 会读取您的 kubeconfig 文件来发现可用集群，并使用其中定义的凭据对每个集群进行认证。当您配置了多个 context 时，顶部导航栏会出现一个集群选择器，方便您在它们之间切换。Kubetail 会监视 kubeconfig 文件的变更并自动刷新列表，因此新加入的 context 无需重启也会出现。
+
+<Image src={clusterPickerLight} alt="Kubetail dashboard home page showing the cluster picker" class="dark:sl-hidden" />
+<Image src={clusterPickerDark} alt="Kubetail dashboard home page showing the cluster picker" class="light:sl-hidden" />
+
+---
+
+## 工作负载过滤
+
+在仪表板首页，您可以实时看到所有工作负载，并根据 namespace、工作负载类型和搜索条件来缩小显示范围。
+
+<Image src={workloadSearchLight} alt="Kubetail dashboard home page showing workload search" class="dark:sl-hidden" />
+<Image src={workloadSearchDark} alt="Kubetail dashboard home page showing workload search" class="light:sl-hidden" />
+
+---
+
+## 实时 tail
+
+选择一个工作负载后，会打开日志控制台，并立即开始同时 tail 该工作负载中所有容器的日志。新的日志行会在写入时持续流入，您也可以向上滚动查看更早的内容。您还可以使用查看器控制项跳转到流的开头、跳到某个具体时间，或返回末尾继续 tail。
+
+<Image src={consolePageLight} alt="Kubetail dashboard logging console showing web server log streams" class="dark:sl-hidden" />
+<Image src={consolePageDark} alt="Kubetail dashboard logging console showing web server log streams" class="light:sl-hidden" />
+
+---
+
+## 容器生命周期跟踪
+
+Kubetail 会实时观察 Kubernetes Pod 事件。当新的 Pod 或容器启动时——无论是滚动更新、崩溃后重启还是扩容——它的日志都会自动加入当前活动流。当某个 Pod 被删除时，它的日志来源也会从流中移除。您不需要重新打开控制台或手动刷新才能看到这些变化。
+
+---
+
+## 日志过滤
+
+在日志控制台中，您可以按以下条件过滤日志：
+
+- **Container** — 只显示指定名称的容器。
+- **Node** — 只显示运行在某个特定节点上的容器。
+- **Region / Zone** — 按云区域或可用区过滤（来自节点标签 `topology.kubernetes.io/region` 和 `topology.kubernetes.io/zone`）。
+- **OS / Arch** — 按操作系统或 CPU 架构过滤（来自节点标签 `kubernetes.io/os` 和 `kubernetes.io/arch`）。
+
+这些过滤条件可以任意组合使用；移除全部过滤器后，就会恢复完整日志流。

@@ -1,0 +1,26 @@
+---
+title: Kubernetes Pod
+description: "`kubetail-cli-pod.yaml` 로 Kubetail CLI를 Kubernetes Pod로 배포한 뒤 `exec`로 들어가 `--in-cluster` 플래그를 사용해 로그를 확인합니다."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+클러스터 내부에서 CLI 도구를 사용하려면 이 매니페스트 [`kubetail-cli-pod.yaml`](https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/kubetail-cli-pod.yaml) 를 출발점으로 사용할 수 있습니다.
+
+```sh
+kubectl add -f https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/kubetail-cli-pod.yaml
+```
+
+이렇게 하면 동일한 namespace의 Pod 로그에 접근할 수 있는 `kubetail-cli` 컨테이너가 default namespace 안에서 시작됩니다. Pod가 실행되면 `exec`로 들어가 `--in-cluster` 플래그를 사용해 CLI 명령을 실행할 수 있습니다.
+
+```sh
+kubectl exec -it kubetail-cli -- sh
+# ./kubetail logs --in-cluster -f deployments/my-app
+```
+
+<Aside type="tip">
+`kubetail-cli` Docker 이미지는 다음 방식으로도 사용할 수 있습니다.
+
+* [Docker Run](/ko/docs/guides/docker/docker-run)
+* [Docker Compose](/ko/docs/guides/docker/docker-compose)
+</Aside>

@@ -1,0 +1,156 @@
+---
+title: Cluster-Agent-Referenz
+description: "Kubetail-Cluster-Agent-Referenz: Docker-Image-Varianten, Start-Flags und YAML-Konfiguration fuer den Rust-basierten gRPC-Server, der auf jedem Cluster-Knoten laeuft."
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Der Kubetail Cluster Agent ist ein Rust-basierter gRPC-Server, der als DaemonSet auf jedem Knoten Ihres Kubernetes-Clusters laeuft. Er liest Container-Logdateien direkt aus dem Dateisystem des Knotens und streamt sie bei Bedarf an die Cluster API. Das Server-Binary wird aus dem Quellcode im Kubetail-Repository unter [crates/cluster_agent](https://github.com/kubetail-org/kubetail/tree/main/crates/cluster_agent) kompiliert und in der Regel ueber das Docker-Image `kubetail-cluster-agent` bereitgestellt (siehe unten). Es ist moeglich, `kubetail-cluster-agent` als eigenstaendigen Container auszufuehren, wir empfehlen jedoch die Bereitstellung ueber das offizielle Kubetail-[Helm-Chart](/de/docs/reference/helm-chart).
+
+## Docker-Image
+
+Das Docker-Image `kubetail-cluster-agent` wird bei jedem Release auf Docker Hub und in der GitHub Container Registry veroeffentlicht:
+
+| Registry | Image |
+|----------|-------|
+| Docker Hub | `kubetail/kubetail-cluster-agent` |
+| GHCR | `ghcr.io/kubetail-org/kubetail-cluster-agent` |
+
+Es sind zwei Varianten verfuegbar:
+
+| Tag-Suffix | Basis-Image | Beschreibung |
+|------------|-------------|--------------|
+| _(keines)_ | `scratch` | Minimales Image, kleinster Footprint |
+| `-alpine` | `alpine` | Enthaelt eine Shell und Standardwerkzeuge |
+
+## Entry-Point
+
+Der Standard-Entry-Point des Containers ist `/cluster-agent/cluster-agent`:
+
+```sh
+cluster-agent --config <FILE> [flags]
+```
+
+## Flags
+
+| Flag | Kurz | Standard | Beschreibung |
+|------|------|----------|--------------|
+| `--config` | `-c` | | Pfad zur Konfigurationsdatei (**erforderlich**) |
+| `--addr` | `-a` | | Adresse, auf der Verbindungen angenommen werden (ueberschreibt die Konfiguration) |
+
+## Konfiguration
+
+Der Cluster Agent wird ausschliesslich ueber eine Konfigurationsdatei konfiguriert. Der Pfad muss bei jedem Aufruf mit `-c` / `--config` uebergeben werden. Umgebungsvariablen koennen in der Konfigurationsdatei mit standardmaessiger Shell-Syntax referenziert werden.
+
+```sh
+cluster-agent --config /etc/kubetail/cluster-agent.yaml
+```
+
+<Tabs>
+  <TabItem label="YAML">
+    ```yaml
+    ## Kubetail Cluster Agent Configuration File
+    #
+    # Diese Datei definiert das Verhalten des kubetail cluster agent,
+    # der in Kubernetes-Clustern ausgefuehrt wird, um Container-Logs zu streamen und zu verarbeiten.
+    #
+
+    ## addr ##
+    #
+    # Die Netzwerkadresse und der Port, an die der gRPC-Server gebunden werden soll.
+    #
+    # Standardwert: :50051
+    #
+    addr: :50051
+
+    ## container-logs-dir ##
+    #
+    # Der Verzeichnispfad, in dem Kubernetes Container-Logdateien speichert.
+    # Dies ist in der Regel ein Mount aus dem Dateisystem des Host-Knotens.
+    #
+    # Standardwert: /var/log/containers
+    #
+    container-logs-dir: /var/log/containers
+
+    ## logging ##
+    #
+    # Konfiguration fuer die Log-Ausgabe des Agents
+    #
+    logging:
+
+      ## enabled ##
+      #
+      # Ob Logging fuer den Agent aktiviert ist.
+      #
+      # Standardwert: true
+      #
+      enabled: true
+
+      ## level ##
+      #
+      # Das minimale Log-Level, das ausgegeben wird.
+      # Gueltige Werte: debug, info, warn, error
+      #
+      # Standardwert: info
+      #
+      level: info
+
+      ## format ##
+      #
+      # Das Format der Log-Ausgabe.
+      # Gueltige Werte: json, pretty
+      #
+      # Standardwert: json
+      #
+      format: json
+
+    ## tls ##
+    #
+    # TLS-Konfiguration fuer sichere gRPC-Verbindungen
+    #
+    tls:
+
+      ## enabled ##
+      #
+      # Ob TLS fuer gRPC-Verbindungen aktiviert ist.
+      #
+      # Standardwert: false
+      #
+      enabled: false
+
+      ## cert-file ##
+      #
+      # Pfad zur TLS-Zertifikatsdatei.
+      #
+      # Standardwert: ""
+      #
+      cert-file: ""
+
+      ## key-file ##
+      #
+      # Pfad zur TLS-Private-Key-Datei.
+      #
+      # Standardwert: ""
+      #
+      key-file: ""
+
+      ## ca-file ##
+      #
+      # Pfad zur CA-Zertifikatsdatei, die zur Verifizierung von Client-Zertifikaten verwendet wird.
+      # Erforderlich, wenn client-auth auf require-and-verify gesetzt ist.
+      #
+      # Standardwert: ""
+      #
+      ca-file: ""
+
+      ## client-auth ##
+      #
+      # Die Client-Authentifizierungsrichtlinie fuer eingehende gRPC-Verbindungen.
+      # Gueltige Werte: none, require-and-verify
+      #
+      # Standardwert: none
+      #
+      client-auth: none
+    ```
+  </TabItem>
+</Tabs>

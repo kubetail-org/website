@@ -1,0 +1,87 @@
+---
+title: よくある質問
+description: "Kubetail に関するよくある質問への回答です。料金（無料）、対応 Kubernetes バージョン、権限、サポート方法をまとめています。"
+template: splash
+---
+
+## 一般
+
+**1. Kubetail とは何ですか。誰向けのツールですか。**
+
+Kubetail は Kubernetes 向けのログダッシュボードで、ユーザーは自分の Kubernetes クラスターから複数のログストリームを同時にリアルタイムで表示できます。
+
+**2. Kubetail はどの Kubernetes ディストリビューションやベンダーをサポートしていますか。**
+
+Kubetail は Kubernetes v1.18 以降を使用するすべての Kubernetes ディストリビューションとベンダーで動作します。Kubetail の使用中に問題が発生した場合は、[GitHub Issue](https://github.com/kubetail-org/kubetail/issues) を作成してください。
+
+**3. Kubetail はデスクトップで動作しますか。それともクラスター内で動作しますか。**
+
+Kubetail は [デスクトップ](/ja/docs/guides/desktop/installation)（CLI 経由）でも、[クラスター内](/ja/docs/guides/cluster/installation)（Dashboard の Docker イメージをデプロイして）でも動作します。
+
+**4. Kubetail の料金はいくらですか。**
+
+Kubetail は完全に無料です。料金を支払うことなくダウンロード、インストール、利用できます。さらに、Kubetail はユーザー自身の Kubernetes API を利用し、必要に応じてユーザー自身のクラスター内でサービスを実行するため、ツールが使用する最小限のリソースを完全に制御できます。
+
+**5. Kubetail は今後もずっと無料ですか。**
+
+はい。将来的に有料のクラウドサービスを導入する可能性はありますが、Kubetail Dashboard、Kubetail CLI、および関連ツールは常に無料です。私たちは、最先端のロギングツールは誰でも無料で利用できるべきだと考えています。
+
+**6. Kubetail はどれくらいのメモリと CPU を使いますか。**
+
+メモリと CPU の使用量はワークロードによって異なりますが、Kubetail の[デモサイト](https://demo.kubetail.com)のような一般的なデプロイでは次のようになります。
+
+| コンポーネント | メモリ | CPU    |
+| :------------- | ------ | ------ |
+| Dashboard      | ~21MB  | ~3.00m |
+| Cluster API    | ~21MB  | ~3.00m |
+| Cluster Agent  | ~13MB  | ~4.00m |
+
+**7. Kubetail のソースコードはどこで入手できますか。**
+
+Kubetail は Apache 2.0 ライセンスのオープンソースプロジェクトです。リポジトリは [https://github.com/kubetail-org/kubetail](https://github.com/kubetail-org/kubetail) で公開されています。
+
+**8. Kubetail は今後もオープンソースですか。**
+
+はい。クラスター内で動作するサードパーティーツールはオープンソースであるべきだと私たちは強く考えています。Kubetail を完全なオープンソースとして維持することは、このプロジェクトの基本原則です。
+
+**9. Kubetail は誰がメンテナンスしていますか。**
+
+Kubetail は GitHub 上のコミュニティによってメンテナンスされているオープンソースプロジェクトです。Kubetail のコアコードには、こちらの [contributors](https://github.com/kubetail-org/kubetail/graphs/contributors) が貢献しています。さらに、Helm チャートにはこちらの [contributors](https://github.com/kubetail-org/helm-charts/graphs/contributors) が貢献しています。現在のリード開発者は Andres Morey ([@amorey](https://github.com/amorey/)) です。
+
+**10. Kubetail が Kubernetes クラスターにアクセスするには、どの認証情報や権限が必要ですか。**
+
+デスクトップ上で動作する Kubetail は、ローカルの kubeconfig ファイルにある認証情報を使って Kubernetes API に接続します。クラスター内で動作する Kubetail のリソースは、それぞれの ServiceAccount に付与された RBAC 権限を使用します。各リソースに必要な具体的な権限は、この [YAML マニフェスト](https://github.com/kubetail-org/helm-charts/releases/latest/download/kubetail-clusterauth.yaml) で確認できます。
+
+## インストール
+
+**1. デスクトップに Kubetail をインストールして利用するにはどうすればよいですか。**
+
+[こちら](/ja/docs/guides/desktop/installation) の手順に従って、デスクトップで Kubetail を実行してください。
+
+**2. クラスター内に Kubetail をインストールして利用するにはどうすればよいですか。**
+
+[こちら](/ja/docs/guides/cluster/installation) の手順に従って、クラスター内で Kubetail を実行してください。
+
+## 使い方
+
+**1. Kubetail を使って複数クラスターのログを表示できますか。**
+
+はい。デスクトップ上で Kubetail を使う場合（CLI 経由）、ローカルの kubeconfig ファイルで定義されたクラスターを検出し、ダッシュボード UI でクラスターを切り替えられます。
+
+**2. Kubetail の使い方について支援を受けるにはどうすればよいですか。**
+
+ユーザーの支援は大歓迎です。サポートが必要な場合は、次の方法があります。
+
+* [hello@kubetail.com](mailto:hello@kubetail.com) にメールを送る
+* [GitHub Issue](https://github.com/kubetail-org/kubetail/issues) を作成する
+* [Discord](https://discord.gg/CmsmWAVkvX) でチャットする
+* [Slack](https://join.slack.com/t/kubetail/shared_invite/zt-2cq01cbm8-e1kbLT3EmcLPpHSeoFYm1w) に参加する
+* [tweet](https://x.com/kubetail) を送る
+
+**3. Kubetail に貢献するにはどうすればよいですか。**
+
+貢献はいつでも歓迎です。手順は次のとおりです。
+
+1. [リポジトリ](https://github.com/kubetail-org/kubetail) を fork する
+2. 変更を加える
+3. [GitHub Pull Request](https://github.com/kubetail-org/kubetail/pulls) を送信する

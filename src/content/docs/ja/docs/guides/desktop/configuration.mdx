@@ -1,0 +1,223 @@
+---
+title: 設定
+description: "YAML、JSON、TOML の設定ファイルで Kubetail CLI を設定します。kubeconfig のパス、`logs` の既定値（head、tail、columns）、`serve` のホストとポートを扱います。"
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+`kubetail` CLI ツールはローカル設定ファイルで構成できます。設定ファイルが見つからない場合、Kubetail は以下の既定値を使用します。設定ファイルは YAML、JSON、TOML をサポートしており、値では `${VARIABLE_NAME}` 構文で環境変数を参照できます。
+
+---
+
+## 初期化
+
+既定の設定ファイルのパスは `~/.kubetail/config.yaml` です。既定の場所にファイルを配置するか、CLI の `config init` コマンドを使って設定を初期化できます。
+
+```sh
+kubetail config init
+```
+
+<Aside type="tip">
+`config init` コマンドは `--format` フラグを受け付け、別の初期化形式を選べます。詳しくは [CLI リファレンス](/ja/docs/reference/cli#kubetail-config-init) を参照してください。
+</Aside>
+
+---
+
+## 使用方法
+
+`kubetail` コマンドを実行するたびに、既定の場所にある設定ファイルが自動的に検索されます。グローバルフラグ `--config` を使うと別のパスを指定できます。
+
+```sh
+kubetail serve --config /path/to/config.yaml
+```
+
+<Aside type="tip">
+設定の優先順位は次のとおりです。
+
+1. 既定値
+2. 設定ファイル
+3. CLI フラグ
+</Aside>
+
+---
+
+## 既定値
+
+<Tabs>
+  <TabItem label="YAML">
+```yaml
+## Kubetail CLI 設定ファイル
+# 
+# このファイルは kubetail CLI ツールの動作を定義します。
+# logs コマンドの既定値やダッシュボードサーバーの設定も含まれます。
+#
+
+## version ##
+#
+# 設定ファイルのスキーマバージョン
+#
+version: 1
+
+## general ##
+#
+general:
+
+  ## kubeconfig ##
+  #
+  # CLI リクエストで使用する kubeconfig ファイルへのパスです。
+  # 空の場合は既定のパス（~/.kube/config）または KUBECONFIG 環境変数が使用されます。
+  #
+  # 既定値: ""
+  #
+  kubeconfig: ""
+
+## commands ##
+#
+commands:
+
+  ## logs ##
+  #
+  # 'logs' サブコマンド固有の設定
+  #
+  logs:
+
+    ## kube-context ##
+    #
+    # 使用する Kubernetes コンテキストです。
+    # 空の場合は現在アクティブなコンテキストが使われます。
+    #
+    # 既定値: ""
+    #
+    kube-context: ""
+
+    ## head ##
+    #
+    # ログバッファの先頭から表示する行数
+    #
+    # 既定値: 10
+    #
+    head: 10
+
+    ## tail ##
+    #
+    # ログバッファの末尾から表示する行数
+    #
+    # 既定値: 10
+    #
+    tail: 10
+
+    ## columns ##
+    #
+    # 'logs' レコードの出力列一式です。
+    # 使用可能な値: timestamp,dot,node,region,zone,os,arch,namespace,pod,container
+    #
+    # 既定値: ["timestamp", "dot"]
+    #
+    columns:
+      - timestamp
+      - dot
+
+  ## serve ##
+  #
+  # ダッシュボードサーバーの設定
+  #
+  serve:
+
+    ## host ##
+    #
+    # サーバーがバインドするネットワークインターフェースです。
+    #
+    # 既定値: localhost
+    #
+    host: localhost
+
+    ## port ##
+    #
+    # サーバーが待ち受ける TCP ポートです。
+    #
+    # 既定値: 7500
+    #
+    port: 7500
+
+    ## skip-open ##
+    #
+    # true の場合、サーバー起動時に CLI はブラウザーを自動で開きません。
+    #
+    # 既定値: false
+    #
+    skip-open: false
+```
+  </TabItem>
+  <TabItem label="TOML">
+```toml
+# Kubetail CLI 設定ファイル
+#
+# kubetail CLI ツールの動作を定義します。
+# logs コマンドの既定値とダッシュボードサーバー設定を含みます。
+
+# 設定ファイルのスキーマバージョン
+version = 1
+
+[general]
+# kubeconfig へのパス。空の場合は ~/.kube/config または KUBECONFIG を使用します。
+kubeconfig = ""
+
+[commands.logs]
+# 使用する Kubernetes コンテキスト。空の場合はアクティブなコンテキストを使用します。
+kube-context = ""
+
+# ログバッファの先頭から表示する行数
+head = 10
+
+# ログバッファの末尾から表示する行数
+tail = 10
+
+# 'logs' レコードの出力列一式です。
+# 使用可能な値: timestamp,dot,node,region,zone,os,arch,namespace,pod,container
+columns = ["timestamp", "dot"]
+
+[commands.serve]
+# サーバーがバインドするネットワークインターフェース
+host = "localhost"
+
+# サーバーが待ち受ける TCP ポート
+port = 7500
+
+# true の場合、サーバー起動時にブラウザーを自動で開きません
+skip-open = false
+```
+  </TabItem>
+  <TabItem label="JSON">
+```json
+{
+  "version": 1,
+  "general": {
+    "kubeconfig": ""
+  },
+  "commands": {
+    "logs": {
+      "kube-context": "",
+      "head": 10,
+      "tail": 10,
+      "columns": ["timestamp", "dot"]
+    },
+    "serve": {
+      "host": "localhost",
+      "port": 7500,
+      "skip-open": false
+    }
+  }
+}
+```
+  </TabItem>
+</Tabs>
+
+<Aside type="tip">
+環境変数の展開をサポートしています。たとえば次のように書けます。
+
+```yaml
+commands:
+  serve:
+    port: ${MY_KUBETAIL_PORT}
+```
+</Aside>

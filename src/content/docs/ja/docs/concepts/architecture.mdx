@@ -1,0 +1,170 @@
+---
+title: アーキテクチャ
+description: "Kubetail の各コンポーネント — CLI、Dashboard、Cluster API、Cluster Agent — が、デスクトップ、クラスター、Docker の各デプロイトポロジーでどのように連携するかを説明します。"
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+Kubetail は、少数の役割の明確なツールとサービスで構成されています。必須のものもあれば、追加機能を有効にするオプションのものもあります。このページでは、デプロイトポロジー、ログ配信パイプライン、そして各コンポーネントについて詳しく説明します。
+
+---
+
+## デプロイトポロジー
+
+Kubetail は、利用環境やアクセス要件に応じて 3 つの方法でデプロイできます。どのトポロジーでも基盤となるコンポーネントは同じですが、インストール方法、アクセス方法、設定方法が異なります。
+
+### デスクトップ
+
+もっとも一般的なトポロジーでは、`kubetail` CLI をローカルマシンにインストールし、kubeconfig ファイルを使ってクラスターに認証します。これは、`kubetail` が `kubectl` と同じ RBAC 権限を引き継ぐため、ほかに変更を加えなくてもログへアクセスできて便利です。
+
+デスクトップ上で `kubetail serve` を実行すると、Dashboard Server がローカルで起動し、Dashboard UI を配信するとともに、ログリクエストを利用者に代わってクラスターの Kubernetes API にプロキシします。`kubetail logs` を使えば、ログをそのままターミナルにストリームすることもできます。使い始めるのにクラスター側のインストールは不要ですが、クラスターに Kubetail API をインストールすると、`kubetail` は自動的にそれを使い、検索などの高度な機能を有効にします。
+
+セットアップ手順については [デスクトップインストールガイド](/ja/docs/guides/desktop/installation) を参照してください。
+
+### クラスター
+
+Kubetail のスタック全体は、Helm または YAML マニフェストを使ってクラスター内の Kubernetes リソースとしてインストールできます。このトポロジーでは、Dashboard Server は `kubetail-system` namespace の Deployment として動作し、ブラウザーから `kubectl port-forward`、`kubectl proxy`、または ingress リソース経由でアクセスします。これは、チームで共有する環境や、ローカル CLI に依存しない常時利用可能なアクセスが必要な場合に適したアプローチです。
+
+セットアップ手順については [クラスターインストールガイド](/ja/docs/guides/cluster/installation) を参照してください。
+
+### Docker
+
+`kubetail` CLI は Docker イメージ（[`kubetail/kubetail-cli`](https://hub.docker.com/r/kubetail/kubetail-cli)）としてパッケージされているため、ローカルにインストールしなくてもコンテナ内で実行できます。ローカルでは `.kube/config` ファイルをコンテナにマウントし、`docker run` や `docker-compose` を使ってダッシュボードを起動できます。このイメージはクラスター内の Pod としてもデプロイ可能で、その場合は `--in-cluster` フラグを使って kubeconfig ファイルの代わりに Pod の service account 認証情報で認証します。
+
+Docker によるデプロイ方法の詳細は [Docker 入門](/ja/docs/guides/docker/introduction) を参照してください。
+
+---
+
+## ログ配信パイプライン
+
+デフォルトでは、Kubetail は Kubernetes API を使ってログを取得します。最後のイベント時刻や検索のような高度な機能を有効にするには、Kubetail Cluster API と Kubetail Cluster Agent（合わせて「Kubetail API」）をインストールできます。以下では、それぞれのモードを詳しく説明します。
+
+### Kubernetes API（デフォルト）
+
+Cluster API が設定されていない場合、ログは Kubernetes API を通って流れます。たとえば、Web ダッシュボードからディスク上のファイルまで、Kubernetes API を使う場合のリクエスト経路は次のようになります。
+
+```
++---------------------------------+
+| Kubetail Dashboard UI (Browser) |
++---------------------------------+
+          │
+          │ GraphQL over WebSocket
+          ▼
++---------------------------------+
+| Kubetail Dashboard Server       |
++---------------------------------+
+          │
+          │ HTTP GET /api/v1/namespaces/{ns}/pods/{pod}/log
+          ▼
++---------------------------------+
+| kube-apiserver                  |
++---------------------------------+
+          │
+          │ HTTP → kubelet /containerLogs
+          ▼
++---------------------------------+
+| kubelet (node)                  |
++---------------------------------+
+          │
+          │ file read
+          ▼
++---------------------------------+
+| Pod log file (disk)             |
++---------------------------------+
+```
+
+この経路は、どの Kubernetes クラスターでもそのまま動作します。開かれているログビューごとに、tail しているコンテナごとに Dashboard Server から kube-apiserver への長寿命 HTTP 接続が 1 本維持されます。テキストフィルタリングは、ログストリームが到着する際に Kubetail Dashboard Server 上で適用されます。
+
+### Kubetail API（オプション）
+
+Cluster API と Cluster Agent がデプロイされている場合、Kubetail Dashboard Server はリクエストを「Kubetail API」スタック経由で処理します。たとえば、Web ダッシュボードからディスク上のファイルまで、Kubetail API を使う場合のリクエスト経路は次のようになります。
+
+```
++---------------------------------+
+| Kubetail Dashboard UI (Browser) |
++---------------------------------+
+          │
+          │ GraphQL over WebSocket
+          ▼
++---------------------------------+
+| Kubetail Dashboard Server       |
++---------------------------------+
+          │
+          │ GraphQL over WebSocket
+          ▼
++---------------------------------+
+| Cluster API                     |
++---------------------------------+
+          │
+          │ gRPC - one stream per log file
+          ▼
++---------------------------------+
+| Cluster Agent (one per node)    |
++---------------------------------+
+          │
+          │ file read + inotify watches
+          ▼
++---------------------------------+
+| Pod log file (disk)             |
++---------------------------------+
+```
+
+このパイプラインでは、ログデータが kube-apiserver に触れることはなく、テキストフィルタリングは転送前に各 Node 上で行われます。kube-apiserver は、ワークロードのメタデータ取得と認可チェックのためにだけ使われます。
+
+---
+
+## コンポーネント
+
+### Kubetail CLI
+
+`kubetail` CLI は、デスクトップで Kubetail を使うための主要な入口です。このツールは Go で書かれており、Web UI をローカルで実行できるよう Dashboard を同梱しています。主なコマンドは `kubetail serve` と `kubetail logs` の 2 つで、前者は Dashboard Server を起動して Web UI を開き、後者はログを直接ターミナルへストリームします。`kubetail cluster` サブコマンドは、組み込み Helm クライアントを使って、オプションのクラスター側リソースを管理します。
+
+利用可能なコマンドとフラグの一覧は [CLI リファレンス](/ja/docs/reference/cli) を参照してください。
+
+### Kubetail Dashboard
+
+Kubetail Dashboard は、一緒にデプロイされる 2 つの部分から成ります。
+
+- **Dashboard UI** — Vite でビルドされた React ベースのシングルページアプリケーションで、Dashboard Server により静的アセットとして配信されます。ブラウザーは Dashboard Server と GraphQL だけで通信します。Queries と mutations は HTTP、リアルタイムログの subscription は持続的な WebSocket 接続を使います。Kubernetes API やクラスター側の Kubetail サービスへのすべてのリクエストは、このサーバーを経由してプロキシされます。
+- **Dashboard Server** — 静的 UI アセットを配信し、認証とセッション管理を行い、ブラウザーの代わりにログデータを取得する Go ベースの HTTP サーバーです。2 種類のログバックエンドをサポートします。Kubernetes API（デフォルト、追加インストール不要）と Kubetail API（クラスター側リソースがインストールされている場合のオプション）です。
+
+設定オプションについては [Dashboard リファレンス](/ja/docs/reference/dashboard) を参照してください。
+
+### Kubetail Cluster API
+
+Cluster API は、クラスター内で単一 Deployment として動作する Go ベースの HTTP サーバーです。Dashboard Server に GraphQL API を提供し、各 Node の Cluster Agent に対する gRPC ディスパッチャーとしても機能します。
+
+ログリクエストが到着すると、Cluster API は関連する Cluster Agent に問い合わせを分配し、それぞれからのストリーム応答を集約して、Dashboard Server に単一のストリームとして返します。ログデータは完全にクラスター内部ネットワーク上を流れるため、kube-apiserver には触れません。Cluster API は、検索やログファイルメタデータ（サイズ、タイムスタンプ）など、Kubernetes API モードでは利用できない機能も有効にします。
+
+設定オプションについては [Cluster API リファレンス](/ja/docs/reference/cluster-api) を参照してください。
+
+### Kubetail Cluster Agent
+
+Cluster Agent は、DaemonSet として動作する Rust ベースの gRPC サーバーです — つまり 1 Node あたり 1 Pod です。Kubetail の中で唯一、ファイルシステムに直接触れるコンポーネントであり、Node 上の `/var/log/containers` からコンテナログファイルを読み取ります。主な役割は次のとおりです。
+
+- OS レベルのファイルシステム通知（Linux では `inotify`）を使って Pod ログファイルを監視し、ポーリングなしで新しい行を検出する
+- 新しいログ行が書き込まれるたびに、それを gRPC で Cluster API にストリームする
+- ripgrep ベースのテキストフィルタリングを Node 上で適用し、データが外へ出る前に一致する行だけを残す
+- Kubernetes SubjectAccessReview の結果をキャッシュし、繰り返し API 呼び出しをせずにリクエストを認可する
+
+設定オプションについては [Cluster Agent リファレンス](/ja/docs/reference/cluster-agent) を参照してください。
+
+---
+
+## 通信プロトコル
+
+| 接続 | プロトコル | 補足 |
+|---|---|---|
+| Browser ↔ Dashboard Server | GraphQL over WebSocket (graphql-ws) + HTTPS | Queries とリアルタイム subscriptions を 1 本の接続で処理 |
+| Dashboard Server ↔ kube-apiserver | HTTP/HTTPS (client-go) | Kubernetes API モードのみ; コンテナごとに 1 ストリーム |
+| Dashboard Server ↔ Cluster API | gRPC over HTTP/2 | Cluster API モードのみ; TLS はオプション |
+| Cluster API ↔ Cluster Agent | gRPC over HTTP/2 | mTLS はオプション; grpc-dispatcher-go でディスパッチ |
+| Cluster Agent ↔ node disk | ローカル file I/O + inotify | ネットワークなし; `/var/log/containers/` を直接読み取り |
+
+<br />
+---
+<br />
+
+<Aside type="tip">
+各トポロジーの性能面の違いをより深く知りたい場合は、[Performance](/ja/docs/concepts/performance) ページを参照してください。
+</Aside>

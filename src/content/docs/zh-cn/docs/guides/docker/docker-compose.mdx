@@ -1,0 +1,22 @@
+---
+title: Docker Compose
+description: "通过 Docker Compose 使用 `kubetail-cli` 镜像，挂载 kubeconfig，并在 localhost:7500 启动 Kubetail 仪表板服务器。"
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+如果要通过 `docker-compose` 在本地使用 CLI 工具，可以从这个配置文件 [docker-compose.yml](https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/docker-compose.yml) 开始：
+
+```sh
+curl -LO https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/docker-compose.yml
+docker-compose up
+```
+
+这会将本地 `.kube/config` 文件挂载到 `kubetail-cli` 容器中，并在 [http://localhost:7500](http://localhost:7500) 启动仪表板服务器。
+
+<Aside type="tip">
+您也可以通过以下方式使用 `kubetail-cli` Docker 镜像：
+
+* [Docker Run](/zh-cn/docs/guides/docker/docker-run)
+* [Kubernetes Pod](/zh-cn/docs/guides/docker/kubernetes-pod)
+</Aside>

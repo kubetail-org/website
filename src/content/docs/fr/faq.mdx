@@ -1,0 +1,87 @@
+---
+title: Foire aux questions
+description: "Réponses aux questions fréquentes sur Kubetail: prix (gratuit), versions de Kubernetes prises en charge, permissions et aide."
+template: splash
+---
+
+## Général
+
+**1. Qu'est-ce que Kubetail et à qui s'adresse-t-il?**
+
+Kubetail est un tableau de bord de logs pour Kubernetes qui permet aux utilisateurs de consulter simultanément, en temps réel, plusieurs flux de logs provenant de leurs clusters Kubernetes.
+
+**2. Quelles distributions ou quels fournisseurs Kubernetes sont pris en charge par Kubetail?**
+
+Kubetail fonctionne avec toutes les distributions et tous les fournisseurs Kubernetes utilisant Kubernetes v1.18 ou une version plus récente. Si vous rencontrez un problème en utilisant Kubetail, veuillez créer une [issue GitHub](https://github.com/kubetail-org/kubetail/issues).
+
+**3. Kubetail s'exécute-t-il sur mon poste ou dans mon cluster?**
+
+Kubetail peut s'exécuter à la fois sur votre [poste](/fr/docs/guides/desktop/installation) (via la CLI) et dans votre [cluster](/fr/docs/guides/cluster/installation) (comme déploiement de l'image Docker du Dashboard).
+
+**4. Combien coûte Kubetail?**
+
+Kubetail est entièrement gratuit. Vous pouvez le télécharger, l'installer et l'utiliser sans rien payer. De plus, Kubetail utilise votre propre API Kubernetes et peut, en option, exécuter des services dans votre propre cluster, ce qui vous donne un contrôle total sur les ressources (minimales) utilisées par l'outil.
+
+**5. Kubetail sera-t-il toujours gratuit?**
+
+Oui. Même si nous pourrions proposer des services cloud payants à l'avenir, Kubetail Dashboard, Kubetail CLI et les outils associés resteront toujours gratuits. Par principe, nous pensons que les outils de journalisation les plus avancés devraient être accessibles gratuitement à tout le monde.
+
+**6. Combien de mémoire et de CPU Kubetail utilise-t-il?**
+
+L'utilisation de la mémoire et du CPU dépend de la charge, mais un déploiement typique, par exemple pour le [site de démonstration](https://demo.kubetail.com) de Kubetail, ressemble à ceci:
+
+| Composant     | Mémoire | CPU    |
+| :------------ | ------- | ------ |
+| Dashboard     | ~21MB   | ~3.00m |
+| Cluster API   | ~21MB   | ~3.00m |
+| Cluster Agent | ~13MB   | ~4.00m |
+
+**7. Où puis-je trouver le code source de Kubetail?**
+
+Kubetail est un projet open source sous licence Apache 2.0. Le dépôt est disponible à l'adresse [https://github.com/kubetail-org/kubetail](https://github.com/kubetail-org/kubetail).
+
+**8. Kubetail restera-t-il toujours open source?**
+
+Oui. Nous croyons fermement que tout outil tiers exécuté dans votre cluster devrait être open source. Le fait de garantir que Kubetail reste entièrement open source est un principe fondateur de ce projet.
+
+**9. Qui maintient Kubetail?**
+
+Kubetail est un projet open source maintenu par la communauté sur GitHub. Des contributions au code principal de Kubetail ont été apportées par ces [contributeurs](https://github.com/kubetail-org/kubetail/graphs/contributors). De plus, nos charts Helm ont reçu des contributions de ces [contributeurs](https://github.com/kubetail-org/helm-charts/graphs/contributors). Actuellement, le développeur principal du projet est Andres Morey ([@amorey](https://github.com/amorey/)).
+
+**10. Quels identifiants ou permissions Kubetail doit-il avoir pour accéder à mon cluster Kubernetes?**
+
+Kubetail exécuté sur votre poste utilise les identifiants de votre fichier kubeconfig local pour se connecter à votre API Kubernetes. Les ressources Kubetail exécutées dans votre cluster utilisent les permissions RBAC accordées à leurs comptes de service. Vous pouvez consulter les permissions précises requises pour chaque ressource dans ce [manifeste YAML](https://github.com/kubetail-org/helm-charts/releases/latest/download/kubetail-clusterauth.yaml).
+
+## Installation
+
+**1. Comment installer et utiliser Kubetail sur mon poste?**
+
+Suivez les instructions [ici](/fr/docs/guides/desktop/installation) pour exécuter Kubetail sur votre poste.
+
+**2. Comment installer et utiliser Kubetail dans mon cluster?**
+
+Suivez les instructions [ici](/fr/docs/guides/cluster/installation) pour exécuter Kubetail dans votre cluster.
+
+## Utilisation
+
+**1. Puis-je utiliser Kubetail pour consulter les logs de plusieurs clusters?**
+
+Oui. Si vous utilisez Kubetail sur votre poste (via la CLI), il détectera les clusters définis dans votre fichier kubeconfig local et vous permettra de basculer entre eux dans l'interface du dashboard.
+
+**2. Comment obtenir de l'aide pour utiliser Kubetail?**
+
+Nous aimons aider les utilisateurs. Si vous avez besoin d'assistance, vous pouvez:
+
+* nous envoyer un e-mail à [hello@kubetail.com](mailto:hello@kubetail.com)
+* créer une [issue GitHub](https://github.com/kubetail-org/kubetail/issues)
+* discuter avec nous sur [Discord](https://discord.gg/CmsmWAVkvX)
+* rejoindre notre [Slack](https://join.slack.com/t/kubetail/shared_invite/zt-2cq01cbm8-e1kbLT3EmcLPpHSeoFYm1w)
+* nous envoyer un [tweet](https://x.com/kubetail)
+
+**3. Comment puis-je contribuer à Kubetail?**
+
+Nous apprécions beaucoup les contributions. Pour contribuer:
+
+1. Forkez le [dépôt](https://github.com/kubetail-org/kubetail)
+2. Faites vos modifications
+3. Soumettez une [pull request GitHub](https://github.com/kubetail-org/kubetail/pulls)

@@ -1,0 +1,71 @@
+---
+title: Kubetail CLI "logs" 명령어 출시 안내
+description: "Kubetail의 새로운 logs CLI 명령어를 사용하면 터미널에서 Kubernetes 워크로드 로그를 실시간으로 확인하고 grep할 수 있으며, 시간 범위 및 노드 속성 필터도 지원합니다."
+date: 2025-03-26
+authors:
+  - name: Andres Morey
+    title: Lead Developer
+    url: https://github.com/amorey
+    picture: https://github.com/amorey.png
+---
+
+Kubernetes에서 멀티 컨테이너 워크로드를 보다 쉽게 모니터링하고 디버깅할 수 있도록, Kubetail CLI 도구에 새로운 `logs` 명령어를 추가했습니다. 새로운 `logs` 명령어를 사용하면 터미널에서 실시간으로 Kubernetes 워크로드 로그를 grep할 수 있습니다. 또한 시간 및 노드, 가용 영역과 같은 소스 속성으로 필터링할 수도 있습니다.
+
+Kubetail CLI 도구를 설치하려면 [릴리스 페이지](https://github.com/kubetail-org/kubetail/releases/latest)에서 다운로드하거나 Homebrew를 사용하세요:
+
+```console
+brew install kubetail
+```
+
+새로운 `logs` 명령어로 할 수 있는 몇 가지 예시를 소개합니다:
+
+```console
+# Tail 'web' deployment in the 'default' namespace
+kubetail logs deployments/web
+
+# Tail 'web' deployment in the 'frontend' namespace
+kubetail logs frontend:deployments/web
+
+# Return last 100 records
+kubetail logs deployments/web --tail=100
+
+# Return first 100 records
+kubetail logs deployments/web --head=100
+
+# Stream new records
+kubetail logs deployments/web --follow
+
+# Return all records
+kubetail logs deployments/web --all
+
+# Return first 10 records starting from 30 minutes ago
+kubetail logs deployments/web --since PT30M
+
+# Return last 10 records leading up to 30 minutes ago
+kubetail logs deployments/web --until PT30M
+
+# Return first 10 records between two exact timestamps
+kubetail logs deployments/web --since 2006-01-02T15:04:05Z07:00 --until 2007-01-02T15:04:05Z07:00
+
+# Return last 10 records that match "GET /about"
+kubetail logs deployments/web --grep "GET /about" --force
+
+# Return first 10 records that match "GET /about"
+kubetail logs deployments/web --grep "GET /about" --head --force
+
+# Return last 10 records that match "GET /about" or "GET /contact"
+kubetail logs deployments/web --grep "GET /(about|contact)" --force
+
+# Stream new records that match "GET /about"
+kubetail logs deployments/web --grep "GET /about" --follow --force
+```
+
+`logs` 명령어는 로컬 kube config 파일을 사용하여 클러스터에 인증하므로, 클러스터를 전환하려면 kube config 컨텍스트를 변경하면 됩니다. `--kube-context` 플래그를 사용할 수도 있습니다:
+
+```console
+kubetail logs --kube-context minikube deployments/web
+```
+
+한 가지 주의할 점은, `--grep`을 사용하려면 `--force`도 함께 사용해야 한다는 것입니다. 이는 필터링이 클라이언트 측에서 이루어지기 때문인데, 즉 도구가 원하는 수의 매칭 결과를 찾을 때까지 클러스터에서 지속적으로 로그를 다운로드하게 됩니다. 이로 인해 예상치 못한 대용량 다운로드가 발생할 수 있어 보조 플래그 확인 절차를 추가했습니다. 현재 이 문제를 해결하기 위한 새로운 기능을 개발 중입니다.
+
+새로운 `logs` 명령어를 사용해 보시고 의견을 알려주세요!

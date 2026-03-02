@@ -1,0 +1,110 @@
+---
+title: Monitoring
+description: "监控 Kubetail 的集群部署：健康检查端点 (`/healthz`)、liveness/readiness probe，以及每个组件的结构化 JSON 日志输出。"
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Kubetail 在每个组件上都暴露健康检查端点和结构化日志输出。本页介绍当 Kubetail 部署在集群内部时，如何监控其自身的健康状态。
+
+---
+
+## 健康检查
+
+每个组件都会暴露一个健康检查端点，集群中的 liveness probe 和 readiness probe 会使用它来判断 Pod 的健康状态。
+
+### Dashboard 和 Cluster API
+
+Dashboard 和 Cluster API 都会暴露一个 HTTP 健康检查端点：
+
+```
+GET /healthz
+```
+
+Helm chart 会自动为这个端点配置 liveness probe 和 readiness probe。您也可以使用同一个端点手动检查组件状态：
+
+```sh
+kubectl exec -n kubetail-system deploy/kubetail-dashboard -- \
+  wget -qO- http://localhost:8080/healthz
+```
+
+### Cluster Agent
+
+Cluster Agent 在其 gRPC 端口 (`:50051`) 上暴露标准的 [gRPC health](https://grpc.github.io/grpc/core/md_doc_health-checking.html) 服务。Helm chart 会在容器内使用 `grpc_health_probe` 来检查 readiness 和 liveness。
+
+---
+
+## Logging
+
+这三个组件默认都会输出 JSON 格式的结构化日志。每条日志都包含时间戳、日志级别，以及用于在系统中追踪单个请求的上下文字段，例如 `request_id`。
+
+### 日志级别
+
+| Level | Description |
+|-------|-------------|
+| `debug` | 详细输出，包括内部请求路由细节 |
+| `info` | 常规运行消息（默认） |
+| `warn` | 可恢复但可能需要关注的问题 |
+| `error` | 影响请求处理的故障 |
+| `disabled` | 不输出日志 |
+
+### 配置
+
+日志级别和格式可通过 Helm values 中的 `runtimeConfig` 按组件分别配置：
+
+```yaml
+kubetail:
+  dashboard:
+    runtimeConfig:
+      logging:
+        level: info
+        format: json        # json or pretty
+        access-log:
+          enabled: true
+          hide-health-checks: true  # suppress /healthz from access logs
+  clusterAPI:
+    runtimeConfig:
+      logging:
+        level: info
+        format: json
+        access-log:
+          enabled: true
+          hide-health-checks: true
+  clusterAgent:
+    runtimeConfig:
+      logging:
+        level: info
+        format: json
+```
+
+<Aside type="tip">
+在开发期间可以使用 `format: pretty` 以获得更适合人工阅读的日志输出。在生产环境中，`format: json` 与日志聚合工具集成得更好。
+</Aside>
+
+### 访问日志
+
+Dashboard 和 Cluster API 都包含一个 HTTP 访问日志，用于记录每一个传入请求。访问日志条目包含 HTTP 方法、路径、状态码、持续时间、远程地址和请求 ID。您可以隐藏访问日志中的健康检查请求，以减少噪音：
+
+```yaml
+logging:
+  access-log:
+    enabled: true
+    hide-health-checks: true
+```
+
+---
+
+## 检查 Pod readiness
+
+要检查 Kubetail 部署的整体健康状态：
+
+```sh
+kubectl get pods -n kubetail-system
+```
+
+所有 Pod 都应显示 `Running` 状态，并且 readiness probe 已通过。如果某个 Pod 尚未 ready，请检查其事件和日志：
+
+```sh
+kubectl describe pod -n kubetail-system <pod-name>
+kubectl logs -n kubetail-system <pod-name>
+```

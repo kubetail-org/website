@@ -1,0 +1,61 @@
+---
+title: 基本機能
+description: "追加インストールなしで使える Kubetail ダッシュボードの機能です。マルチクラスター対応、ワークロードフィルタ、リアルタイムログ tail、コンテナ単位のログフィルタリングを含みます。"
+---
+
+import { Image } from "astro:assets";
+
+import clusterPickerLight from '@/assets/screenshots/light/cluster-picker.webp';
+import clusterPickerDark from '@/assets/screenshots/dark/cluster-picker.webp';
+import workloadSearchLight from '@/assets/screenshots/light/workload-search.webp';
+import workloadSearchDark from '@/assets/screenshots/dark/workload-search.webp';
+import consolePageLight from '@/assets/screenshots/light/logging-console.webp';
+import consolePageDark from '@/assets/screenshots/dark/logging-console.webp';
+
+デフォルトでは、Kubetail は **Kubernetes API** を使ってワークロードを監視し、ログデータを取得します。ここで説明する機能はすべて、追加のインストールなしで Kubetail Web ダッシュボード上で利用できます。
+
+---
+
+## 複数クラスター
+
+Kubetail は kubeconfig ファイルを読み取り、利用可能なクラスターを検出し、そこに定義された認証情報を使って各クラスターに認証します。複数の context が設定されている場合、上部ナビゲーションバーにクラスター選択 UI が表示され、切り替えられるようになります。Kubetail は kubeconfig ファイルの変更も監視して自動的に一覧を更新するため、新しい context を追加しても再起動なしで反映されます。
+
+<Image src={clusterPickerLight} alt="Kubetail dashboard home page showing the cluster picker" class="dark:sl-hidden" />
+<Image src={clusterPickerDark} alt="Kubetail dashboard home page showing the cluster picker" class="light:sl-hidden" />
+
+---
+
+## ワークロードフィルタ
+
+ダッシュボードのホームページでは、すべてのワークロードをリアルタイムで確認でき、namespace、ワークロード種別、検索条件で表示を絞り込めます。
+
+<Image src={workloadSearchLight} alt="Kubetail dashboard home page showing workload search" class="dark:sl-hidden" />
+<Image src={workloadSearchDark} alt="Kubetail dashboard home page showing workload search" class="light:sl-hidden" />
+
+---
+
+## リアルタイム tail
+
+ワークロードを選択するとログコンソールが開き、そのワークロードに属するすべてのコンテナログの tail が同時に始まります。新しいログ行は書き込まれるたびに流れ込み、上にスクロールすれば過去の行も確認できます。ビューアコントロールを使えば、ストリームの先頭へ移動したり、特定時刻へジャンプしたり、末尾へ戻って tail を再開したりすることもできます。
+
+<Image src={consolePageLight} alt="Kubetail dashboard logging console showing web server log streams" class="dark:sl-hidden" />
+<Image src={consolePageDark} alt="Kubetail dashboard logging console showing web server log streams" class="light:sl-hidden" />
+
+---
+
+## コンテナライフサイクルの追跡
+
+Kubetail は Kubernetes Pod イベントをリアルタイムで監視します。新しい Pod やコンテナが起動すると — rolling update、クラッシュ後の再起動、scale-out など — そのログは自動的にアクティブなストリームへ追加されます。Pod が削除されると、そのログソースはストリームから取り除かれます。こうした変化を見るためにコンソールを開き直したり、手動で再読み込みしたりする必要はありません。
+
+---
+
+## ログフィルタ
+
+ログコンソールでは、次の条件でログを絞り込めます。
+
+- **Container** — 名前を指定して特定のコンテナだけを表示します。
+- **Node** — 特定の Node 上で動作しているコンテナだけを表示します。
+- **Region / Zone** — クラウドリージョンまたは availability zone で絞り込みます（Node ラベル `topology.kubernetes.io/region` および `topology.kubernetes.io/zone` から取得）。
+- **OS / Arch** — OS または CPU アーキテクチャで絞り込みます（Node ラベル `kubernetes.io/os` および `kubernetes.io/arch` から取得）。
+
+これらのフィルタは任意の組み合わせで同時に適用でき、すべて外すと完全なストリームに戻ります。

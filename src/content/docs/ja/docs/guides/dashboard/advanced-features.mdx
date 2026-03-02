@@ -1,0 +1,52 @@
+---
+title: 高度な機能
+description: "Kubetail API が必要な Kubetail ダッシュボードの高度な機能です。ログファイルサイズ、最後のイベント時刻、ノード上での grep ベースのログ検索を含みます。"
+---
+
+import { Aside } from "@astrojs/starlight/components";
+import { Image } from "astro:assets";
+
+import homePageWithLogMetadataLight from "@/assets/screenshots/light/home-page-with-log-metadata.webp";
+import homePageWithLogMetadataDark from "@/assets/screenshots/dark/home-page-with-log-metadata.webp";
+import consoleWithSearchLight from "@/assets/screenshots/light/logging-console-with-search.webp";
+import consoleWithSearchDark from "@/assets/screenshots/dark/logging-console-with-search.webp";
+
+高度な機能を使うには、クラスター内に **Kubetail API** をインストールする必要があります。Kubetail API をインストールすると、ログリクエストは kube-apiserver ではなく、クラスター内の専用サービスを経由するようになります。これにより、Kubernetes API だけでは利用できない機能にアクセスできます。
+
+---
+
+## Kubetail API のインストール
+
+`kubetail` CLI ツールを使っている場合、`kubetail cluster` コマンドで Kubetail API をインストールできます。
+
+```sh
+kubetail cluster install
+```
+
+これは Kubetail Helm チャートを使って API をインストールするため、その後は必要に応じて Helm で個別に管理できます。詳しくは [`cluster` コマンドリファレンス](/ja/docs/reference/cli#kubetail-cluster) を参照してください。
+
+Kubetail API は Helm を使って直接インストールすることもできます。手順については [クラスターインストールガイド](/ja/docs/guides/cluster/installation) を参照してください。
+
+---
+
+## ログファイルメタデータ
+
+Kubetail API をインストールすると、ワークロード一覧にログファイルサイズと最後のイベント時刻が表示されるようになります。
+
+<Image src={homePageWithLogMetadataLight} alt="Kubetail home page showing workloads with log file sizes and last event timestamps" class="dark:sl-hidden" />
+<Image src={homePageWithLogMetadataDark} alt="Kubetail home page showing workloads with log file sizes and last event timestamps" class="light:sl-hidden" />
+
+これらのメタデータは Cluster Agent が各 Node 上のログファイルから直接収集し、Cluster API を通して提供します。Kubernetes API だけでは取得できません。
+
+---
+
+## ログ検索
+
+Kubetail API をインストールすると、ログコンソールのヘッダーに検索入力欄が表示され、単純な文字列または `/regex/` パターンを入力してログストリームを絞り込めます。マッチ処理は各 Node 上で、ダッシュボードにデータが送られる前に行われるため、一致した行だけが転送されます。これにより、ログ量の多いワークロードでも帯域消費を抑えられます。
+
+<Image src={consoleWithSearchLight} alt="Kubetail logging console showing search" class="dark:sl-hidden" />
+<Image src={consoleWithSearchDark} alt="Kubetail logging console showing search" class="light:sl-hidden" />
+
+<Aside type="tip">
+Kubetail API のログパイプラインについて詳しくは、[アーキテクチャ](/ja/docs/concepts/architecture#log-delivery-pipelines) のページを参照してください。
+</Aside>

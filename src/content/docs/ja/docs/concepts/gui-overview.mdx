@@ -1,0 +1,66 @@
+---
+title: 概要
+description: "Kubetail Web ダッシュボードの案内です。ワークロードの閲覧、ログコンソールの起動、バックエンドサービスのヘルス確認を扱います。"
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+import homePageLight from '@/assets/screenshots/light/home-page.webp';
+import homePageDark from '@/assets/screenshots/dark/home-page.webp';
+import consolePageLight from '@/assets/screenshots/light/logging-console.webp';
+import consolePageDark from '@/assets/screenshots/dark/logging-console.webp';
+import healthStatusLight from '@/assets/screenshots/light/health-status.webp';
+import healthStatusDark from '@/assets/screenshots/dark/health-status.webp';
+
+Kubetail Web ダッシュボードは、Kubernetes ワークロード全体を俯瞰でき、複数のログストリームをリアルタイムで追跡できるブラウザベースの GUI です。
+
+ダッシュボードは 2 通りの方法で実行できます。
+
+- **デスクトップ上で実行** — `kubetail` CLI を使ってローカルのダッシュボードサーバーを起動し、kubeconfig ファイルを使ってクラスターに認証します。クラスター側のインストールは不要です。（[デスクトップで実行 > インストール](/ja/docs/guides/desktop/installation) を参照）
+- **クラスター内で実行** — Helm または YAML マニフェストを使ってダッシュボードを Kubernetes ワークロードとしてデプロイし、`kubectl port-forward`、`kubectl proxy`、または ingress リソース経由でアクセスします。（[クラスター内で実行 > インストール](/ja/docs/guides/cluster/installation) を参照）
+
+---
+
+## ワークロード
+
+ダッシュボードを開くと、最初に Kubernetes ワークロードの一覧が表示されます。
+
+<Image src={homePageLight} alt="Kubetail dashboard home page showing a list of Kubernetes workloads" class="dark:sl-hidden" />
+<Image src={homePageDark} alt="Kubetail dashboard home page showing a list of Kubernetes workloads" class="light:sl-hidden" />
+
+ここから次のことができます。
+
+- 任意のワークロードの横にある **View** をクリックして、そのログコンソールを新しいタブで開く
+- チェックボックスで複数のワークロードを選択し、**Open in Console** をクリックして、それらのログを 1 本のタイムラインにまとめて表示する
+
+---
+
+## ログ
+
+表示したいログを選択してコンソールを開くと、ログのリアルタイム tail が表示されます。
+
+<Image src={consolePageLight} alt="Kubetail dashboard logging console showing web server log streams" class="dark:sl-hidden" />
+<Image src={consolePageDark} alt="Kubetail dashboard logging console showing web server log streams" class="light:sl-hidden" />
+
+ダッシュボードは 2 種類のログ配信パイプラインをサポートしています。
+
+| パイプライン                                                      | クラスターへのインストールが必要か | 機能                                                               |
+|-------------------------------------------------------------------|------------------------------------|--------------------------------------------------------------------|
+| [Kubernetes API (Basic)](/ja/docs/guides/dashboard/basic-features)     | 不要                               | リアルタイムログ tail、基本的なフィルタリング                      |
+| [Kubetail API (Advanced)](/ja/docs/guides/dashboard/advanced-features) | 必要                               | 基本機能すべて + ログファイルサイズ、最後のイベント時刻、検索     |
+
+デフォルトでは、ダッシュボードは Kubernetes API パイプラインを使用します。クラスターに Kubetail API をインストールすると、高度なパイプラインが自動的に有効になります。
+
+<Aside type="tip">
+各パイプラインの動作について詳しくは、[アーキテクチャ](/ja/docs/concepts/architecture#log-delivery-pipelines) のページを参照してください。
+</Aside>
+
+---
+
+## ヘルスステータス
+
+右下のステータスドットをクリックすると、ダッシュボードのバックエンドサーバー、クラスターの Kubernetes API、そしてオプションの Kubetail Cluster API の健全性を確認できます。
+
+<Image src={healthStatusLight} alt="Health status dialog showing server, Kubernetes API, and Kubetail API status" class="dark:sl-hidden" />
+<Image src={healthStatusDark} alt="Health status dialog showing server, Kubernetes API, and Kubetail API status" class="light:sl-hidden" />

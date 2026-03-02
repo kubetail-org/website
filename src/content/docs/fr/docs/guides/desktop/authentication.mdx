@@ -1,0 +1,52 @@
+---
+title: Authentification
+description: "Kubetail utilise votre kubeconfig local pour l'authentification et prend en charge tous les types standards d'identifiants: certificats client, bearer tokens, plugins exec et fournisseurs OIDC."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+L'outil CLI `kubetail` utilise votre fichier local de **kubeconfig** pour s'authentifier auprès de vos clusters Kubernetes. Les permissions dans le cluster sont gérées par le RBAC du cluster.
+
+---
+
+## Kubeconfig
+
+Lorsque vous exécutez une commande `kubetail` nécessitant une authentification (par exemple `kubetail serve`, `kubetail logs`), Kubetail lit votre fichier kubeconfig local et utilise les identifiants qui y sont définis pour se connecter à chaque context de cluster. Tous les types standards d'identifiants kubeconfig sont pris en charge:
+
+| Type d'identifiant        | Champ(s) kubeconfig                                         |
+|---------------------------|-------------------------------------------------------------|
+| Certificat / clé client   | `client-certificate`, `client-key`                          |
+| Bearer token              | `token`, `tokenFile`                                        |
+| Plugin d'identifiants exec | `exec` (par ex. `aws eks get-token`, `gke-gcloud-auth-plugin`) |
+| OIDC / auth-provider      | `auth-provider`                                             |
+
+Kubetail surveille le fichier kubeconfig et prend en compte les nouveaux contexts ou les contexts modifiés sans redémarrage.
+
+<Aside type="tip">
+Pour utiliser un autre fichier kubeconfig, vous pouvez:
+
+* utiliser l'option CLI `--kubeconfig`
+* utiliser l'option `general.kubeconfig` dans votre fichier de configuration local
+* utiliser la variable d'environnement standard `KUBECONFIG`
+</Aside>
+
+---
+
+## Permissions RBAC
+
+`kubetail` utilise les permissions de l'utilisateur défini dans la kubeconfig. Au minimum, il a besoin d'un accès en lecture aux ressources qu'il surveille:
+
+| Ressource    | Groupe API | Verbes           |
+|--------------|------------|------------------|
+| cronjobs     | batch      | get, list, watch |
+| daemonsets   | apps       | get, list, watch |
+| deployments  | apps       | get, list, watch |
+| jobs         | batch      | get, list, watch |
+| namespaces   | core       | get, list, watch |
+| nodes        | core       | get, list, watch |
+| pods         | core       | get, list, watch |
+| pods/log     | core       | get, list, watch |
+| replicasets  | apps       | get, list, watch |
+| statefulsets | apps       | get, list, watch |
+
+`kubetail` détectera automatiquement lorsqu'un utilisateur n'a accès qu'à un ensemble limité de namespaces.

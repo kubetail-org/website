@@ -1,0 +1,22 @@
+---
+title: Docker Compose
+description: "Use Docker Compose com a imagem `kubetail-cli` para montar sua kubeconfig e iniciar o servidor de dashboard do Kubetail em localhost:7500."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Para usar a ferramenta CLI localmente com `docker-compose`, voce pode usar este arquivo de configuracao [docker-compose.yml](https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/docker-compose.yml) como ponto de partida:
+
+```sh
+curl -LO https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/docker-compose.yml
+docker-compose up
+```
+
+Isso montara seu arquivo local `.kube/config` em um contêiner `kubetail-cli` e iniciara o servidor do dashboard em [http://localhost:7500](http://localhost:7500).
+
+<Aside type="tip">
+Voce tambem pode usar a imagem Docker `kubetail-cli` com:
+
+* [Docker Run](/pt/docs/guides/docker/docker-run)
+* [Kubernetes Pod](/pt/docs/guides/docker/kubernetes-pod)
+</Aside>

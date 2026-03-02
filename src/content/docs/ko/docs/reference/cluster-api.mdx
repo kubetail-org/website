@@ -1,0 +1,254 @@
+---
+title: Cluster API 참조
+description: "Kubetail Cluster API 참조. Docker 이미지 변형, 시작 플래그, TLS, logging, CSRF, Cluster Agent 연결용 YAML 설정을 다룹니다."
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Kubetail Cluster API는 Dashboard가 클러스터 작업을 수행할 때 사용하는 GraphQL API를 제공하는 Go 기반 HTTP 서버입니다. 서버 실행 파일은 Kubetail 저장소의 [modules/cluster-api](https://github.com/kubetail-org/kubetail/tree/main/modules/cluster-api)에 있는 소스 코드에서 빌드되며, 일반적으로 `kubetail-cluster-api` Docker 이미지로 배포됩니다(아래 참조). `kubetail-cluster-api`를 독립 실행형 컨테이너로 실행할 수도 있지만, 공식 Kubetail [Helm 차트](/ko/docs/reference/helm-chart)로 배포하는 방식을 권장합니다.
+
+## Docker 이미지
+
+`kubetail-cluster-api` Docker 이미지는 각 릴리스마다 Docker Hub와 GitHub Container Registry에 게시됩니다.
+
+| Registry | Image |
+|----------|-------|
+| Docker Hub | `kubetail/kubetail-cluster-api` |
+| GHCR | `ghcr.io/kubetail-org/kubetail-cluster-api` |
+
+두 가지 변형이 제공됩니다.
+
+| 태그 접미사 | 베이스 이미지 | 설명 |
+|-------------|---------------|------|
+| _(없음)_ | `scratch` | 가장 작은 크기의 최소 이미지 |
+| `-alpine` | `alpine` | 셸과 표준 유틸리티 포함 |
+
+## 엔트리포인트
+
+기본 컨테이너 엔트리포인트는 `/cluster-api/cluster-api` 입니다.
+
+```sh
+cluster-api [flags]
+```
+
+## 플래그
+
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--config` | `-c` | | 설정 파일 경로(예: `/etc/kubetail/cluster-api.yaml`) |
+| `--addr` | `-a` | `:8080` | 바인딩할 호스트 주소 |
+| `--gin-mode` | | `release` | Gin 프레임워크 모드 (`release`, `debug`) |
+
+## 설정
+
+Cluster API는 YAML, JSON 또는 TOML 설정 파일로 구성할 수 있습니다. 파일 경로는 `-c` / `--config`로 전달합니다. 설정 파일에서는 `${VARIABLE_NAME}` 구문을 사용해 환경 변수를 참조할 수 있습니다.
+
+```sh
+cluster-api --config /etc/kubetail/cluster-api.yaml
+```
+
+<Tabs>
+  <TabItem label="YAML">
+    ```yaml
+    ## Kubetail Cluster API Configuration File
+    #
+    # 이 파일은 kubetail cluster API server의 동작을 정의합니다.
+    # 클러스터 작업을 위한 GraphQL API를 제공합니다.
+    #
+
+    ## allowed-namespaces ##
+    #
+    # API가 접근할 수 있는 namespace 목록입니다.
+    # 비어 있으면 모든 namespace에 접근할 수 있습니다.
+    #
+    # 기본값: []
+    #
+    allowed-namespaces: []
+
+    ## addr ##
+    #
+    # HTTP 서버가 바인딩할 네트워크 주소와 포트입니다.
+    #
+    # 기본값: :8080
+    #
+    addr: ":8080"
+
+    ## base-path ##
+    #
+    # 모든 API 엔드포인트의 기본 URL 경로입니다.
+    #
+    # 기본값: /
+    #
+    base-path: /
+
+    ## gin-mode ##
+    #
+    # Gin 프레임워크 모드입니다.
+    # 유효한 값: debug, release
+    #
+    # 기본값: release
+    #
+    gin-mode: release
+
+    ## cluster-agent ##
+    #
+    # Cluster Agent 연결 설정
+    #
+    cluster-agent:
+
+      ## dispatch-url ##
+      #
+      # Cluster Agent에 연결하는 데 사용하는 URL입니다.
+      # In-cluster 서비스 디스커버리를 위한 kubernetes:// 스킴을 지원합니다.
+      #
+      # 기본값: kubernetes://kubetail-cluster-agent:50051
+      #
+      dispatch-url: kubernetes://kubetail-cluster-agent:50051
+
+      ## tls ##
+      #
+      # Cluster Agent 연결용 TLS 설정
+      #
+      tls:
+
+        ## enabled ##
+        #
+        # Cluster Agent 연결에 TLS를 활성화할지 여부입니다.
+        #
+        # 기본값: false
+        #
+        enabled: false
+
+        ## cert-file ##
+        #
+        # TLS 인증서 파일 경로입니다.
+        #
+        # 기본값: ""
+        #
+        cert-file: ""
+
+        ## key-file ##
+        #
+        # TLS 개인 키 파일 경로입니다.
+        #
+        # 기본값: ""
+        #
+        key-file: ""
+
+        ## ca-file ##
+        #
+        # Cluster Agent 인증서를 검증하는 데 사용할 CA 인증서 파일 경로입니다.
+        #
+        # 기본값: ""
+        #
+        ca-file: ""
+
+        ## server-name ##
+        #
+        # TLS 검증에 사용할 서버 이름입니다.
+        # 비어 있으면 dispatch-url의 호스트명이 사용됩니다.
+        #
+        # 기본값: ""
+        #
+        server-name: ""
+
+    ## csrf ##
+    #
+    # CSRF 보호 설정
+    #
+    csrf:
+
+      ## enabled ##
+      #
+      # CSRF 보호를 활성화할지 여부입니다.
+      #
+      # 기본값: true
+      #
+      enabled: true
+
+    ## logging ##
+    #
+    # API 서버 로그 출력 설정
+    #
+    logging:
+
+      ## enabled ##
+      #
+      # 서버에서 logging을 활성화할지 여부입니다.
+      #
+      # 기본값: true
+      #
+      enabled: true
+
+      ## level ##
+      #
+      # 출력할 최소 로그 레벨입니다.
+      # 유효한 값: debug, info, warn, error, disabled
+      #
+      # 기본값: info
+      #
+      level: info
+
+      ## format ##
+      #
+      # 로그 출력 형식입니다.
+      # 유효한 값: json, pretty
+      #
+      # 기본값: json
+      #
+      format: json
+
+      ## access-log ##
+      #
+      # HTTP 액세스 로그 설정
+      #
+      access-log:
+
+        ## enabled ##
+        #
+        # 액세스 로그를 활성화할지 여부입니다.
+        #
+        # 기본값: true
+        #
+        enabled: true
+
+        ## hide-health-checks ##
+        #
+        # 액세스 로그에서 health check 요청(/healthz)을 숨길지 여부입니다.
+        #
+        # 기본값: false
+        #
+        hide-health-checks: false
+
+    ## tls ##
+    #
+    # HTTP 서버용 TLS 설정
+    #
+    tls:
+
+      ## enabled ##
+      #
+      # TLS를 활성화할지 여부입니다.
+      #
+      # 기본값: false
+      #
+      enabled: false
+
+      ## cert-file ##
+      #
+      # TLS 인증서 파일 경로입니다.
+      #
+      # 기본값: ""
+      #
+      cert-file: ""
+
+      ## key-file ##
+      #
+      # TLS 개인 키 파일 경로입니다.
+      #
+      # 기본값: ""
+      #
+      key-file: ""
+    ```
+  </TabItem>
+</Tabs>

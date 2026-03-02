@@ -1,0 +1,216 @@
+---
+title: ""
+description: "Kubetail es un panel de logs en tiempo real para Kubernetes. Vea logs de contenedores en una terminal o en el navegador. Ejecútelo en cualquier lugar: escritorio, clúster, Docker."
+template: splash
+hero:
+  title: Logs de Kubernetes fáciles de usar
+  tagline: Kubetail es un panel de logs en tiempo real para Kubernetes
+  actions:
+    - text: Ver documentación
+      link: /es/docs/concepts/introduction
+      icon: right-arrow
+    - text: Ver en GitHub
+      link: https://github.com/kubetail-org/kubetail
+      icon: external
+      variant: minimal
+  image:
+    html: |
+      <div class="flex flex-col items-center gap-2 w-full">
+        <video class="w-full max-w-screen-sm rounded-md dark:hidden" poster="https://assets.kubetail.com/demo-light-poster.bb7f6d4a.webp" controls>
+          <source src="https://assets.kubetail.com/demo-light.48aba4ab.mp4" type="video/mp4" />
+        </video>
+        <video class="w-full max-w-screen-sm rounded-md hidden dark:block" poster="https://assets.kubetail.com/demo-dark-poster.6070fba2.webp" controls>
+          <source src="https://assets.kubetail.com/demo-dark.251c0575.mp4" type="video/mp4" />
+        </video>
+        <a class="underline hover:no-underline text-(--sl-color-accent)" href="https://www.kubetail.com/demo">
+          Demo en vivo
+          <svg class="inline align-baseline" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewBox="0 0 24 24" height="16">
+            <path d="M7 17L17 7"></path>
+            <path d="M7 7h10v10"></path>
+          </svg>
+        </a>
+      </div>
+head:
+  - tag: title
+    content: "Kubetail | Panel de logs para Kubernetes"
+  - tag: link
+    attrs:
+      rel: preload
+      as: image
+      fetchpriority: high
+      href: 'https://assets.kubetail.com/demo-light-poster.bb7f6d4a.webp'
+  - tag: link
+    attrs:
+      rel: preload
+      as: image
+      fetchpriority: high
+      href: 'https://assets.kubetail.com/demo-dark-poster.6070fba2.webp'
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+## Inicio rápido
+
+La herramienta CLI `kubetail` es el principal punto de entrada a Kubetail en su escritorio. Para instalarla, puede usar su gestor de paquetes favorito:
+
+<Tabs syncKey="os">
+  <TabItem label="macOS">
+    **Homebrew**
+    ```sh
+    brew install kubetail
+    ```
+
+    **Krew**
+    ```sh
+    kubectl krew install kubetail
+    ```
+
+    **MacPorts**
+    ```sh
+    sudo port install kubetail
+    ```
+
+    **Nix (Flake)**
+    ```sh
+    nix profile add github:kubetail-org/kubetail-nix
+    ```
+
+    **Nix (Classic)**
+    ```sh
+    nix-env -i -f https://github.com/kubetail-org/kubetail-nix/archive/refs/heads/main.tar.gz
+    ```
+
+    **asdf**
+    ```sh
+    asdf plugin add kubetail https://github.com/kubetail-org/asdf-kubetail.git
+    asdf install kubetail latest
+    ```
+  </TabItem>
+  <TabItem label="Linux">
+    **Homebrew**
+    ```sh
+    brew install kubetail
+    ```
+
+    **Krew**
+    ```sh
+    kubectl krew install kubetail
+    ```
+
+    **Snap**
+    ```sh
+    sudo snap install kubetail
+    ```
+
+    **Ubuntu/Mint (apt)**
+    ```sh
+    sudo add-apt-repository ppa:kubetail/kubetail
+    sudo apt update && sudo apt install kubetail-cli
+    ```
+
+    **Fedora/CentOS/RHEL/Amazonlinux/Mageia (copr)**
+    ```sh
+    dnf copr enable kubetail/kubetail
+    dnf install kubetail
+    ```
+
+    **SUSE (zypper)**
+    ```sh
+    zypper addrepo 'https://download.opensuse.org/repositories/home:/kubetail/$releasever/' kubetail
+    zypper refresh && zypper install kubetail-cli
+    ```
+
+    **Alpine (apk)**
+    ```sh
+    apk add kubetail --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing
+    ```
+
+    **Arch (AUR)**
+    ```sh
+    yay -S --noconfirm kubetail-cli
+    ```
+
+    **Gentoo (GURU)**
+    ```sh
+    ACCEPT_KEYWORDS="~$(portageq envvar ARCH)" emerge dev-util/kubetail
+    ```
+
+    **Nix (Flake)**
+    ```sh
+    nix profile add github:kubetail-org/kubetail-nix
+    ```
+
+    **Nix (Classic)**
+    ```sh
+    nix-env -i -f https://github.com/kubetail-org/kubetail-nix/archive/refs/heads/main.tar.gz
+    ```
+
+    **asdf**
+    ```sh
+    asdf plugin add kubetail https://github.com/kubetail-org/asdf-kubetail.git
+    asdf install kubetail latest
+    ```
+  </TabItem>
+  <TabItem label="Windows">
+    **Winget**
+    ```sh
+    winget install kubetail
+    ```
+
+    **Krew**
+    ```sh
+    krew install kubetail
+    ```
+
+    **Chocolatey**
+    ```sh
+    choco install kubetail
+    ```
+
+    **Scoop**
+    ```sh
+    scoop install kubetail
+    ```
+  </TabItem>
+</Tabs>
+
+<br />
+
+---
+
+Si lo prefiere, también puede descargarlo desde los [binarios de lanzamiento](https://github.com/kubetail-org/kubetail/releases/latest) o usar nuestro script de instalación:
+
+```sh
+curl -sS https://www.kubetail.com/install.sh | bash
+```
+
+<br />
+<br />
+
+<Aside type="tip" title="Siguientes pasos">
+**1. Inicie el dashboard web (GUI)**
+
+```sh
+kubetail serve
+```
+
+**2. Vea logs en su terminal**
+
+```sh
+kubetail logs -f deployments/my-app
+```
+
+**3. Active funciones avanzadas (instale Kubetail API)**
+
+```sh
+kubetail cluster install
+```
+
+**4. Inicialice un archivo de configuración local**
+
+```sh
+kubetail config init
+```
+
+Consulte la documentación para ver la lista completa de [comandos](/es/docs/reference/cli). Disfrute siguiendo sus logs.
+</Aside>

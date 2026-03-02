@@ -1,0 +1,223 @@
+---
+title: 配置
+description: "使用 YAML、JSON 或 TOML 配置文件来配置 Kubetail CLI。涵盖 kubeconfig 路径、`logs` 的默认值（head、tail、columns）以及 `serve` 的主机和端口。"
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+`kubetail` CLI 工具可以通过本地配置文件进行配置。如果未找到配置文件，Kubetail 将使用下面显示的默认值。该文件支持 YAML、JSON 和 TOML 格式，并且配置值可以使用 `${VARIABLE_NAME}` 语法引用环境变量。
+
+---
+
+## 初始化
+
+默认配置文件路径为 `~/.kubetail/config.yaml`。您可以通过将文件放在默认位置来初始化配置，也可以使用 CLI 的 `config init` 命令自动完成初始化：
+
+```sh
+kubetail config init
+```
+
+<Aside type="tip">
+`config init` 命令支持 `--format` 标志，用于选择不同的初始化格式。更多细节请参阅 [CLI 参考](/zh-cn/docs/reference/cli#kubetail-config-init)。
+</Aside>
+
+---
+
+## 用法
+
+每次运行 `kubetail` 命令时，它都会自动在默认位置查找配置文件。您可以通过全局 `--config` 标志指定其他路径：
+
+```sh
+kubetail serve --config /path/to/config.yaml
+```
+
+<Aside type="tip">
+配置的优先级顺序如下：
+
+1. 默认值
+2. 配置文件
+3. CLI 标志
+</Aside>
+
+---
+
+## 默认值
+
+<Tabs>
+  <TabItem label="YAML">
+```yaml
+## Kubetail CLI 配置文件
+# 
+# 此文件定义 kubetail CLI 工具的行为，
+# 包括 logs 命令的默认值以及仪表板服务器设置。
+#
+
+## version ##
+#
+# 配置文件的模式版本
+#
+version: 1
+
+## general ##
+#
+general:
+
+  ## kubeconfig ##
+  #
+  # CLI 请求要使用的 kubeconfig 文件路径。
+  # 如果为空，则使用默认路径（~/.kube/config）或 KUBECONFIG 环境变量。
+  #
+  # 默认值: ""
+  #
+  kubeconfig: ""
+
+## commands ##
+#
+commands:
+
+  ## logs ##
+  #
+  # 'logs' 子命令的专用设置
+  #
+  logs:
+
+    ## kube-context ##
+    #
+    # 要使用的 Kubernetes 上下文。
+    # 如果为空，则使用当前活动上下文。
+    #
+    # 默认值: ""
+    #
+    kube-context: ""
+
+    ## head ##
+    #
+    # 从日志缓冲区开头显示的行数
+    #
+    # 默认值: 10
+    #
+    head: 10
+
+    ## tail ##
+    #
+    # 从日志缓冲区末尾显示的行数
+    #
+    # 默认值: 10
+    #
+    tail: 10
+
+    ## columns ##
+    #
+    # 'logs' 记录的完整输出列集合。
+    # 允许的值: timestamp,dot,node,region,zone,os,arch,namespace,pod,container
+    #
+    # 默认值: ["timestamp", "dot"]
+    #
+    columns:
+      - timestamp
+      - dot
+
+  ## serve ##
+  #
+  # 仪表板服务器设置
+  #
+  serve:
+
+    ## host ##
+    #
+    # 服务器应绑定到的网络接口。
+    #
+    # 默认值: localhost
+    #
+    host: localhost
+
+    ## port ##
+    #
+    # 服务器监听的 TCP 端口。
+    #
+    # 默认值: 7500
+    #
+    port: 7500
+
+    ## skip-open ##
+    #
+    # 如果为 true，CLI 在服务器启动时不会自动打开浏览器。
+    #
+    # 默认值: false
+    #
+    skip-open: false
+```
+  </TabItem>
+  <TabItem label="TOML">
+```toml
+# Kubetail CLI 配置文件
+#
+# 定义 kubetail CLI 工具的行为，
+# 包括 logs 命令默认值和仪表板服务器设置。
+
+# 配置文件的模式版本
+version = 1
+
+[general]
+# kubeconfig 路径。为空时使用 ~/.kube/config 或 KUBECONFIG。
+kubeconfig = ""
+
+[commands.logs]
+# 要使用的 Kubernetes 上下文。为空时使用活动上下文。
+kube-context = ""
+
+# 从日志缓冲区开头显示的行数
+head = 10
+
+# 从日志缓冲区末尾显示的行数
+tail = 10
+
+# 'logs' 记录的完整输出列集合。
+# 允许的值: timestamp,dot,node,region,zone,os,arch,namespace,pod,container
+columns = ["timestamp", "dot"]
+
+[commands.serve]
+# 服务器绑定的网络接口
+host = "localhost"
+
+# 服务器监听的 TCP 端口
+port = 7500
+
+# 如果为 true，服务器启动时不自动打开浏览器
+skip-open = false
+```
+  </TabItem>
+  <TabItem label="JSON">
+```json
+{
+  "version": 1,
+  "general": {
+    "kubeconfig": ""
+  },
+  "commands": {
+    "logs": {
+      "kube-context": "",
+      "head": 10,
+      "tail": 10,
+      "columns": ["timestamp", "dot"]
+    },
+    "serve": {
+      "host": "localhost",
+      "port": 7500,
+      "skip-open": false
+    }
+  }
+}
+```
+  </TabItem>
+</Tabs>
+
+<Aside type="tip">
+支持环境变量展开。例如：
+
+```yaml
+commands:
+  serve:
+    port: ${MY_KUBETAIL_PORT}
+```
+</Aside>

@@ -1,0 +1,105 @@
+---
+title: Ingress
+description: "通过 Kubernetes Ingress 将 Kubetail Dashboard 暴露到集群外部。包含一个带 HTTP Basic 认证和 cert-manager TLS 的 Traefik 示例。"
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+在集群中安装 Kubetail 后，默认可以通过 `kubectl port-forward` 或 `kubectl proxy` 访问 Dashboard。如果您希望获得持久、适合浏览器使用的访问方式，而不必运行本地代理命令，也可以通过 Kubernetes Ingress 资源将其暴露出去。
+
+---
+
+## 概览
+
+Helm chart 内置了为 Dashboard 创建 Ingress 资源的支持。它默认关闭，但您可以通过 chart values 启用并配置它。
+
+Dashboard Service 在集群内部监听端口 `8080`。您的 Ingress 控制器需要将流量路由到该端口。
+
+---
+
+## 启用 Ingress
+
+要启用 Ingress，请将 `kubetail.dashboard.ingress.enabled` 设为 `true`，并至少配置一条规则：
+
+```yaml
+kubetail:
+  dashboard:
+    ingress:
+      enabled: true
+      name: kubetail
+      annotations:
+        traefik.ingress.kubernetes.io/router.middlewares: kubetail-system-kubetail-auth@kubernetescrd
+      className: traefik
+      rules:
+        - host: kubetail.example.com
+          http:
+            paths:
+              - path: /
+                pathType: Prefix
+```
+
+然后将这些 values 应用到您的 release：
+
+```sh
+helm upgrade kubetail kubetail/kubetail \
+  --namespace kubetail-system \
+  --values values.yaml
+```
+
+---
+
+## TLS 终止
+
+要启用 HTTPS，请添加一个引用证书 Secret 的 `tls` 块：
+
+```yaml
+kubetail:
+  dashboard:
+    ingress:
+      enabled: true
+      className: nginx
+      rules:
+        - host: kubetail.example.com
+          http:
+            paths:
+              - path: /
+                pathType: Prefix
+                backend:
+                  service:
+                    name: kubetail-dashboard
+                    port:
+                      number: 8080
+      tls:
+        - hosts:
+            - kubetail.example.com
+          secretName: kubetail-tls
+```
+
+如果您使用 [cert-manager](https://cert-manager.io)，可以通过为 Ingress 添加适当的 annotation 来自动化证书签发：
+
+```yaml
+kubetail:
+  dashboard:
+    ingress:
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+```
+
+<Aside type="tip">
+当您通过 HTTPS 提供 Dashboard 时，请在 Dashboard 的 `runtimeConfig` 中设置 `session.cookie.secure: true`，这样会话 Cookie 只会通过安全连接传输：
+
+```yaml
+kubetail:
+  dashboard:
+    runtimeConfig:
+      session:
+        cookie:
+          secure: true
+```
+</Aside>
+
+---
+
+<Aside>
+只有 Dashboard 会通过 Ingress 暴露。Cluster API 和 Cluster Agent 通过集群内部网络通信，不需要对外暴露。
+</Aside>

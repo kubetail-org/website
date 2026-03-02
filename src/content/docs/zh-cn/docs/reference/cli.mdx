@@ -1,0 +1,483 @@
+---
+title: CLI 参考
+description: "Kubetail CLI 参考：`serve`、`logs`（来源、过滤器、时间范围）、`cluster`（install/upgrade/uninstall/repo）、`config init` 以及配置文件格式。"
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+`kubetail` CLI 是您在桌面环境中使用 Kubetail 的主要入口。您可以用它来启动 Web 仪表板、将日志流式输出到终端，或管理集群中的 Kubetail 资源。
+
+## 全局标志
+
+这些标志适用于所有命令：
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--kubeconfig` | | kubeconfig 文件路径 |
+| `--in-cluster` | `false` | 使用集群内 Kubernetes 配置 |
+| `-c, --config` | `~/.kubetail/config.yaml` | 配置文件路径 |
+
+## 命令
+
+### `kubetail serve`
+
+启动 dashboard server，并在默认浏览器中打开 Web UI。
+
+```sh
+kubetail serve [flags]
+```
+
+**标志**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-p, --port` | `7500` | 监听端口号 |
+| `--host` | `localhost` | 绑定的主机地址 |
+| `-l, --log-level` | `info` | 日志级别 (`debug`, `info`, `warn`, `error`, `disabled`) |
+| `--skip-open` | `false` | 不打开浏览器 |
+
+**示例**
+
+```sh
+# 启动 dashboard（会在 http://localhost:7500 打开）
+kubetail serve
+
+# 使用自定义端口
+kubetail serve --port 8080
+
+# 启动时不打开浏览器
+kubetail serve --skip-open
+```
+
+---
+
+### `kubetail logs`
+
+获取某个容器或一组 workload container 的日志。
+
+```sh
+kubetail logs [source1] [source2] ... [flags]
+```
+
+**来源**
+
+来源用于标识应该从哪些 Pod 或容器中流式读取日志。来源使用以下语法：
+
+```
+[namespace:]<resource>[/name[/container]]
+```
+
+| Example | Description |
+|---------|-------------|
+| `web-abc123` | 默认 namespace 中名为 `web-abc123` 的 Pod |
+| `deployments/web` | 默认 namespace 中的 `web` Deployment |
+| `deployments/*` | 默认 namespace 中的所有 Deployment |
+| `deployments/web/container1` | Deployment 中的特定容器 |
+| `deployments/web/*` | Deployment 中的所有容器 |
+| `frontend:web-abc123` | `frontend` namespace 中的 Pod |
+| `frontend:deployments/web` | `frontend` namespace 中的 Deployment |
+
+可以指定多个来源：
+
+```sh
+kubetail logs <source1> <source2>
+```
+
+**标志**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--kube-context` | | 要使用的 kubeconfig context |
+| `-h, --head[=N]` | `10` | 返回前 N 条记录 |
+| `-t, --tail[=N]` | `10` | 返回最后 N 条记录 |
+| `--all` | `false` | 返回所有记录 |
+| `-f, --follow` | `false` | 流式输出新记录 |
+| `--since` | | 包含自指定时间点之后的记录（包含该点） |
+| `--until` | | 包含截至指定时间点的记录（包含该点） |
+| `--after` | | 仅包含严格晚于指定时间点的记录 |
+| `--before` | | 仅包含严格早于指定时间点的记录 |
+| `-g, --grep` | | 用正则表达式过滤记录（需要 `--force`） |
+| `--region` | | 按 region 过滤来源 Pod（逗号分隔） |
+| `--zone` | | 按 zone 过滤来源 Pod（逗号分隔） |
+| `--os` | | 按操作系统过滤来源 Pod（逗号分隔） |
+| `--arch` | | 按 CPU 架构过滤来源 Pod（逗号分隔） |
+| `--node` | | 按节点名称过滤来源 Pod（逗号分隔） |
+| `--raw` | `false` | 仅输出原始日志消息，不包含元数据 |
+| `--columns` | | 设置输出列（覆盖默认值） |
+| `--add-columns` | | 在默认输出列基础上新增列 |
+| `--remove-columns` | | 从默认输出列中移除列 |
+| `--with-cursors` | `false` | 显示分页游标 |
+| `--hide-header` | `false` | 隐藏表头 |
+| `--all-containers` | `false` | 显示 Pod 中所有容器的日志 |
+| `--force` | `false` | 强制执行命令（使用 `--grep` 时必需） |
+
+`--columns`、`--add-columns` 和 `--remove-columns` 接受逗号分隔的列名列表：`timestamp`、`dot`、`node`、`region`、`zone`、`os`、`arch`、`namespace`、`pod`、`container`。
+
+`--head`、`--tail` 和 `--all` 互斥。`--since` 与 `--after` 互斥，`--until` 与 `--before` 也互斥。
+
+`--since`、`--until`、`--after` 和 `--before` 接受：
+- ISO 8601 时间戳（例如 `2006-01-02T15:04:05Z07:00`）
+- 相对于当前时间的 ISO 8601 时长（例如表示 30 分钟前的 `PT30M`）- 仅适用于 `--since` 和 `--until`
+
+**默认行为**：tail 模式（最后 10 条记录），除非指定了 `--since`，此时会使用 head 模式。
+
+**示例**
+
+```sh
+# 查看某个 Pod 的最后 10 条记录
+kubetail logs nginx
+
+# tail 一个 Deployment
+kubetail logs deployments/web
+
+# 跟踪新记录
+kubetail logs deployments/web --follow
+
+# 返回所有记录并继续跟踪
+kubetail logs deployments/web --all --follow
+
+# 返回前 100 条记录
+kubetail logs nginx --head=100
+
+# 返回最近 30 分钟内的记录
+kubetail logs nginx --since PT30M --all
+
+# 返回两个时间戳之间的记录
+kubetail logs nginx --since 2006-01-02T15:04:05Z --until 2007-01-02T15:04:05Z --all
+
+# 使用正则表达式过滤（需要 --force）
+kubetail logs nginx --grep "GET /about" --force
+
+# 按 region 过滤 Pod
+kubetail logs deployments/web --region=us-east-1
+
+# 仅输出原始日志消息
+kubetail logs nginx --raw
+```
+
+---
+
+### `kubetail cluster`
+
+使用内置 Helm 来管理 Kubetail 集群资源（无需单独安装 Helm）。
+
+```sh
+kubetail cluster <subcommand> [flags]
+```
+
+#### `kubetail cluster install`
+
+在集群中创建一个新的 Kubetail release。
+
+```sh
+kubetail cluster install [flags]
+```
+
+**标志**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--kube-context` | | 要使用的 kubeconfig context 名称 |
+
+**示例**
+
+```sh
+kubetail cluster install
+```
+
+#### `kubetail cluster upgrade`
+
+将现有 Kubetail release 升级到本地可用的最新 chart 版本。
+
+```sh
+kubetail cluster upgrade [flags]
+```
+
+**标志**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--kube-context` | | 要使用的 kubeconfig context 名称 |
+
+**示例**
+
+```sh
+kubetail cluster upgrade
+```
+
+#### `kubetail cluster uninstall`
+
+从集群中移除现有的 Kubetail release。
+
+```sh
+kubetail cluster uninstall [flags]
+```
+
+**标志**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--kube-context` | | 要使用的 kubeconfig context 名称 |
+
+**示例**
+
+```sh
+kubetail cluster uninstall
+```
+
+#### `kubetail cluster list`
+
+列出当前已安装的 Kubetail release。
+
+```sh
+kubetail cluster list [flags]
+```
+
+**标志**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--kube-context` | | 要使用的 kubeconfig context 名称 |
+
+**示例**
+
+```sh
+kubetail cluster list
+```
+
+#### `kubetail cluster repo`
+
+管理 Kubetail 的 Helm chart 仓库（`https://kubetail-org.github.io/helm-charts/`）。
+
+```sh
+kubetail cluster repo <subcommand>
+```
+
+| Subcommand | Description |
+|------------|-------------|
+| `add` | 将 Kubetail chart 仓库添加到 Helm |
+| `update` | 在 Helm 中更新 Kubetail chart 仓库 |
+| `remove` | 从 Helm 中移除 Kubetail chart 仓库 |
+
+**示例**
+
+```sh
+kubetail cluster repo add
+kubetail cluster repo update
+kubetail cluster repo remove
+```
+
+---
+
+### `kubetail config`
+
+管理 Kubetail CLI 配置。
+
+```sh
+kubetail config <subcommand>
+```
+
+#### `kubetail config init`
+
+创建默认配置文件。
+
+```sh
+kubetail config init [flags]
+```
+
+**标志**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--path` | `~/.kubetail/config.yaml` | 配置文件目标路径 |
+| `--format` | `yaml` | 配置文件格式 (`yaml`, `json`, `toml`) |
+| `--force` | `false` | 覆盖现有配置文件 |
+
+**示例**
+
+```sh
+# 在 ~/.kubetail/config.yaml 创建默认配置
+kubetail config init
+
+# 创建 JSON 格式配置
+kubetail config init --format json
+
+# 覆盖现有配置文件
+kubetail config init --force
+
+# 写入自定义路径
+kubetail config init --path /etc/kubetail/config.yaml
+```
+
+## 配置
+
+CLI 可以通过 YAML（或 JSON/TOML）配置文件进行配置。默认从 `~/.kubetail/config.yaml` 读取。使用 `kubetail config init` 生成默认配置文件，或通过全局标志 `-c` / `--config` 传入自定义路径。
+
+<Tabs>
+  <TabItem label="YAML">
+    ```yaml
+    ## Kubetail CLI Configuration File
+    # 
+    # 此文件定义 kubetail CLI 工具的行为，
+    # 包括 logs 命令默认值和 dashboard server 设置。
+    #
+
+    ## version ##
+    #
+    # 配置文件的模式版本
+    #
+    version: 1
+
+    ## general ##
+    #
+    general:
+
+      ## kubeconfig ##
+      #
+      # CLI 请求要使用的 kubeconfig 文件路径。
+      # 如果为空，则使用默认路径（~/.kube/config）或 KUBECONFIG 环境变量。
+      #
+      # 默认值: ""
+      #
+      kubeconfig: ""
+
+    ## commands ##
+    #
+    commands:
+
+      ## logs ##
+      #
+      # `logs` 子命令的专用设置
+      #
+      logs:
+
+        ## kube-context ##
+        #
+        # 要使用的 Kubernetes context。
+        # 如果为空，则使用当前活动 context。
+        #
+        # 默认值: ""
+        #
+        kube-context: ""
+
+        ## head ##
+        #
+        # 从日志缓冲区开头显示的行数
+        #
+        # 默认值: 10
+        #
+        head: 10
+
+        ## tail ##
+        #
+        # 从日志缓冲区末尾显示的行数
+        #
+        # 默认值: 10
+        #
+        tail: 10
+
+        ## columns ##
+        #
+        # `logs` 记录的完整输出列集合。
+        # 允许的值: timestamp,dot,node,region,zone,os,arch,namespace,pod,container
+        #
+        # 默认值: ["timestamp", "dot"]
+        #
+        columns:
+          - timestamp
+          - dot
+
+      ## serve ##
+      #
+      # dashboard server 设置
+      #
+      serve:
+
+        ## host ##
+        #
+        # server 应绑定到的网络接口。
+        #
+        # 默认值: localhost
+        #
+        host: localhost
+
+        ## port ##
+        #
+        # server 监听的 TCP 端口。
+        #
+        # 默认值: 7500
+        #
+        port: 7500
+
+        ## skip-open ##
+        #
+        # 如果为 true，CLI 在 server 启动时不会自动打开浏览器。
+        #
+        # 默认值: false
+        #
+        skip-open: false
+    ```
+  </TabItem>
+  <TabItem label="TOML">
+    ```toml
+    # Kubetail CLI Configuration File
+    #
+    # 定义 kubetail CLI 工具的行为，
+    # 包括 logs 命令默认值和 dashboard server 设置。
+
+    # 配置文件的模式版本
+    version = 1
+
+    [general]
+    # kubeconfig 路径。为空时使用 ~/.kube/config 或 KUBECONFIG。
+    kubeconfig = ""
+
+    [commands.logs]
+    # 要使用的 Kubernetes context。为空时使用活动 context。
+    kube-context = ""
+
+    # 从日志缓冲区开头显示的行数
+    head = 10
+
+    # 从日志缓冲区末尾显示的行数
+    tail = 10
+
+    # `logs` 记录的完整输出列集合。
+    # 允许的值: timestamp,dot,node,region,zone,os,arch,namespace,pod,container
+    columns = ["timestamp", "dot"]
+
+    [commands.serve]
+    # server 绑定的网络接口
+    host = "localhost"
+
+    # server 监听的 TCP 端口
+    port = 7500
+
+    # 如果为 true，server 启动时不自动打开浏览器
+    skip-open = false
+    ```
+  </TabItem>
+  <TabItem label="JSON">
+    ```json
+    {
+      "version": 1,
+      "general": {
+        "kubeconfig": ""
+      },
+      "commands": {
+        "logs": {
+          "kube-context": "",
+          "head": 10,
+          "tail": 10,
+          "columns": ["timestamp", "dot"]
+        },
+        "serve": {
+          "host": "localhost",
+          "port": 7500,
+          "skip-open": false
+        }
+      }
+    }
+    ```
+  </TabItem>
+</Tabs>

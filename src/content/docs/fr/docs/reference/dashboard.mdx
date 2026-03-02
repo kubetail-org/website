@@ -1,0 +1,322 @@
+---
+title: Reference Dashboard
+description: "Reference du serveur Kubetail Dashboard: variantes d'image Docker, indicateurs de demarrage et options YAML pour l'authentification, les sessions, TLS, CSRF et la connexion a la Cluster API."
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Le Kubetail Dashboard est un serveur HTTP base sur Go qui heberge l'interface web du Dashboard et fournit l'API backend que l'interface utilise pour interagir avec vos clusters Kubernetes. L'executable du serveur est compile a partir du code source situe dans le depot Kubetail sous [modules/dashboard](https://github.com/kubetail-org/kubetail/tree/main/modules/dashboard) et est generalement deploye via l'image Docker `kubetail-dashboard` (voir ci-dessous). Il est possible d'executer `kubetail-dashboard` comme conteneur autonome, mais nous recommandons de le deployer avec le [chart Helm](/fr/docs/reference/helm-chart) officiel de Kubetail.
+
+## Image Docker
+
+L'image Docker `kubetail-dashboard` est publiee sur Docker Hub et GitHub Container Registry a chaque release:
+
+| Registry | Image |
+|----------|-------|
+| Docker Hub | `kubetail/kubetail-dashboard` |
+| GHCR | `ghcr.io/kubetail-org/kubetail-dashboard` |
+
+Deux variantes sont disponibles:
+
+| Suffixe de tag | Image de base | Description |
+|----------------|---------------|-------------|
+| _(aucun)_ | `scratch` | Image minimale, empreinte la plus reduite |
+| `-alpine` | `alpine` | Inclut un shell et les utilitaires standard |
+
+## Entrypoint
+
+L'entrypoint par defaut du conteneur est `/dashboard/dashboard`:
+
+```sh
+dashboard [flags]
+```
+
+## Indicateurs
+
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--config` | `-c` | | Chemin vers le fichier de configuration (par ex. `/etc/kubetail/dashboard.yaml`) |
+| `--addr` | `-a` | `:8080` | Adresse hote a laquelle se lier |
+| `--gin-mode` | | `release` | Mode du framework Gin (`release`, `debug`) |
+
+## Configuration
+
+Le dashboard peut etre configure avec un fichier de configuration YAML, JSON ou TOML. Passez le chemin du fichier avec `-c` / `--config`. Les variables d'environnement peuvent etre referencees dans le fichier de configuration avec la syntaxe `${VARIABLE_NAME}`.
+
+```sh
+dashboard --config /etc/kubetail/dashboard.yaml
+```
+
+<Tabs>
+  <TabItem label="YAML">
+    ```yaml
+    ## Kubetail Dashboard Configuration File
+    #
+    # Ce fichier definit le comportement du kubetail dashboard server,
+    # qui sert l'interface web et fournit l'API backend du dashboard.
+    #
+
+    ## allowed-namespaces ##
+    #
+    # Liste des namespaces auxquels le dashboard est autorise a acceder.
+    # Si vide, tous les namespaces sont accessibles.
+    #
+    # Valeur par defaut: []
+    #
+    allowed-namespaces: []
+
+    ## kubeconfig ##
+    #
+    # Chemin vers le fichier kubeconfig a utiliser pour les requetes a l'API Kubernetes.
+    # S'il est vide, le chemin par defaut (~/.kube/config) ou la variable d'environnement KUBECONFIG est utilise.
+    #
+    # Valeur par defaut: ""
+    #
+    kubeconfig: ""
+
+    ## addr ##
+    #
+    # Adresse reseau et port auxquels le serveur HTTP doit se lier.
+    #
+    # Valeur par defaut: :8080
+    #
+    addr: ":8080"
+
+    ## auth-mode ##
+    #
+    # Mode d'authentification du dashboard.
+    # Valeurs valides: auto, token
+    #
+    # Valeur par defaut: auto
+    #
+    auth-mode: auto
+
+    ## base-path ##
+    #
+    # Chemin URL de base pour tous les endpoints du dashboard.
+    #
+    # Valeur par defaut: /
+    #
+    base-path: /
+
+    ## cluster-api-endpoint ##
+    #
+    # URL du serveur Cluster API.
+    # Si vide, l'integration Cluster API est desactivee.
+    #
+    # Valeur par defaut: ""
+    #
+    cluster-api-endpoint: ""
+
+    ## environment ##
+    #
+    # Environnement dans lequel le dashboard s'execute.
+    # Valeurs valides: desktop, cluster
+    #
+    # Valeur par defaut: cluster
+    #
+    environment: cluster
+
+    ## gin-mode ##
+    #
+    # Mode du framework Gin.
+    # Valeurs valides: debug, release
+    #
+    # Valeur par defaut: release
+    #
+    gin-mode: release
+
+    ## csrf ##
+    #
+    # Parametres de protection CSRF
+    #
+    csrf:
+
+      ## enabled ##
+      #
+      # Indique si la protection CSRF est activee.
+      #
+      # Valeur par defaut: true
+      #
+      enabled: true
+
+    ## logging ##
+    #
+    # Configuration de la sortie de logs du serveur dashboard
+    #
+    logging:
+
+      ## enabled ##
+      #
+      # Indique si le logging est active pour le serveur.
+      #
+      # Valeur par defaut: true
+      #
+      enabled: true
+
+      ## level ##
+      #
+      # Niveau minimal de log a produire.
+      # Valeurs valides: debug, info, warn, error, disabled
+      #
+      # Valeur par defaut: info
+      #
+      level: info
+
+      ## format ##
+      #
+      # Format de la sortie de logs.
+      # Valeurs valides: json, pretty
+      #
+      # Valeur par defaut: json
+      #
+      format: json
+
+      ## access-log ##
+      #
+      # Configuration du journal d'acces HTTP
+      #
+      access-log:
+
+        ## enabled ##
+        #
+        # Indique si le journal d'acces est active.
+        #
+        # Valeur par defaut: true
+        #
+        enabled: true
+
+        ## hide-health-checks ##
+        #
+        # Indique s'il faut omettre les requetes de health check (/healthz) du journal d'acces.
+        #
+        # Valeur par defaut: false
+        #
+        hide-health-checks: false
+
+    ## session ##
+    #
+    # Parametres de gestion de session
+    #
+    session:
+
+      ## secret ##
+      #
+      # Cle secrete utilisee pour signer les tokens de session.
+      # Si vide, un secret aleatoire est genere au demarrage (les sessions ne
+      # survivront pas aux redemarrages).
+      #
+      # Valeur par defaut: ""
+      #
+      secret: ""
+
+      ## cookie ##
+      #
+      # Configuration du cookie de session
+      #
+      cookie:
+
+        ## name ##
+        #
+        # Nom du cookie de session.
+        #
+        # Valeur par defaut: kubetail_dashboard_session
+        #
+        name: kubetail_dashboard_session
+
+        ## path ##
+        #
+        # Chemin URL pour lequel le cookie est valide.
+        #
+        # Valeur par defaut: /
+        #
+        path: /
+
+        ## domain ##
+        #
+        # Domaine pour lequel le cookie est valide.
+        # Si vide, le cookie n'est valide que pour le domaine courant.
+        #
+        # Valeur par defaut: ""
+        #
+        domain: ""
+
+        ## max-age ##
+        #
+        # Age maximal du cookie en secondes.
+        #
+        # Valeur par defaut: 2592000 (30 jours)
+        #
+        max-age: 2592000
+
+        ## secure ##
+        #
+        # Indique si le cookie doit etre envoye uniquement via HTTPS.
+        #
+        # Valeur par defaut: false
+        #
+        secure: false
+
+        ## http-only ##
+        #
+        # Indique si le cookie est inaccessible a JavaScript.
+        #
+        # Valeur par defaut: true
+        #
+        http-only: true
+
+        ## same-site ##
+        #
+        # Attribut SameSite du cookie.
+        # Valeurs valides: strict, lax, none
+        #
+        # Valeur par defaut: lax
+        #
+        same-site: lax
+
+    ## tls ##
+    #
+    # Configuration TLS pour le serveur HTTP
+    #
+    tls:
+
+      ## enabled ##
+      #
+      # Indique si TLS est active.
+      #
+      # Valeur par defaut: false
+      #
+      enabled: false
+
+      ## cert-file ##
+      #
+      # Chemin vers le fichier de certificat TLS.
+      #
+      # Valeur par defaut: ""
+      #
+      cert-file: ""
+
+      ## key-file ##
+      #
+      # Chemin vers le fichier de cle privee TLS.
+      #
+      # Valeur par defaut: ""
+      #
+      key-file: ""
+
+    ## ui ##
+    #
+    # Options de configuration specifiques a l'interface
+    #
+    ui:
+
+      ## cluster-api-enabled ##
+      #
+      # Indique si l'integration Cluster API est activee dans l'interface.
+      #
+      # Valeur par defaut: true
+      #
+      cluster-api-enabled: true
+    ```
+  </TabItem>
+</Tabs>
