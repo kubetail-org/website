@@ -315,170 +315,193 @@ La CLI peut etre configuree a l'aide d'un fichier de configuration YAML (ou JSON
 
 <Tabs>
   <TabItem label="YAML">
-    ```yaml
-    ## Kubetail CLI Configuration File
-    # 
-    # Ce fichier definit le comportement de l'outil kubetail CLI,
-    # y compris les valeurs par defaut de la commande logs et les parametres du serveur de dashboard.
+```yaml
+## Kubetail CLI Configuration File
+#
+# This file defines the behavior for the kubetail CLI tool,
+# including logs command defaults and dashboard server settings.
+#
+
+## version ##
+#
+# Schema version for the configuration file
+#
+version: 1
+
+## general ##
+#
+general:
+
+  ## kubeconfig ##
+  #
+  # Path to the kubeconfig file to use for CLI requests.
+  # If empty, the default path (~/.kube/config) or KUBECONFIG env var is used.
+  #
+  # Default value: ""
+  #
+  kubeconfig: ""
+
+## commands ##
+#
+commands:
+
+  ## logs ##
+  #
+  # Settings specific to the 'logs' subcommand
+  #
+  logs:
+
+    ## kube-context ##
     #
-
-    ## version ##
+    # The specific Kubernetes context to use.
+    # If empty, the current active context is used.
     #
-    # Version du schema du fichier de configuration
+    # Default value: ""
     #
-    version: 1
+    kube-context: ""
 
-    ## general ##
+    ## head ##
     #
-    general:
-
-      ## kubeconfig ##
-      #
-      # Chemin vers le fichier kubeconfig a utiliser pour les requetes CLI.
-      # S'il est vide, le chemin par defaut (~/.kube/config) ou la variable d'environnement KUBECONFIG est utilise.
-      #
-      # Valeur par defaut: ""
-      #
-      kubeconfig: ""
-
-    ## commands ##
+    # The number of lines to show from the beginning of the log buffer
     #
-    commands:
+    # Default value: 10
+    #
+    head: 10
 
-      ## logs ##
-      #
-      # Parametres specifiques au sous-commande 'logs'
-      #
-      logs:
+    ## tail ##
+    #
+    # The number of lines to show from the end of the log buffer
+    #
+    # Default value: 10
+    #
+    tail: 10
 
-        ## kube-context ##
-        #
-        # Contexte Kubernetes specifique a utiliser.
-        # S'il est vide, le contexte actif courant est utilise.
-        #
-        # Valeur par defaut: ""
-        #
-        kube-context: ""
+    ## columns ##
+    #
+    # Full set of output columns for 'logs' records.
+    # Allowed values: timestamp,dot,node,region,zone,os,arch,namespace,pod, container
+    #
+    # Default value: ["timestamp", "dot"]
+    #
+    columns:
+      - timestamp
+      - dot
 
-        ## head ##
-        #
-        # Nombre de lignes a afficher depuis le debut du tampon de logs
-        #
-        # Valeur par defaut: 10
-        #
-        head: 10
+  ## serve ##
+  #
+  # Settings for the dashboard server
+  #
+  serve:
 
-        ## tail ##
-        #
-        # Nombre de lignes a afficher depuis la fin du tampon de logs
-        #
-        # Valeur par defaut: 10
-        #
-        tail: 10
+    ## host ##
+    #
+    # The network interface the server should bind to.
+    #
+    # Default value: localhost
+    #
+    host: localhost
 
-        ## columns ##
-        #
-        # Ensemble complet des colonnes de sortie pour les enregistrements 'logs'.
-        # Valeurs autorisees: timestamp,dot,node,region,zone,os,arch,namespace,pod,container
-        #
-        # Valeur par defaut: ["timestamp", "dot"]
-        #
-        columns:
-          - timestamp
-          - dot
+    ## port ##
+    #
+    # The TCP port the server will listen on.
+    #
+    # Default value: 7500
+    #
+    port: 7500
 
-      ## serve ##
-      #
-      # Parametres du serveur de dashboard
-      #
-      serve:
+    ## skip-open ##
+    #
+    # If true, the CLI will not automatically open the browser
+    # when the server starts.
+    #
+    # Default value: false
+    #
+    skip-open: false
 
-        ## host ##
-        #
-        # Interface reseau sur laquelle le serveur doit etre lie.
-        #
-        # Valeur par defaut: localhost
-        #
-        host: localhost
+## dashboard ##
+#
+# Settings for the web dashboard UI
+#
+dashboard:
 
-        ## port ##
-        #
-        # Port TCP sur lequel le serveur ecoutera.
-        #
-        # Valeur par defaut: 7500
-        #
-        port: 7500
-
-        ## skip-open ##
-        #
-        # Si true, la CLI n'ouvrira pas automatiquement le navigateur
-        # lorsque le serveur demarre.
-        #
-        # Valeur par defaut: false
-        #
-        skip-open: false
-    ```
+  ## columns ##
+  #
+  # The default columns to show when displaying log records.
+  #
+  # Default value: ["timestamp", "dot"]
+  #
+  columns:
+    - timestamp
+    - dot
+```
   </TabItem>
   <TabItem label="TOML">
-    ```toml
-    # Kubetail CLI Configuration File
-    #
-    # Definit le comportement de l'outil kubetail CLI, y compris
-    # les valeurs par defaut de la commande logs et les parametres du serveur de dashboard.
+```toml
+# Kubetail CLI Configuration File
+#
+# Defines behavior for the kubetail CLI tool, including
+# logs command defaults and dashboard server settings.
 
-    # Version du schema du fichier de configuration
-    version = 1
+# Schema version for the configuration file
+version = 1
 
-    [general]
-    # Chemin vers kubeconfig. S'il est vide, utilise ~/.kube/config ou KUBECONFIG.
-    kubeconfig = ""
+[general]
+# Path to kubeconfig. If empty, uses ~/.kube/config or KUBECONFIG env var.
+kubeconfig = ""
 
-    [commands.logs]
-    # Contexte Kubernetes specifique a utiliser. S'il est vide, utilise le contexte actif.
-    kube-context = ""
+[commands.logs]
+# Specific Kubernetes context to use. If empty, uses active context.
+kube-context = ""
 
-    # Nombre de lignes a afficher depuis le debut du tampon de logs
-    head = 10
+# Number of lines to show from the beginning of the log buffer
+head = 10
 
-    # Nombre de lignes a afficher depuis la fin du tampon de logs
-    tail = 10
+# Number of lines to show from the end of the log buffer
+tail = 10
 
-    # Ensemble complet des colonnes de sortie pour les enregistrements 'logs'.
-    # Valeurs autorisees: timestamp,dot,node,region,zone,os,arch,namespace,pod,container
-    columns = ["timestamp", "dot"]
+# Full set of output columns for 'logs' records.
+# Allowed values: timestamp,dot,node,region,zone,os,arch,namespace,pod,container
+columns = ["timestamp", "dot"]
 
-    [commands.serve]
-    # Interface reseau a laquelle le serveur se lie
-    host = "localhost"
+[commands.serve]
+# Network interface the server binds to
+host = "localhost"
 
-    # Port TCP sur lequel le serveur ecoute
-    port = 7500
+# TCP port the server listens on
+port = 7500
 
-    # Si true, n'ouvre pas automatiquement le navigateur au demarrage
-    skip-open = false
-    ```
+# If true, don't automatically open browser when server starts
+skip-open = false
+
+[dashboard]
+# The default columns to show when displaying log records.
+columns = ["timestamp", "dot"]
+```
   </TabItem>
   <TabItem label="JSON">
-    ```json
-    {
-      "version": 1,
-      "general": {
-        "kubeconfig": ""
-      },
-      "commands": {
-        "logs": {
-          "kube-context": "",
-          "head": 10,
-          "tail": 10,
-          "columns": ["timestamp", "dot"]
-        },
-        "serve": {
-          "host": "localhost",
-          "port": 7500,
-          "skip-open": false
-        }
-      }
+```json
+{
+  "version": 1,
+  "general": {
+    "kubeconfig": ""
+  },
+  "commands": {
+    "logs": {
+      "kube-context": "",
+      "head": 10,
+      "tail": 10,
+      "columns": ["timestamp", "dot"]
+    },
+    "serve": {
+      "host": "localhost",
+      "port": 7500,
+      "skip-open": false
     }
-    ```
+  },
+  "dashboard": {
+    "columns": ["timestamp", "dot"]
+  }
+}
+```
   </TabItem>
 </Tabs>

@@ -315,169 +315,193 @@ CLI는 YAML(또는 JSON/TOML) 설정 파일로 구성할 수 있습니다. 기�
 
 <Tabs>
   <TabItem label="YAML">
-    ```yaml
-    ## Kubetail CLI Configuration File
-    # 
-    # 이 파일은 kubetail CLI 도구의 동작을 정의하며,
-    # logs 명령의 기본값과 dashboard server 설정을 포함합니다.
+```yaml
+## Kubetail CLI Configuration File
+#
+# This file defines the behavior for the kubetail CLI tool,
+# including logs command defaults and dashboard server settings.
+#
+
+## version ##
+#
+# Schema version for the configuration file
+#
+version: 1
+
+## general ##
+#
+general:
+
+  ## kubeconfig ##
+  #
+  # Path to the kubeconfig file to use for CLI requests.
+  # If empty, the default path (~/.kube/config) or KUBECONFIG env var is used.
+  #
+  # Default value: ""
+  #
+  kubeconfig: ""
+
+## commands ##
+#
+commands:
+
+  ## logs ##
+  #
+  # Settings specific to the 'logs' subcommand
+  #
+  logs:
+
+    ## kube-context ##
     #
-
-    ## version ##
+    # The specific Kubernetes context to use.
+    # If empty, the current active context is used.
     #
-    # 설정 파일의 스키마 버전
+    # Default value: ""
     #
-    version: 1
+    kube-context: ""
 
-    ## general ##
+    ## head ##
     #
-    general:
-
-      ## kubeconfig ##
-      #
-      # CLI 요청에 사용할 kubeconfig 파일 경로입니다.
-      # 비어 있으면 기본 경로(~/.kube/config) 또는 KUBECONFIG 환경 변수를 사용합니다.
-      #
-      # 기본값: ""
-      #
-      kubeconfig: ""
-
-    ## commands ##
+    # The number of lines to show from the beginning of the log buffer
     #
-    commands:
+    # Default value: 10
+    #
+    head: 10
 
-      ## logs ##
-      #
-      # `logs` 하위 명령 전용 설정
-      #
-      logs:
+    ## tail ##
+    #
+    # The number of lines to show from the end of the log buffer
+    #
+    # Default value: 10
+    #
+    tail: 10
 
-        ## kube-context ##
-        #
-        # 사용할 Kubernetes context 입니다.
-        # 비어 있으면 현재 활성 context 를 사용합니다.
-        #
-        # 기본값: ""
-        #
-        kube-context: ""
+    ## columns ##
+    #
+    # Full set of output columns for 'logs' records.
+    # Allowed values: timestamp,dot,node,region,zone,os,arch,namespace,pod, container
+    #
+    # Default value: ["timestamp", "dot"]
+    #
+    columns:
+      - timestamp
+      - dot
 
-        ## head ##
-        #
-        # 로그 버퍼 시작 부분에서 표시할 줄 수
-        #
-        # 기본값: 10
-        #
-        head: 10
+  ## serve ##
+  #
+  # Settings for the dashboard server
+  #
+  serve:
 
-        ## tail ##
-        #
-        # 로그 버퍼 끝 부분에서 표시할 줄 수
-        #
-        # 기본값: 10
-        #
-        tail: 10
+    ## host ##
+    #
+    # The network interface the server should bind to.
+    #
+    # Default value: localhost
+    #
+    host: localhost
 
-        ## columns ##
-        #
-        # `logs` 레코드에 대한 전체 출력 열 집합입니다.
-        # 허용 값: timestamp,dot,node,region,zone,os,arch,namespace,pod,container
-        #
-        # 기본값: ["timestamp", "dot"]
-        #
-        columns:
-          - timestamp
-          - dot
+    ## port ##
+    #
+    # The TCP port the server will listen on.
+    #
+    # Default value: 7500
+    #
+    port: 7500
 
-      ## serve ##
-      #
-      # dashboard server 설정
-      #
-      serve:
+    ## skip-open ##
+    #
+    # If true, the CLI will not automatically open the browser
+    # when the server starts.
+    #
+    # Default value: false
+    #
+    skip-open: false
 
-        ## host ##
-        #
-        # server 가 바인딩할 네트워크 인터페이스입니다.
-        #
-        # 기본값: localhost
-        #
-        host: localhost
+## dashboard ##
+#
+# Settings for the web dashboard UI
+#
+dashboard:
 
-        ## port ##
-        #
-        # server 가 수신 대기할 TCP 포트입니다.
-        #
-        # 기본값: 7500
-        #
-        port: 7500
-
-        ## skip-open ##
-        #
-        # true 이면 server 시작 시 CLI가 브라우저를 자동으로 열지 않습니다.
-        #
-        # 기본값: false
-        #
-        skip-open: false
-    ```
+  ## columns ##
+  #
+  # The default columns to show when displaying log records.
+  #
+  # Default value: ["timestamp", "dot"]
+  #
+  columns:
+    - timestamp
+    - dot
+```
   </TabItem>
   <TabItem label="TOML">
-    ```toml
-    # Kubetail CLI Configuration File
-    #
-    # kubetail CLI 도구의 동작을 정의하며,
-    # logs 명령 기본값과 dashboard server 설정을 포함합니다.
+```toml
+# Kubetail CLI Configuration File
+#
+# Defines behavior for the kubetail CLI tool, including
+# logs command defaults and dashboard server settings.
 
-    # 설정 파일의 스키마 버전
-    version = 1
+# Schema version for the configuration file
+version = 1
 
-    [general]
-    # kubeconfig 경로입니다. 비어 있으면 ~/.kube/config 또는 KUBECONFIG를 사용합니다.
-    kubeconfig = ""
+[general]
+# Path to kubeconfig. If empty, uses ~/.kube/config or KUBECONFIG env var.
+kubeconfig = ""
 
-    [commands.logs]
-    # 사용할 Kubernetes context 입니다. 비어 있으면 활성 context 를 사용합니다.
-    kube-context = ""
+[commands.logs]
+# Specific Kubernetes context to use. If empty, uses active context.
+kube-context = ""
 
-    # 로그 버퍼 시작 부분에서 표시할 줄 수
-    head = 10
+# Number of lines to show from the beginning of the log buffer
+head = 10
 
-    # 로그 버퍼 끝 부분에서 표시할 줄 수
-    tail = 10
+# Number of lines to show from the end of the log buffer
+tail = 10
 
-    # `logs` 레코드에 대한 전체 출력 열 집합입니다.
-    # 허용 값: timestamp,dot,node,region,zone,os,arch,namespace,pod,container
-    columns = ["timestamp", "dot"]
+# Full set of output columns for 'logs' records.
+# Allowed values: timestamp,dot,node,region,zone,os,arch,namespace,pod,container
+columns = ["timestamp", "dot"]
 
-    [commands.serve]
-    # server 가 바인딩할 네트워크 인터페이스
-    host = "localhost"
+[commands.serve]
+# Network interface the server binds to
+host = "localhost"
 
-    # server 가 수신 대기할 TCP 포트
-    port = 7500
+# TCP port the server listens on
+port = 7500
 
-    # true 이면 server 시작 시 브라우저를 자동으로 열지 않습니다
-    skip-open = false
-    ```
+# If true, don't automatically open browser when server starts
+skip-open = false
+
+[dashboard]
+# The default columns to show when displaying log records.
+columns = ["timestamp", "dot"]
+```
   </TabItem>
   <TabItem label="JSON">
-    ```json
-    {
-      "version": 1,
-      "general": {
-        "kubeconfig": ""
-      },
-      "commands": {
-        "logs": {
-          "kube-context": "",
-          "head": 10,
-          "tail": 10,
-          "columns": ["timestamp", "dot"]
-        },
-        "serve": {
-          "host": "localhost",
-          "port": 7500,
-          "skip-open": false
-        }
-      }
+```json
+{
+  "version": 1,
+  "general": {
+    "kubeconfig": ""
+  },
+  "commands": {
+    "logs": {
+      "kube-context": "",
+      "head": 10,
+      "tail": 10,
+      "columns": ["timestamp", "dot"]
+    },
+    "serve": {
+      "host": "localhost",
+      "port": 7500,
+      "skip-open": false
     }
-    ```
+  },
+  "dashboard": {
+    "columns": ["timestamp", "dot"]
+  }
+}
+```
   </TabItem>
 </Tabs>
