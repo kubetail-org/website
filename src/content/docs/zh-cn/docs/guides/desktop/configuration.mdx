@@ -146,6 +146,22 @@ commands:
     # 默认值: false
     #
     skip-open: false
+
+## dashboard ##
+#
+# Settings for the web dashboard UI
+#
+dashboard:
+
+  ## columns ##
+  #
+  # The default columns to show when displaying log records.
+  #
+  # Default value: ["timestamp", "dot"]
+  #
+  columns:
+    - timestamp
+    - dot
 ```
   </TabItem>
   <TabItem label="TOML">
@@ -185,6 +201,10 @@ port = 7500
 
 # 如果为 true，服务器启动时不自动打开浏览器
 skip-open = false
+
+[dashboard]
+# The default columns to show when displaying log records.
+columns = ["timestamp", "dot"]
 ```
   </TabItem>
   <TabItem label="JSON">
@@ -205,6 +225,9 @@ skip-open = false
       "host": "localhost",
       "port": 7500,
       "skip-open": false
+    },
+    "dashboard": {
+      "columns": ["timestamp", "dot"]
     }
   }
 }
