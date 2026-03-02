@@ -1,0 +1,12 @@
+diff --git a/contextual-menu.js b/contextual-menu.js
+index 25220d03d1121272ce40996a22b9433fa68a83e2..f916cc14677e41fdee9f1629de57857135f5bd4e 100644
+--- a/contextual-menu.js
++++ b/contextual-menu.js
+@@ -125,7 +125,6 @@ function initContextualMenu(config) {
+     const titleElement = document.querySelector(".sl-container>h1");
+ 
+     if (!titleElement) {
+-      console.warn("Contextual menu: Could not find page title element");
+       return;
+     }
+ 

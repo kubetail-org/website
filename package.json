@@ -29,7 +29,10 @@
       "esbuild",
       "sharp",
       "workerd"
-    ]
+    ],
+    "patchedDependencies": {
+      "@kubetail/starlight-contextual-menu@0.1.5-patch.2": "patches/@kubetail__starlight-contextual-menu@0.1.5-patch.2.patch"
+    }
   },
   "devDependencies": {
     "@astrojs/sitemap": "^3.7.0",
