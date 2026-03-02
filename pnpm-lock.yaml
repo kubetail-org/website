@@ -7,6 +7,11 @@ settings:
 overrides:
   starlight-contextual-menu: npm:@kubetail/starlight-contextual-menu@0.1.5-patch.2
 
+patchedDependencies:
+  '@kubetail/starlight-contextual-menu@0.1.5-patch.2':
+    hash: a434d1004f9747f4c7e9f212a5ac8acc49405f5d23b27b9cedfb12f673926b1b
+    path: patches/@kubetail__starlight-contextual-menu@0.1.5-patch.2.patch
+
 importers:
 
   .:
@@ -41,7 +46,7 @@ importers:
         version: 4.0.2(@astrojs/starlight@0.37.6(astro@5.18.0(jiti@2.6.1)(lightningcss@1.31.1)(rollup@4.59.0)(typescript@5.9.3)))(tailwindcss@4.2.0)
       starlight-contextual-menu:
         specifier: npm:@kubetail/starlight-contextual-menu@0.1.5-patch.2
-        version: '@kubetail/starlight-contextual-menu@0.1.5-patch.2(astro@5.18.0(jiti@2.6.1)(lightningcss@1.31.1)(rollup@4.59.0)(typescript@5.9.3))(starlight-markdown@0.1.5(astro@5.18.0(jiti@2.6.1)(lightningcss@1.31.1)(rollup@4.59.0)(typescript@5.9.3)))'
+        version: '@kubetail/starlight-contextual-menu@0.1.5-patch.2(patch_hash=a434d1004f9747f4c7e9f212a5ac8acc49405f5d23b27b9cedfb12f673926b1b)(astro@5.18.0(jiti@2.6.1)(lightningcss@1.31.1)(rollup@4.59.0)(typescript@5.9.3))(starlight-markdown@0.1.5(astro@5.18.0(jiti@2.6.1)(lightningcss@1.31.1)(rollup@4.59.0)(typescript@5.9.3)))'
       starlight-llms-txt:
         specifier: ^0.7.0
         version: 0.7.0(@astrojs/starlight@0.37.6(astro@5.18.0(jiti@2.6.1)(lightningcss@1.31.1)(rollup@4.59.0)(typescript@5.9.3)))(astro@5.18.0(jiti@2.6.1)(lightningcss@1.31.1)(rollup@4.59.0)(typescript@5.9.3))
@@ -3548,7 +3553,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@kubetail/starlight-contextual-menu@0.1.5-patch.2(astro@5.18.0(jiti@2.6.1)(lightningcss@1.31.1)(rollup@4.59.0)(typescript@5.9.3))(starlight-markdown@0.1.5(astro@5.18.0(jiti@2.6.1)(lightningcss@1.31.1)(rollup@4.59.0)(typescript@5.9.3)))':
+  '@kubetail/starlight-contextual-menu@0.1.5-patch.2(patch_hash=a434d1004f9747f4c7e9f212a5ac8acc49405f5d23b27b9cedfb12f673926b1b)(astro@5.18.0(jiti@2.6.1)(lightningcss@1.31.1)(rollup@4.59.0)(typescript@5.9.3))(starlight-markdown@0.1.5(astro@5.18.0(jiti@2.6.1)(lightningcss@1.31.1)(rollup@4.59.0)(typescript@5.9.3)))':
     dependencies:
       astro: 5.18.0(jiti@2.6.1)(lightningcss@1.31.1)(rollup@4.59.0)(typescript@5.9.3)
       starlight-markdown: 0.1.5(astro@5.18.0(jiti@2.6.1)(lightningcss@1.31.1)(rollup@4.59.0)(typescript@5.9.3))
