@@ -1,0 +1,170 @@
+---
+title: 架构
+description: "了解 Kubetail 的各个组件 —— CLI、Dashboard、Cluster API 和 Cluster Agent —— 如何在桌面端、集群内以及 Docker 部署拓扑中协同工作。"
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+Kubetail 由少量职责清晰的工具和服务组成。有些是必需的；有些则是可选的，并用于解锁额外能力。本页将详细介绍部署拓扑、日志传输管道以及各个独立组件。
+
+---
+
+## 部署拓扑
+
+Kubetail 可根据您的环境和访问需求，通过三种不同方式进行部署。每种拓扑都使用相同的底层组件，但在安装方式、访问方式和配置方式上有所不同。
+
+### 桌面端
+
+在最常见的拓扑中，`kubetail` CLI 安装在您的本地机器上，并使用 kubeconfig 文件来对各个集群进行认证。这样做很方便，因为 `kubetail` 会继承与 `kubectl` 相同的 RBAC 权限，您无需做其他改动就可以访问日志。
+
+在桌面端运行 `kubetail serve` 时，会在本地启动 Dashboard Server，它负责提供 Dashboard UI，并代表您将日志请求代理到集群的 Kubernetes API。您也可以使用 `kubetail logs` 将日志直接流式输出到终端。开始使用时不需要任何集群侧安装；但如果您在集群中安装了 Kubetail API，那么 `kubetail` 会自动使用它来启用高级功能，例如搜索。
+
+安装说明请参阅[桌面端安装指南](/zh-cn/docs/guides/desktop/installation)。
+
+### 集群内
+
+整套 Kubetail 都可以通过 Helm 或 YAML 清单作为 Kubernetes 资源安装在集群内部。在这种拓扑中，Dashboard Server 作为 `kubetail-system` namespace 中的一个 Deployment 运行，并通过 `kubectl port-forward`、`kubectl proxy` 或 ingress 资源从浏览器访问。这是共享团队环境中的首选方案，或者适用于您希望获得持久、常开访问，而不依赖本地 CLI 的情况。
+
+安装说明请参阅[集群安装指南](/zh-cn/docs/guides/cluster/installation)。
+
+### Docker
+
+`kubetail` CLI 已被打包为 Docker 镜像（[`kubetail/kubetail-cli`](https://hub.docker.com/r/kubetail/kubetail-cli)），因此可以在容器中运行，而无需本地安装。在本地，您可以将 `.kube/config` 文件挂载到容器中，并通过 `docker run` 或 `docker-compose` 启动仪表板。该镜像也可以作为 Pod 部署在集群中，此时可通过 `--in-cluster` 参数，使用 Pod 的 service account 凭据而不是 kubeconfig 文件进行认证。
+
+关于 Docker 部署方式的更多信息，请参阅[Docker 介绍](/zh-cn/docs/guides/docker/introduction)。
+
+---
+
+## 日志传输管道
+
+默认情况下，Kubetail 使用 Kubernetes API 来获取日志。若要启用诸如最后事件时间戳和搜索等高级功能，您可以安装 Kubetail Cluster API 和 Kubetail Cluster Agent（合称 “Kubetail API”）。下面将更详细地介绍每种模式。
+
+### Kubernetes API（默认）
+
+在未配置 Cluster API 时，日志会通过 Kubernetes API 进行传输。比如，从 Web 仪表板到磁盘文件的一次请求，通过 Kubernetes API 的路径如下：
+
+```
++---------------------------------+
+| Kubetail Dashboard UI (Browser) |
++---------------------------------+
+          │
+          │ GraphQL over WebSocket
+          ▼
++---------------------------------+
+| Kubetail Dashboard Server       |
++---------------------------------+
+          │
+          │ HTTP GET /api/v1/namespaces/{ns}/pods/{pod}/log
+          ▼
++---------------------------------+
+| kube-apiserver                  |
++---------------------------------+
+          │
+          │ HTTP → kubelet /containerLogs
+          ▼
++---------------------------------+
+| kubelet (node)                  |
++---------------------------------+
+          │
+          │ file read
+          ▼
++---------------------------------+
+| Pod log file (disk)             |
++---------------------------------+
+```
+
+这一路径开箱即用，适用于任何 Kubernetes 集群。每一个打开的日志视图，都会为每个正在 tail 的容器维护一条从 Dashboard Server 到 kube-apiserver 的长连接 HTTP 请求。文本过滤则是在日志流到达 Kubetail Dashboard Server 时进行的。
+
+### Kubetail API（可选）
+
+当 Cluster API 和 Cluster Agent 部署后，Kubetail Dashboard Server 会通过 “Kubetail API” 这套栈来路由请求。比如，从 Web 仪表板到磁盘文件的一次请求，通过 Kubetail API 的路径如下：
+
+```
++---------------------------------+
+| Kubetail Dashboard UI (Browser) |
++---------------------------------+
+          │
+          │ GraphQL over WebSocket
+          ▼
++---------------------------------+
+| Kubetail Dashboard Server       |
++---------------------------------+
+          │
+          │ GraphQL over WebSocket
+          ▼
++---------------------------------+
+| Cluster API                     |
++---------------------------------+
+          │
+          │ gRPC - one stream per log file
+          ▼
++---------------------------------+
+| Cluster Agent (one per node)    |
++---------------------------------+
+          │
+          │ file read + inotify watches
+          ▼
++---------------------------------+
+| Pod log file (disk)             |
++---------------------------------+
+```
+
+在这条管道中，日志数据不会触碰 kube-apiserver，文本过滤也会在节点上、传输之前完成。kube-apiserver 只用于工作负载元数据请求和授权检查。
+
+---
+
+## 组件
+
+### Kubetail CLI
+
+`kubetail` CLI 是在桌面端使用 Kubetail 的主要入口。该工具使用 Go 编写，并打包了 Dashboard，因此可以在本地运行 Web UI。它的两个核心命令是 `kubetail serve`（启动 Dashboard server 并打开 Web UI）以及 `kubetail logs`（将日志直接流式输出到终端）。`kubetail cluster` 子命令则通过一个嵌入式 Helm 客户端来管理可选的集群侧资源。
+
+完整命令和参数列表请参阅 [CLI 参考](/zh-cn/docs/reference/cli)。
+
+### Kubetail Dashboard
+
+Kubetail Dashboard 由两个一起部署的部分组成：
+
+- **Dashboard UI** — 一个基于 React 的单页应用，使用 Vite 构建，并由 Dashboard Server 作为静态资源提供。浏览器与 Dashboard server 之间的通信完全通过 GraphQL 完成：queries 和 mutations 通过 HTTP，实时日志订阅通过持久 WebSocket 连接。所有发往 Kubernetes API 或任何集群侧 Kubetail 服务的请求，都会经由该服务器代理。
+- **Dashboard Server** — 一个基于 Go 的 HTTP 服务器，负责提供静态 UI 资源、处理认证和会话管理，并代表浏览器获取日志数据。它支持两种日志后端：Kubernetes API（默认，无需额外安装）和 Kubetail API（可选，前提是集群侧资源已安装）。
+
+配置选项请参阅 [Dashboard 参考](/zh-cn/docs/reference/dashboard)。
+
+### Kubetail Cluster API
+
+Cluster API 是一个基于 Go 的 HTTP 服务器，以单个 Deployment 的形式运行在集群内部。它向 Dashboard Server 暴露 GraphQL API，并充当到每个节点上 Cluster Agent 的 gRPC 调度器。
+
+当日志请求到达时，Cluster API 会向相关的 Cluster Agent 扇出请求，汇集它们返回的流式响应，并将其合并为一个单一流返回给 Dashboard Server。由于日志数据完全通过集群内部网络流动，因此永远不会经过 kube-apiserver。Cluster API 还解锁了 Kubernetes API 模式下无法提供的能力，例如搜索以及日志文件元数据（大小、时间戳）。
+
+配置选项请参阅 [Cluster API 参考](/zh-cn/docs/reference/cluster-api)。
+
+### Kubetail Cluster Agent
+
+Cluster Agent 是一个基于 Rust 的 gRPC 服务器，以 DaemonSet 形式运行 —— 每个节点一个 Pod。它是 Kubetail 中唯一直接接触文件系统的组件，从节点上的 `/var/log/containers` 中读取容器日志文件。它会：
+
+- 使用操作系统级文件系统通知（Linux 上为 `inotify`）来监视 Pod 日志文件，从而无需轮询就能发现新日志行
+- 在新的日志行写入时，通过 gRPC 将其流式发送到 Cluster API
+- 在节点上先执行基于 ripgrep 的文本过滤，再让数据离开节点，因此只传输匹配的日志行
+- 缓存 Kubernetes SubjectAccessReview 结果，以便在不重复调用 API 的情况下完成授权
+
+配置选项请参阅 [Cluster Agent 参考](/zh-cn/docs/reference/cluster-agent)。
+
+---
+
+## 通信协议
+
+| 链路 | 协议 | 说明 |
+|---|---|---|
+| 浏览器 ↔ Dashboard Server | GraphQL over WebSocket (graphql-ws) + HTTPS | 在单一连接上完成 queries 和实时 subscriptions |
+| Dashboard Server ↔ kube-apiserver | HTTP/HTTPS (client-go) | 仅 Kubernetes API 模式；每个容器一条流 |
+| Dashboard Server ↔ Cluster API | gRPC over HTTP/2 | 仅 Cluster API 模式；可选 TLS |
+| Cluster API ↔ Cluster Agent | gRPC over HTTP/2 | 可选 mTLS；通过 grpc-dispatcher-go 分发 |
+| Cluster Agent ↔ 节点磁盘 | 本地文件 I/O + inotify | 无网络；直接读取 `/var/log/containers/` |
+
+<br />
+---
+<br />
+
+<Aside type="tip">
+若想深入了解每种拓扑的性能影响，请参阅 [Performance](/zh-cn/docs/concepts/performance) 页面。
+</Aside>

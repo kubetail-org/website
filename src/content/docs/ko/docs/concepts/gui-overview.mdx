@@ -1,0 +1,66 @@
+---
+title: 개요
+description: "Kubetail 웹 대시보드를 둘러봅니다. 워크로드 탐색, 로그 콘솔 열기, 백엔드 서비스의 상태 확인을 다룹니다."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+
+import homePageLight from '@/assets/screenshots/light/home-page.webp';
+import homePageDark from '@/assets/screenshots/dark/home-page.webp';
+import consolePageLight from '@/assets/screenshots/light/logging-console.webp';
+import consolePageDark from '@/assets/screenshots/dark/logging-console.webp';
+import healthStatusLight from '@/assets/screenshots/light/health-status.webp';
+import healthStatusDark from '@/assets/screenshots/dark/health-status.webp';
+
+Kubetail 웹 대시보드는 Kubernetes 워크로드를 한눈에 볼 수 있게 해 주고, 여러 로그 스트림을 실시간으로 따라갈 수 있게 해 주는 브라우저 기반 GUI입니다.
+
+대시보드는 두 가지 방식으로 실행할 수 있습니다.
+
+- **데스크톱에서 실행** — `kubetail` CLI를 사용해 로컬 대시보드 서버를 시작하면, 이 서버가 kubeconfig 파일을 사용해 클러스터에 인증합니다. 클러스터 쪽 설치는 필요하지 않습니다. ([데스크톱에서 실행 > 설치](/ko/docs/guides/desktop/installation) 참고)
+- **클러스터에서 실행** — Helm 또는 YAML 매니페스트를 사용해 대시보드를 Kubernetes 워크로드로 배포한 다음, `kubectl port-forward`, `kubectl proxy`, 또는 ingress 리소스를 통해 접근합니다. ([클러스터에서 실행 > 설치](/ko/docs/guides/cluster/installation) 참고)
+
+---
+
+## 워크로드
+
+대시보드를 열면 가장 먼저 모든 Kubernetes 워크로드 목록이 보입니다.
+
+<Image src={homePageLight} alt="Kubetail dashboard home page showing a list of Kubernetes workloads" class="dark:sl-hidden" />
+<Image src={homePageDark} alt="Kubetail dashboard home page showing a list of Kubernetes workloads" class="light:sl-hidden" />
+
+여기서 다음 작업을 할 수 있습니다.
+
+- 임의의 워크로드 옆의 **View** 를 클릭해 해당 워크로드의 로그 콘솔을 새 탭에서 엽니다
+- 체크박스로 여러 워크로드를 선택한 뒤 **Open in Console** 을 클릭해 로그를 하나의 타임라인으로 합쳐 봅니다
+
+---
+
+## 로그
+
+보고 싶은 로그를 선택하고 콘솔로 들어가면, 로그의 실시간 tail 이 표시됩니다.
+
+<Image src={consolePageLight} alt="Kubetail dashboard logging console showing web server log streams" class="dark:sl-hidden" />
+<Image src={consolePageDark} alt="Kubetail dashboard logging console showing web server log streams" class="light:sl-hidden" />
+
+대시보드는 두 가지 로그 전달 파이프라인을 지원합니다.
+
+| 파이프라인                                                       | 클러스터 설치 필요 여부 | 기능                                                                 |
+|------------------------------------------------------------------|-------------------------|----------------------------------------------------------------------|
+| [Kubernetes API (Basic)](/ko/docs/guides/dashboard/basic-features)     | 아니요                  | 실시간 로그 tailing, 기본 필터링                                     |
+| [Kubetail API (Advanced)](/ko/docs/guides/dashboard/advanced-features) | 예                      | 기본 기능 전체 + 로그 파일 크기, 마지막 이벤트 타임스탬프, 검색     |
+
+기본적으로 대시보드는 Kubernetes API 파이프라인을 사용합니다. 클러스터에 Kubetail API를 설치하면 고급 파이프라인이 자동으로 활성화됩니다.
+
+<Aside type="tip">
+각 파이프라인의 동작 방식에 대한 더 자세한 설명은 [아키텍처](/ko/docs/concepts/architecture#log-delivery-pipelines) 페이지를 참고하세요.
+</Aside>
+
+---
+
+## 상태
+
+오른쪽 아래의 상태 점을 클릭하면 대시보드의 백엔드 서버, 클러스터의 Kubernetes API, 그리고 선택적으로 설치된 Kubetail Cluster API의 상태를 볼 수 있습니다.
+
+<Image src={healthStatusLight} alt="Health status dialog showing server, Kubernetes API, and Kubetail API status" class="dark:sl-hidden" />
+<Image src={healthStatusDark} alt="Health status dialog showing server, Kubernetes API, and Kubetail API status" class="light:sl-hidden" />

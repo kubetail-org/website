@@ -1,0 +1,123 @@
+---
+title: "RBAC & Permissions"
+description: "Kubetail Helm chart 创建的 RBAC 资源，包括 ServiceAccounts、ClusterRoles、ClusterRoleBindings，以及每个组件所需的权限。"
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Kubetail 将访问控制委托给 Kubernetes RBAC。本页说明 Helm chart 会创建哪些 RBAC 资源，以及每个组件如何使用它们。
+
+---
+
+## 概览
+
+Helm chart 会为每个组件创建专用的 ServiceAccount、ClusterRole 和 ClusterRoleBinding。每个组件都只拥有完成自身工作所需的权限，始终遵循最小权限原则。
+
+| Component | Kind | ServiceAccount |
+|-----------|------|---------------|
+| Dashboard | Deployment | `kubetail-dashboard` |
+| Cluster API | Deployment | `kubetail-cluster-api` |
+| Cluster Agent | DaemonSet | `kubetail-cluster-agent` |
+
+---
+
+## Dashboard
+
+Dashboard 需要对 Kubernetes API 拥有较广泛的读取权限，以便枚举工作负载并代表用户流式读取日志。它还需要创建 token review 的权限，以验证用户凭据。
+
+**ClusterRole** - 集群范围的只读访问：
+
+```yaml
+rules:
+  - apiGroups: [""]
+    resources: [namespaces, nodes]
+    verbs: [get, list, watch]
+  - apiGroups: ["", apps, batch]
+    resources:
+      - cronjobs
+      - daemonsets
+      - deployments
+      - jobs
+      - pods
+      - pods/log
+      - replicasets
+      - statefulsets
+    verbs: [get, list, watch]
+  - apiGroups: [authentication.k8s.io]
+    resources: [tokenreviews]
+    verbs: [create]
+```
+
+**Role** - `kubetail-system` 内 namespace 范围的访问：
+
+```yaml
+rules:
+  - apiGroups: [discovery.k8s.io]
+    resources: [endpointslices]
+    verbs: [list, watch]
+```
+
+`endpointslices` 权限用于让 Dashboard 实时监控 Cluster API Pod 的健康状态。
+
+---
+
+## Cluster API
+
+Cluster API 需要与 Dashboard 相同的工作负载资源读取权限，因为它也会通过其 GraphQL API 提供工作负载元数据。
+
+**ClusterRole** - 集群范围的只读访问：
+
+```yaml
+rules:
+  - apiGroups: [""]
+    resources: [nodes]
+    verbs: [get, list, watch]
+  - apiGroups: ["", apps, batch]
+    resources:
+      - cronjobs
+      - daemonsets
+      - deployments
+      - jobs
+      - pods
+      - pods/log
+      - replicasets
+      - statefulsets
+    verbs: [get, list, watch]
+```
+
+**Role** - `kubetail-system` 内 namespace 范围的访问：
+
+```yaml
+rules:
+  - apiGroups: [discovery.k8s.io]
+    resources: [endpointslices]
+    verbs: [list, watch]
+```
+
+`endpointslices` 权限使 Cluster API 能够跟踪哪些 Cluster Agent Pod 处于就绪状态，从而把日志请求路由到健康的 agent。
+
+---
+
+## Cluster Agent
+
+Cluster Agent 直接从节点文件系统读取日志文件，因此不需要 Kubernetes API 访问权限来获取日志。它的 ServiceAccount 仅用于让来自 Cluster API 的请求能够被授权，agent 在返回任何数据之前都会先向 Kubernetes API 验证传入的 bearer token。
+
+Cluster Agent 的 ServiceAccount 默认没有 ClusterRole 或 Role。授权决策通过使用调用方提供的 token 调用 Kubernetes `SubjectAccessReview` API 来完成，因此调用方自身的 RBAC 权限决定了它可以访问什么。
+
+---
+
+## 授权如何工作
+
+当用户在 Dashboard 中打开日志视图时，会发生以下授权流程：
+
+1. Dashboard 代表已认证用户创建一个短期有效的 Kubernetes ServiceAccount token。
+2. Dashboard 在 `Authorization` 请求头中将该 token 转发给 Cluster API。
+3. Cluster API 再将该 token 转发给相关的 Cluster Agent。
+4. 每个 Cluster Agent 都会通过调用 Kubernetes `SubjectAccessReview` API 来验证该 token，并检查 token 持有者是否对所请求 namespace 中的 `pods/log` 拥有 `get` 权限。
+5. 如果检查通过，agent 就会流式返回日志数据；否则会返回权限被拒绝的错误。
+
+这意味着，如果某个用户无法对某个 Pod 执行 `kubectl logs`，那么无论通过何种连接方式，他也无法在 Kubetail 中查看这些日志。不需要额外的 Kubetail 专用权限。
+
+<Aside type="tip">
+如果您想了解用户需要哪些权限，请参阅[安全与隐私](/zh-cn/docs/concepts/security-and-privacy)页面。
+</Aside>

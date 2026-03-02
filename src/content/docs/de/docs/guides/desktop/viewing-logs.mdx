@@ -1,0 +1,132 @@
+---
+title: Logs anzeigen
+description: "Zeigen Sie Kubernetes-Logs mit Kubetail an: Starten Sie das Web-Dashboard mit `kubetail serve` oder streamen Sie Logs direkt in Ihr Terminal mit `kubetail logs`."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import { Image } from "astro:assets";
+
+import terminalLight from '@/assets/screenshots/light/terminal-logs.webp';
+import terminalDark from '@/assets/screenshots/dark/terminal-logs.webp';
+
+Nach der [Installation](/de/docs/guides/desktop/installation) von Kubetail koennen Sie das Web-Dashboard mit `kubetail serve` starten oder Logs mit `kubetail logs` direkt in Ihr Terminal streamen.
+
+---
+
+## Web-Dashboard (GUI)
+
+Das Web-Dashboard bietet eine browserbasierte Oberflaeche zum Durchsuchen und Filtern von Logs ueber Ihre Kubernetes-Workloads hinweg. Starten Sie es mit `kubetail serve`; es wird automatisch unter [`http://localhost:7500`](http://localhost:7500) geoeffnet. Im Dashboard koennen Sie Workloads und Pods auswaehlen, deren Log-Ausgabe in Echtzeit ansehen und zwischen Cluster-Kontexten wechseln, ohne den Browser zu verlassen. Eine vollstaendige Einfuehrung in die Dashboard-Funktionen finden Sie im Leitfaden [Web-Dashboard (GUI)](/de/docs/concepts/gui-overview).
+
+---
+
+## Terminal
+
+<Image src={terminalLight} alt="Terminal mit der Ausgabe des Befehls `kubetail logs`" class="dark:sl-hidden" />
+<Image src={terminalDark} alt="Terminal mit der Ausgabe des Befehls `kubetail logs`" class="light:sl-hidden" />
+
+Mit dem Befehl `kubetail logs` koennen Sie Logs direkt im Terminal abrufen und streamen. Sie koennen einzelne Pods, Deployments oder jeden anderen Workload-Typ ansprechen und mehrere Quellen aus verschiedenen Namespaces in einem einzigen Befehl kombinieren:
+
+```sh
+kubetail logs frontend:deployments/web backend:deployments/api
+```
+
+**Tailing**
+
+Standardmaessig gibt `kubetail logs` die letzten 10 Eintraege zurueck. Verwenden Sie `--head`, um vom Anfang zu lesen, `--all`, um alles zurueckzugeben, oder `--follow`, um neue Eintraege fortlaufend zu streamen:
+
+```sh
+# Neue Eintraege aus einem Deployment streamen
+kubetail logs deployments/web --follow
+
+# Die ersten 50 Eintraege zurueckgeben
+kubetail logs deployments/web --head=50
+
+# Alle Eintraege zurueckgeben und weiter folgen
+kubetail logs deployments/web --all --follow
+```
+
+**Spalten auswaehlen**
+
+Die Ausgabetabelle enthaelt standardmaessig die Spalten `timestamp` und `dot`. Mit `--columns`, `--add-columns` oder `--remove-columns` koennen Sie anpassen, was angezeigt wird. Verfuegbare Spalten sind: `timestamp`, `dot`, `node`, `region`, `zone`, `os`, `arch`, `namespace`, `pod`, `container`.
+
+```sh
+# Namespace- und Pod-Spalten zu den Standardspalten hinzufuegen
+kubetail logs deployments/web --add-columns pod,container
+
+# Nur rohe Log-Nachrichten ohne Metadaten anzeigen
+kubetail logs deployments/web --raw
+```
+
+**Nach Zeitfenster filtern**
+
+Verwenden Sie `--since` und `--until` (einschliesslich) oder `--after` und `--before` (ausschliesslich), um Logs auf einen bestimmten Zeitraum einzugrenzen. Sowohl ISO-8601-Zeitstempel als auch Zeitspannen werden unterstuetzt:
+
+```sh
+# Eintraege der letzten 30 Minuten
+kubetail logs deployments/web --since PT30M --all
+
+# Eintraege zwischen zwei Zeitstempeln
+kubetail logs deployments/web --since 2024-01-01T00:00:00Z --until 2024-01-02T00:00:00Z --all
+```
+
+**Nach Quelle filtern**
+
+Verwenden Sie `--node`, `--zone`, `--region`, `--os` und `--arch`, um einzuschraenken, welche Pods zur Ausgabe beitragen. Jedes Flag akzeptiert eine kommagetrennte Liste von Werten:
+
+```sh
+# Nur Logs von Pods auf einem bestimmten Knoten anzeigen
+kubetail logs deployments/web --node=ip-10-0-1-42
+
+# Nur Logs von Pods in einer bestimmten Availability Zone anzeigen
+kubetail logs deployments/web --zone=us-east-1a
+
+# Filter kombinieren
+kubetail logs deployments/web --region=us-east-1 --arch=amd64
+```
+
+**Nach Inhalt filtern**
+
+Verwenden Sie `--grep` mit einem regulaeren Ausdruck, um Log-Zeilen zu filtern:
+
+```sh
+kubetail logs deployments/web --grep "ERROR" --force --all
+```
+
+Hinweis: Das Flag `--force` ist bei `--grep` erforderlich, da das Filtern clientseitig erfolgt und dadurch moeglicherweise mehr Daten als erwartet heruntergeladen werden.
+
+**Verfolgung des Container-Lebenszyklus**
+
+Kubetail ueberwacht Kubernetes-Pod-Ereignisse in Echtzeit. Wenn ein neuer Pod oder Container startet, etwa waehrend eines Rolling Updates, eines Crash-Neustarts oder eines Scale-outs, werden seine Logs automatisch zum aktiven Stream hinzugefuegt. Sie muessen den Stream nicht neu starten, um diese Aenderungen zu sehen.
+
+<Aside type="tip">
+Eine vollstaendige Liste der Flags und Optionen fuer die Quellsyntax finden Sie in der [`kubetail logs`-CLI-Referenz](/de/docs/reference/cli#kubetail-logs).
+</Aside>
+
+---
+
+## Erweiterte Funktionen
+
+Um erweiterte Funktionen zu aktivieren, die in der Kubernetes-API nicht verfuegbar sind, zum Beispiel Log-Dateigroessen, Zeitstempel des letzten Ereignisses oder Suche, koennen Sie die In-Cluster-Dienste von Kubetail installieren. Damit erhalten Sie Zugriff auf niedrigerer Ebene auf Ihre Log-Dateien auf dem Datentraeger, bekannt als die **Kubetail API**.
+
+Die Kubetail API besteht aus einer Instanz der [Kubetail Cluster API](/de/docs/reference/cluster-api), die als Deployment laeuft, sowie einem [Kubetail Cluster Agent](/de/docs/reference/cluster-agent) pro Knoten, der als DaemonSet ausgefuehrt wird. Der Cluster Agent ist ein kleines, auf Rust basierendes Programm, das Container-Logdateien direkt aus dem Dateisystem des Knotens liest und sie bei Bedarf an die API streamt. Das ist besonders nuetzlich, wenn Logs im grossen Massstab per Grep gefiltert werden, weil der Agent Zeilen herausfiltern kann, bevor sie an den Client gesendet werden.
+
+Sie koennen die Installation der Kubetail API mit dem Befehl `kubetail cluster` verwalten:
+
+```sh
+# Die Kubetail API im Cluster installieren
+kubetail cluster install
+
+# Auf die neueste Version aktualisieren
+kubetail cluster upgrade
+
+# Die Kubetail API aus dem Cluster entfernen
+kubetail cluster uninstall
+```
+
+Sobald die Kubetail API installiert ist, aktiviert Kubetail erweiterte Funktionen in der UI automatisch.
+
+<Aside type="tip">
+Alle Unterbefehle von `kubetail cluster` akzeptieren das Flag `--kube-context`, um einen bestimmten Cluster-Kontext anzusprechen.
+</Aside>
+
+Der Befehl `kubetail cluster` verwendet intern Helm, sodass Sie die Installation anschliessend bei Bedarf mit Helm anpassen koennen. Wenn Sie die Installation lieber direkt mit Helm verwalten moechten, lesen Sie die [Helm-Chart-Referenz](/de/docs/reference/helm-chart).

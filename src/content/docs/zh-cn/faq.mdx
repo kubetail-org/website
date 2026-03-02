@@ -1,0 +1,87 @@
+---
+title: 常见问题
+description: "这里汇总了关于 Kubetail 的常见问题解答，包括价格（免费）、支持的 Kubernetes 版本、权限以及获取帮助的方式。"
+template: splash
+---
+
+## 常规
+
+**1. Kubetail 是什么，适合谁使用？**
+
+Kubetail 是一个面向 Kubernetes 的日志仪表板，允许用户同时实时查看其 Kubernetes 集群中的多个日志流。
+
+**2. Kubetail 支持哪些 Kubernetes 发行版或供应商？**
+
+Kubetail 兼容所有使用 Kubernetes v1.18 或更高版本的发行版和供应商。如果您在使用 Kubetail 时遇到任何问题，请创建一个 [GitHub Issue](https://github.com/kubetail-org/kubetail/issues)。
+
+**3. Kubetail 是运行在我的桌面端，还是运行在我的集群中？**
+
+Kubetail 既可以运行在您的[桌面端](/zh-cn/docs/guides/desktop/installation)（通过 CLI），也可以运行在您的[集群中](/zh-cn/docs/guides/cluster/installation)（以 Dashboard Docker 镜像部署的形式）。
+
+**4. Kubetail 的价格是多少？**
+
+Kubetail 完全免费。您可以免费下载、安装和使用它。此外，Kubetail 使用您自己的 Kubernetes API，并且还可以选择在您自己的集群内运行服务，因此您可以完全掌控该工具所使用的资源，而且这些资源占用非常少。
+
+**5. Kubetail 会一直免费吗？**
+
+会。虽然我们未来可能会推出付费云服务，但 Kubetail Dashboard、Kubetail CLI 以及相关工具将始终免费。出于原则，我们认为最先进的日志工具应该对所有人免费开放。
+
+**6. Kubetail 会占用多少内存和 CPU？**
+
+内存和 CPU 的使用量取决于工作负载，但一个典型部署，例如 Kubetail 的[演示站点](https://demo.kubetail.com)，大致如下：
+
+| 组件          | 内存  | CPU    |
+| :------------ | ----- | ------ |
+| Dashboard     | ~21MB | ~3.00m |
+| Cluster API   | ~21MB | ~3.00m |
+| Cluster Agent | ~13MB | ~4.00m |
+
+**7. 我在哪里可以找到 Kubetail 的源代码？**
+
+Kubetail 是一个采用 Apache 2.0 许可证的开源项目。代码仓库地址为 [https://github.com/kubetail-org/kubetail](https://github.com/kubetail-org/kubetail)。
+
+**8. Kubetail 会一直保持开源吗？**
+
+会。我们坚信，任何在您的集群中运行的第三方工具都应该是开源的。确保 Kubetail 始终保持完全开源，是这个项目的基础原则之一。
+
+**9. 谁在维护 Kubetail？**
+
+Kubetail 是一个由 GitHub 社区维护的开源项目。Kubetail 核心代码由这些 [contributors](https://github.com/kubetail-org/kubetail/graphs/contributors) 贡献。此外，我们的 Helm charts 也收到了这些 [contributors](https://github.com/kubetail-org/helm-charts/graphs/contributors) 的贡献。目前，该项目的主要开发者是 Andres Morey ([@amorey](https://github.com/amorey/))。
+
+**10. Kubetail 访问我的 Kubernetes 集群需要哪些凭据或权限？**
+
+运行在桌面端的 Kubetail 会使用您本地 kubeconfig 文件中的凭据连接到 Kubernetes API。运行在集群中的 Kubetail 资源则会使用授予其 service account 的 RBAC 权限。您可以在这个 [YAML 清单](https://github.com/kubetail-org/helm-charts/releases/latest/download/kubetail-clusterauth.yaml) 中查看每个资源所需的具体权限。
+
+## 安装
+
+**1. 如何在桌面端安装并访问 Kubetail？**
+
+按照[这里](/zh-cn/docs/guides/desktop/installation)的说明在桌面端运行 Kubetail。
+
+**2. 如何在集群中安装并访问 Kubetail？**
+
+按照[这里](/zh-cn/docs/guides/cluster/installation)的说明在集群中运行 Kubetail。
+
+## 使用
+
+**1. 我可以使用 Kubetail 查看多个集群的日志吗？**
+
+可以。如果您在桌面端使用 Kubetail（通过 CLI），它会检测您本地 kubeconfig 文件中定义的集群，并允许您在仪表板界面中切换它们。
+
+**2. 如何获得使用 Kubetail 的帮助？**
+
+我们很乐意帮助用户。如果您需要协助，可以：
+
+* 发送邮件至 [hello@kubetail.com](mailto:hello@kubetail.com)
+* 创建一个 [GitHub Issue](https://github.com/kubetail-org/kubetail/issues)
+* 在 [Discord](https://discord.gg/CmsmWAVkvX) 上与我们聊天
+* 加入我们的 [Slack](https://join.slack.com/t/kubetail/shared_invite/zt-2cq01cbm8-e1kbLT3EmcLPpHSeoFYm1w)
+* 给我们发一条 [tweet](https://x.com/kubetail)
+
+**3. 如何为 Kubetail 做贡献？**
+
+我们非常欢迎贡献。贡献方式如下：
+
+1. Fork 这个[代码仓库](https://github.com/kubetail-org/kubetail)
+2. 完成您的修改
+3. 提交一个 [GitHub Pull Request](https://github.com/kubetail-org/kubetail/pulls)

@@ -1,0 +1,32 @@
+---
+title: Desarrollo vs. Producción
+description: "Kubetail complementa su stack de observabilidad. Úselo para seguir solicitudes entre contenedores efímeros durante el desarrollo o para hacer tail de logs en incidentes."
+---
+
+Kubetail funciona bien tanto en entornos de desarrollo como de producción, aunque la propuesta de valor cambia en cada etapa.
+
+---
+
+## Desarrollo
+
+Los sistemas distribuidos son difíciles de depurar porque una sola solicitud de usuario puede pasar por muchos servicios. Kubetail está diseñado precisamente para este escenario. Con Kubetail, puede ver logs de varios servicios fusionados en una línea temporal cronológica, a través de todos los contenedores de los workloads, y observar en tiempo real cómo las solicitudes fluyen por su sistema.
+
+Como Kubetail rastrea los eventos del ciclo de vida de los contenedores, los flujos de logs se mantienen conectados cuando los contenedores se reinician o son reemplazados. Esto facilita seguir la ruta completa de una solicitud de punta a punta y reproducir problemas sin necesidad de reconstruir los hechos a partir de logs individuales de pods.
+
+Para empezar a usar Kubetail en desarrollo, solo tiene que instalar la CLI `kubetail` y ejecutar `kubetail serve` para ver logs en el navegador, o `kubetail logs` para enviarlos a su terminal (consulte [Inicio rápido](/es/docs/tutorials/getting-started/quickstart)). No se requiere ninguna instalación del lado del clúster ni configurar previamente una canalización de reenvío de logs.
+
+---
+
+## Producción
+
+Kubetail también escala con suavidad en producción. Puede usar Kubetail para asegurarse de que sus flujos de tráfico funcionan como espera, y también para revisar en tiempo real los logs de sus servicios y comprobar que no estén generando errores.
+
+### Complemente su stack de logging existente
+
+Kubetail no reemplaza a una plataforma completa de observabilidad. Herramientas como Datadog, Grafana, ClickHouse, VictoriaMetrics, Honeycomb, Dash0 y Loki están pensadas para retención de logs a largo plazo, alertas, correlación con métricas y análisis histórico a gran escala. La fortaleza de Kubetail es la visibilidad en tiempo real y el live tailing de logs, que encaja muy bien con plataformas optimizadas para almacenamiento y consulta.
+
+Un patrón habitual es usar Kubetail para depuración en vivo y su plataforma principal de logging para todo lo demás: dashboards de métricas, alertas y análisis posteriores al incidente.
+
+### Depuración durante caídas
+
+Kubetail tiene una ventaja operativa importante durante los incidentes: **solo necesita que el kube-apiserver sea accesible**. No depende de que un servicio externo de logging esté funcionando ni de que un backend remoto de almacenamiento responda. Cuando su clúster está ardiendo y su stack de observabilidad está degradado, Kubetail aún puede darle una vista en vivo de lo que sus contenedores están haciendo justo ahora.

@@ -1,0 +1,61 @@
+---
+title: Fonctionnalités de base
+description: "Fonctionnalités du tableau de bord Kubetail disponibles sans installation supplémentaire: prise en charge multi-cluster, filtres de workloads, tail de logs en temps réel et filtrage des logs au niveau du conteneur."
+---
+
+import { Image } from "astro:assets";
+
+import clusterPickerLight from '@/assets/screenshots/light/cluster-picker.webp';
+import clusterPickerDark from '@/assets/screenshots/dark/cluster-picker.webp';
+import workloadSearchLight from '@/assets/screenshots/light/workload-search.webp';
+import workloadSearchDark from '@/assets/screenshots/dark/workload-search.webp';
+import consolePageLight from '@/assets/screenshots/light/logging-console.webp';
+import consolePageDark from '@/assets/screenshots/dark/logging-console.webp';
+
+Par défaut, Kubetail utilise votre **Kubernetes API** pour surveiller vos workloads et récupérer les données de logs. Toutes les fonctionnalités décrites ici sont disponibles dans le tableau de bord web Kubetail sans aucune installation supplémentaire.
+
+---
+
+## Plusieurs clusters
+
+Kubetail lit votre fichier kubeconfig pour découvrir les clusters disponibles et utilise les identifiants qui y sont définis pour s'authentifier auprès de chacun d'eux. Lorsque plusieurs contexts sont configurés, un sélecteur de cluster apparaît dans la barre de navigation supérieure pour vous permettre de passer de l'un à l'autre. Kubetail surveille le fichier kubeconfig et met la liste à jour automatiquement, de sorte que les nouveaux contexts apparaissent sans redémarrage.
+
+<Image src={clusterPickerLight} alt="Kubetail dashboard home page showing the cluster picker" class="dark:sl-hidden" />
+<Image src={clusterPickerDark} alt="Kubetail dashboard home page showing the cluster picker" class="light:sl-hidden" />
+
+---
+
+## Filtres de workloads
+
+Sur la page d'accueil du dashboard, vous pouvez voir tous vos workloads en temps réel et affiner la vue par namespace, type de workload et recherche.
+
+<Image src={workloadSearchLight} alt="Kubetail dashboard home page showing workload search" class="dark:sl-hidden" />
+<Image src={workloadSearchDark} alt="Kubetail dashboard home page showing workload search" class="light:sl-hidden" />
+
+---
+
+## Tail en temps réel
+
+La sélection d'un workload ouvre la console de logs, qui commence immédiatement à tailer simultanément tous les logs de ses conteneurs. Les nouvelles lignes arrivent au fil de l'eau et vous pouvez faire défiler vers le haut pour consulter les lignes précédentes. Vous pouvez aussi utiliser les contrôles du viewer pour aller au début du flux, sauter à une heure précise ou revenir à la fin afin de reprendre le tail.
+
+<Image src={consolePageLight} alt="Kubetail dashboard logging console showing web server log streams" class="dark:sl-hidden" />
+<Image src={consolePageDark} alt="Kubetail dashboard logging console showing web server log streams" class="light:sl-hidden" />
+
+---
+
+## Suivi du cycle de vie des conteneurs
+
+Kubetail surveille les événements des pods Kubernetes en temps réel. Lorsqu'un nouveau pod ou conteneur démarre — pendant un rolling update, un redémarrage après crash ou un scale-out — ses logs sont ajoutés automatiquement au flux actif. Lorsqu'un pod est supprimé, sa source de logs est retirée du flux. Il n'est pas nécessaire de rouvrir la console ni de rafraîchir manuellement pour voir ces changements.
+
+---
+
+## Filtres de logs
+
+Dans la console de logs, vous pouvez filtrer par:
+
+- **Container** — n'afficher que certains conteneurs par nom.
+- **Node** — n'afficher que les conteneurs s'exécutant sur un nœud donné.
+- **Region / Zone** — filtrer par région cloud ou zone de disponibilité (issues des labels de nœud `topology.kubernetes.io/region` et `topology.kubernetes.io/zone`).
+- **OS / Arch** — filtrer par système d'exploitation ou architecture CPU (issus des labels de nœud `kubernetes.io/os` et `kubernetes.io/arch`).
+
+N'importe quelle combinaison de filtres peut être appliquée en même temps, et supprimer tous les filtres permet de revenir au flux complet.

@@ -1,0 +1,24 @@
+---
+title: "출시 안내: Kubernetes 실시간 로그 검색"
+description: "Kubetail이 이제 ripgrep 기반의 실시간 로그 검색을 지원합니다. Kubetail 클러스터 에이전트를 설치하면 데이터가 클러스터 외부로 나가기 전에 노드에서 직접 컨테이너 로그를 grep할 수 있습니다."
+date: 2025-05-01
+authors:
+  - name: Andres Morey
+    title: Lead Developer
+    url: https://github.com/amorey
+    picture: https://github.com/amorey.png
+---
+
+Kubetail이 작년에 출시된 이후, 가장 많이 요청된 기능은 단연 로그 검색이었습니다. 이제 드디어 최신 공식 릴리스(cli/v0.4.3, helm/v0.10.1)에서 로그 검색 기능을 사용할 수 있게 되어 기쁩니다. 실제 동작은 아래에서 확인하실 수 있습니다:
+
+[https://www.kubetail.com/demo](https://www.kubetail.com/demo)
+
+검색 기능 구현에 시간이 걸린 이유는 Kubernetes API가 검색을 기본적으로 지원하지 않아 처음부터 직접 구현해야 했기 때문입니다. 클라이언트 측 grepping으로 빠르게 구현하는 방안도 검토했지만, 검색마다 수많은 로그 파일을 전체 다운로드해야 할 수 있어 속도가 느리고 대역폭 소모가 크다는 점에서 좋은 사용자 경험을 제공하기 어려웠습니다. 이를 우회하는 방법도 있지만 사용자에게 추가 입력을 요구해야 하므로 역시 좋은 사용자 경험이 아니었습니다.
+
+대신, [ripgrep](https://github.com/BurntSushi/ripgrep)을 래핑한 커스텀 Rust 기반 실행 파일을 만들어 검색을 구현했습니다. 왜 Rust냐고요? 빠르기 때문입니다. Kubetail 백엔드의 대부분은 Go로 작성되어 있지만, 디스크에서 로그 파일을 읽는 이 저수준 컴포넌트는 가능한 한 빠르게 동작하길 원했습니다. 결과적으로 1GB 파일을 전체 스캔하는 데 약 250ms가 걸립니다. 모든 쿼리에서 이 실행 파일은 각 노드의 관련 컨테이너 로그 파일만 스캔하고, 매칭되는 줄만 브라우저로 스트리밍합니다. 대부분의 쿼리는 조기 종료가 가능하므로 전체 스캔 전에 결과를 반환할 수도 있습니다. Kubetail 검색을 Kubernetes 로그용 "원격 grep"이라고 생각하면 됩니다. 이제 로컬에서 grep하기 위해 전체 로그 파일을 다운로드할 필요가 없습니다.
+
+검색 기능을 활성화하려면 클러스터에 Kubetail "클러스터 리소스"를 설치해야 합니다. GUI에서 "설치"를 클릭하거나 CLI에서 `kubetail cluster install`을 실행하면 간단히 설치할 수 있습니다. 이 작업을 수행하면 각 노드에 Kubetail 클러스터 에이전트와 Kubetail 클러스터 API 인스턴스가 배포됩니다. 클러스터 API가 사용 가능한 경우 대시보드는 이를 통해 노드에서 검색과 같은 Kubetail 커스텀 기능에 접근합니다. 사용 불가능한 경우에는 해당 기능을 GUI에서 비활성화하고 Kubernetes API를 사용하는 방식으로 전환합니다.
+
+로그 검색은 이제 막 시작이며, 더욱 발전시킬 여지가 많이 남아 있습니다. Rust, Go, React 개발자이거나 로그를 사랑하는 UI 디자이너라면 오픈소스 생태계에서 가장 사용자 친화적인 Kubernetes 로깅 플랫폼을 함께 만들어 가요. [Discord](https://discord.gg/CmsmWAVkvX)에서 커뮤니티에 합류하세요!
+
+Andres

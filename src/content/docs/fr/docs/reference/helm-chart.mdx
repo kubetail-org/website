@@ -1,0 +1,207 @@
+---
+title: Reference du chart Helm
+description: "Reference du chart Helm Kubetail: deployez toute la pile Kubetail dans Kubernetes, configurez les composants via `runtimeConfig` et gerez les mises a niveau et les desinstallations."
+---
+
+Le chart Helm Kubetail deploie toute la pile Kubetail dans un cluster Kubernetes. Il est publie dans notre depot de charts Helm situe a [https://kubetail-org.github.io/helm-charts/](https://kubetail-org.github.io/helm-charts/), et le code source se trouve dans le depot [kubetail-org/helm-charts](https://github.com/kubetail-org/helm-charts), sous `charts/kubetail`.
+
+Le chart deploie trois composants:
+
+| Component | Kind | Description |
+|-----------|------|-------------|
+| Dashboard | Deployment | Interface web et API backend |
+| Cluster API | Deployment | API GraphQL pour les operations du cluster |
+| Cluster Agent | DaemonSet | Agent par noeud qui lit les fichiers de logs des conteneurs |
+
+## Installation
+
+Ajoutez le depot Helm `kubetail`:
+
+```sh
+helm repo add kubetail https://kubetail-org.github.io/helm-charts/
+```
+
+Installez le chart dans un namespace dedie:
+
+```sh
+helm install kubetail kubetail/kubetail --namespace kubetail-system --create-namespace
+```
+
+Par defaut, le chart genere automatiquement les secrets requis (`KUBETAIL_DASHBOARD_SESSION_SECRET`) et les stocke dans un Secret Kubernetes afin qu'ils soient conserves lors des mises a niveau.
+
+## Mise a niveau
+
+Recuperez le dernier index du chart, puis mettez a niveau la release:
+
+```sh
+helm repo update kubetail
+helm upgrade kubetail kubetail/kubetail --namespace kubetail-system
+```
+
+## Desinstallation
+
+```sh
+helm uninstall kubetail --namespace kubetail-system
+```
+
+## Values
+
+### Chart
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `fullnameOverride` | string | `null` | Remplacer le fullname calcule du chart |
+| `nameOverride` | string | `null` | Remplacer le nom du chart |
+| `namespaceOverride` | string | `null` | Remplacer le namespace de la release |
+
+### General
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `kubetail.allowedNamespaces` | array | `[]` | Restreindre tous les composants a ces namespaces |
+| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_SECRET` | string | `null` | Secret de session du dashboard encode en Base64 (genere automatiquement si `null`) |
+| `kubetail.global.annotations` | map | `{}` | Annotations supplementaires ajoutees a toutes les ressources |
+| `kubetail.global.labels` | map | `{}` | Labels supplementaires ajoutes a toutes les ressources |
+
+### Dashboard
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `kubetail.dashboard.enabled` | bool | `true` | Activer ou desactiver le composant Dashboard |
+| `kubetail.dashboard.authMode` | string | `"auto"` | Mode d'authentification (`auto`, `token`) |
+| `kubetail.dashboard.runtimeConfig` | map | *see values.yaml* | Configuration d'execution du Dashboard (voir la [reference Dashboard](/fr/docs/reference/dashboard)) |
+| `kubetail.dashboard.image.registry` | string | `"ghcr.io"` | Registre d'image |
+| `kubetail.dashboard.image.repository` | string | `"kubetail-org/kubetail-dashboard"` | Depot d'image |
+| `kubetail.dashboard.image.tag` | string | *see values.yaml* | Tag de l'image |
+| `kubetail.dashboard.image.digest` | string | `null` | Remplacer le tag de l'image par un digest |
+| `kubetail.dashboard.image.pullPolicy` | string | `"IfNotPresent"` | Politique de pull de l'image |
+| `kubetail.dashboard.container.name` | string | `"kubetail-dashboard"` | Nom du conteneur |
+| `kubetail.dashboard.container.extraEnv` | array | `[]` | Variables d'environnement supplementaires |
+| `kubetail.dashboard.container.extraEnvFrom` | array | `[]` | Sources `envFrom` supplementaires |
+| `kubetail.dashboard.container.securityContext` | map | *see values.yaml* | Contexte de securite du conteneur |
+| `kubetail.dashboard.container.resources` | map | `{}` | Requests et limites CPU/memoire |
+| `kubetail.dashboard.podTemplate.annotations` | map | `{}` | Annotations supplementaires du pod |
+| `kubetail.dashboard.podTemplate.labels` | map | `{}` | Labels supplementaires du pod |
+| `kubetail.dashboard.podTemplate.extraContainers` | array | `[]` | Conteneurs sidecar supplementaires |
+| `kubetail.dashboard.podTemplate.securityContext` | map | `{}` | Contexte de securite du pod |
+| `kubetail.dashboard.podTemplate.affinity` | map | `{}` | Regles d'affinite du pod |
+| `kubetail.dashboard.podTemplate.nodeSelector` | map | `{}` | Selecteur de noeud |
+| `kubetail.dashboard.podTemplate.tolerations` | array | `[]` | Tolerations du pod |
+| `kubetail.dashboard.configMap.name` | string | `null` | Remplacer le nom du ConfigMap |
+| `kubetail.dashboard.configMap.annotations` | map | `{}` | Annotations supplementaires du ConfigMap |
+| `kubetail.dashboard.configMap.labels` | map | `{}` | Labels supplementaires du ConfigMap |
+| `kubetail.dashboard.deployment.name` | string | `null` | Remplacer le nom du Deployment |
+| `kubetail.dashboard.deployment.annotations` | map | `{}` | Annotations supplementaires du Deployment |
+| `kubetail.dashboard.deployment.labels` | map | `{}` | Labels supplementaires du Deployment |
+| `kubetail.dashboard.deployment.replicas` | int | `1` | Nombre de replicas |
+| `kubetail.dashboard.deployment.revisionHistoryLimit` | int | `5` | Limite de l'historique des revisions |
+| `kubetail.dashboard.deployment.strategy` | map | `{type: RollingUpdate}` | Strategie de mise a jour du Deployment |
+| `kubetail.dashboard.ingress.enabled` | bool | `false` | Creer une ressource Ingress |
+| `kubetail.dashboard.ingress.name` | string | `null` | Remplacer le nom de l'Ingress |
+| `kubetail.dashboard.ingress.annotations` | map | `{}` | Annotations supplementaires de l'Ingress |
+| `kubetail.dashboard.ingress.labels` | map | `{}` | Labels supplementaires de l'Ingress |
+| `kubetail.dashboard.ingress.rules` | array | `[]` | Regles de l'Ingress |
+| `kubetail.dashboard.ingress.tls` | array | `[]` | Configuration TLS de l'Ingress |
+| `kubetail.dashboard.ingress.className` | string | `null` | Nom de la classe Ingress |
+| `kubetail.dashboard.rbac.name` | string | `null` | Remplacer les noms des ressources RBAC |
+| `kubetail.dashboard.rbac.annotations` | map | `{}` | Annotations RBAC supplementaires |
+| `kubetail.dashboard.rbac.labels` | map | `{}` | Labels RBAC supplementaires |
+| `kubetail.dashboard.secret.enabled` | bool | `true` | Creer une ressource Secret |
+| `kubetail.dashboard.secret.name` | string | `null` | Remplacer le nom du Secret |
+| `kubetail.dashboard.secret.annotations` | map | `{}` | Annotations supplementaires du Secret |
+| `kubetail.dashboard.secret.labels` | map | `{}` | Labels supplementaires du Secret |
+| `kubetail.dashboard.service.name` | string | `null` | Remplacer le nom du Service |
+| `kubetail.dashboard.service.annotations` | map | `{}` | Annotations supplementaires du Service |
+| `kubetail.dashboard.service.labels` | map | `{}` | Labels supplementaires du Service |
+| `kubetail.dashboard.service.ports.http` | int | `8080` | Port HTTP du Service |
+| `kubetail.dashboard.serviceAccount.name` | string | `null` | Remplacer le nom du ServiceAccount |
+| `kubetail.dashboard.serviceAccount.annotations` | map | `{}` | Annotations supplementaires du ServiceAccount |
+| `kubetail.dashboard.serviceAccount.labels` | map | `{}` | Labels supplementaires du ServiceAccount |
+
+### Cluster API
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `kubetail.clusterAPI.enabled` | bool | `true` | Activer ou desactiver le composant Cluster API |
+| `kubetail.clusterAPI.runtimeConfig` | map | *see values.yaml* | Configuration d'execution de la Cluster API (voir la [reference Cluster API](/fr/docs/reference/cluster-api)) |
+| `kubetail.clusterAPI.image.registry` | string | `"ghcr.io"` | Registre d'image |
+| `kubetail.clusterAPI.image.repository` | string | `"kubetail-org/kubetail-cluster-api"` | Depot d'image |
+| `kubetail.clusterAPI.image.tag` | string | *see values.yaml* | Tag de l'image |
+| `kubetail.clusterAPI.image.digest` | string | `null` | Remplacer le tag de l'image par un digest |
+| `kubetail.clusterAPI.image.pullPolicy` | string | `"IfNotPresent"` | Politique de pull de l'image |
+| `kubetail.clusterAPI.container.name` | string | `"kubetail-cluster-api"` | Nom du conteneur |
+| `kubetail.clusterAPI.container.extraEnv` | array | `[]` | Variables d'environnement supplementaires |
+| `kubetail.clusterAPI.container.extraEnvFrom` | array | `[]` | Sources `envFrom` supplementaires |
+| `kubetail.clusterAPI.container.securityContext` | map | *see values.yaml* | Contexte de securite du conteneur |
+| `kubetail.clusterAPI.container.resources` | map | `{}` | Requests et limites CPU/memoire |
+| `kubetail.clusterAPI.podTemplate.annotations` | map | `{}` | Annotations supplementaires du pod |
+| `kubetail.clusterAPI.podTemplate.labels` | map | `{}` | Labels supplementaires du pod |
+| `kubetail.clusterAPI.podTemplate.extraContainers` | array | `[]` | Conteneurs sidecar supplementaires |
+| `kubetail.clusterAPI.podTemplate.securityContext` | map | `{}` | Contexte de securite du pod |
+| `kubetail.clusterAPI.podTemplate.affinity` | map | `{}` | Regles d'affinite du pod |
+| `kubetail.clusterAPI.podTemplate.nodeSelector` | map | `{}` | Selecteur de noeud |
+| `kubetail.clusterAPI.podTemplate.tolerations` | array | `[]` | Tolerations du pod |
+| `kubetail.clusterAPI.configMap.name` | string | `null` | Remplacer le nom du ConfigMap |
+| `kubetail.clusterAPI.configMap.annotations` | map | `{}` | Annotations supplementaires du ConfigMap |
+| `kubetail.clusterAPI.configMap.labels` | map | `{}` | Labels supplementaires du ConfigMap |
+| `kubetail.clusterAPI.deployment.name` | string | `null` | Remplacer le nom du Deployment |
+| `kubetail.clusterAPI.deployment.annotations` | map | `{}` | Annotations supplementaires du Deployment |
+| `kubetail.clusterAPI.deployment.labels` | map | `{}` | Labels supplementaires du Deployment |
+| `kubetail.clusterAPI.deployment.replicas` | int | `1` | Nombre de replicas |
+| `kubetail.clusterAPI.deployment.revisionHistoryLimit` | int | `5` | Limite de l'historique des revisions |
+| `kubetail.clusterAPI.deployment.strategy` | map | `{type: RollingUpdate}` | Strategie de mise a jour du Deployment |
+| `kubetail.clusterAPI.rbac.name` | string | `null` | Remplacer les noms des ressources RBAC |
+| `kubetail.clusterAPI.rbac.annotations` | map | `{}` | Annotations RBAC supplementaires |
+| `kubetail.clusterAPI.rbac.labels` | map | `{}` | Labels RBAC supplementaires |
+| `kubetail.clusterAPI.secret.enabled` | bool | `true` | Creer une ressource Secret |
+| `kubetail.clusterAPI.secret.name` | string | `null` | Remplacer le nom du Secret |
+| `kubetail.clusterAPI.secret.annotations` | map | `{}` | Annotations supplementaires du Secret |
+| `kubetail.clusterAPI.secret.labels` | map | `{}` | Labels supplementaires du Secret |
+| `kubetail.clusterAPI.service.name` | string | `null` | Remplacer le nom du Service |
+| `kubetail.clusterAPI.service.annotations` | map | `{}` | Annotations supplementaires du Service |
+| `kubetail.clusterAPI.service.labels` | map | `{}` | Labels supplementaires du Service |
+| `kubetail.clusterAPI.service.ports.http` | int | `8080` | Port HTTP du Service |
+| `kubetail.clusterAPI.serviceAccount.name` | string | `null` | Remplacer le nom du ServiceAccount |
+| `kubetail.clusterAPI.serviceAccount.annotations` | map | `{}` | Annotations supplementaires du ServiceAccount |
+| `kubetail.clusterAPI.serviceAccount.labels` | map | `{}` | Labels supplementaires du ServiceAccount |
+
+### Cluster Agent
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `kubetail.clusterAgent.enabled` | bool | `true` | Activer ou desactiver le composant Cluster Agent |
+| `kubetail.clusterAgent.runtimeConfig` | map | *see values.yaml* | Configuration d'execution du Cluster Agent (voir la [reference Cluster Agent](/fr/docs/reference/cluster-agent)) |
+| `kubetail.clusterAgent.image.registry` | string | `"ghcr.io"` | Registre d'image |
+| `kubetail.clusterAgent.image.repository` | string | `"kubetail-org/kubetail-cluster-agent"` | Depot d'image |
+| `kubetail.clusterAgent.image.tag` | string | *see values.yaml* | Tag de l'image |
+| `kubetail.clusterAgent.image.digest` | string | `null` | Remplacer le tag de l'image par un digest |
+| `kubetail.clusterAgent.image.pullPolicy` | string | `"IfNotPresent"` | Politique de pull de l'image |
+| `kubetail.clusterAgent.container.name` | string | `"kubetail-cluster-agent"` | Nom du conteneur |
+| `kubetail.clusterAgent.container.extraEnv` | array | `[]` | Variables d'environnement supplementaires |
+| `kubetail.clusterAgent.container.extraEnvFrom` | array | `[]` | Sources `envFrom` supplementaires |
+| `kubetail.clusterAgent.container.securityContext` | map | *see values.yaml* | Contexte de securite du conteneur |
+| `kubetail.clusterAgent.container.resources` | map | `{}` | Requests et limites CPU/memoire |
+| `kubetail.clusterAgent.podTemplate.annotations` | map | `{}` | Annotations supplementaires du pod |
+| `kubetail.clusterAgent.podTemplate.labels` | map | `{}` | Labels supplementaires du pod |
+| `kubetail.clusterAgent.podTemplate.extraContainers` | array | `[]` | Conteneurs sidecar supplementaires |
+| `kubetail.clusterAgent.podTemplate.securityContext` | map | `{fsGroup: 0}` | Contexte de securite du pod |
+| `kubetail.clusterAgent.podTemplate.affinity` | map | `{}` | Regles d'affinite du pod |
+| `kubetail.clusterAgent.podTemplate.nodeSelector` | map | `{}` | Selecteur de noeud |
+| `kubetail.clusterAgent.podTemplate.tolerations` | array | *see values.yaml* | Tolerations du pod (les noeuds master/control-plane sont toleres par defaut) |
+| `kubetail.clusterAgent.configMap.name` | string | `null` | Remplacer le nom du ConfigMap |
+| `kubetail.clusterAgent.configMap.annotations` | map | `{}` | Annotations supplementaires du ConfigMap |
+| `kubetail.clusterAgent.configMap.labels` | map | `{}` | Labels supplementaires du ConfigMap |
+| `kubetail.clusterAgent.daemonSet.name` | string | `null` | Remplacer le nom du DaemonSet |
+| `kubetail.clusterAgent.daemonSet.annotations` | map | `{}` | Annotations supplementaires du DaemonSet |
+| `kubetail.clusterAgent.daemonSet.labels` | map | `{}` | Labels supplementaires du DaemonSet |
+| `kubetail.clusterAgent.networkPolicy.enabled` | bool | `true` | Creer une ressource NetworkPolicy |
+| `kubetail.clusterAgent.networkPolicy.name` | string | `null` | Remplacer le nom de la NetworkPolicy |
+| `kubetail.clusterAgent.networkPolicy.annotations` | map | `{}` | Annotations supplementaires de la NetworkPolicy |
+| `kubetail.clusterAgent.networkPolicy.labels` | map | `{}` | Labels supplementaires de la NetworkPolicy |
+| `kubetail.clusterAgent.service.name` | string | `null` | Remplacer le nom du Service |
+| `kubetail.clusterAgent.service.annotations` | map | `{}` | Annotations supplementaires du Service |
+| `kubetail.clusterAgent.service.labels` | map | `{}` | Labels supplementaires du Service |
+| `kubetail.clusterAgent.service.ports.grpc` | int | `50051` | Port gRPC du Service |
+| `kubetail.clusterAgent.serviceAccount.name` | string | `null` | Remplacer le nom du ServiceAccount |
+| `kubetail.clusterAgent.serviceAccount.annotations` | map | `{}` | Annotations supplementaires du ServiceAccount |
+| `kubetail.clusterAgent.serviceAccount.labels` | map | `{}` | Labels supplementaires du ServiceAccount |

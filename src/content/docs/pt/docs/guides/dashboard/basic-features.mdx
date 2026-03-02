@@ -1,0 +1,61 @@
+---
+title: Recursos básicos
+description: "Recursos do dashboard do Kubetail disponíveis sem instalações extras: suporte a múltiplos clusters, filtros de workloads, tail de logs em tempo real e filtragem de logs no nível do contêiner."
+---
+
+import { Image } from "astro:assets";
+
+import clusterPickerLight from '@/assets/screenshots/light/cluster-picker.webp';
+import clusterPickerDark from '@/assets/screenshots/dark/cluster-picker.webp';
+import workloadSearchLight from '@/assets/screenshots/light/workload-search.webp';
+import workloadSearchDark from '@/assets/screenshots/dark/workload-search.webp';
+import consolePageLight from '@/assets/screenshots/light/logging-console.webp';
+import consolePageDark from '@/assets/screenshots/dark/logging-console.webp';
+
+Por padrão, o Kubetail usa a sua **Kubernetes API** para observar os workloads e buscar os dados de logs. Todos os recursos descritos aqui estão disponíveis no dashboard web do Kubetail sem nenhuma instalação adicional.
+
+---
+
+## Múltiplos clusters
+
+Kubetail lê o seu arquivo kubeconfig para descobrir os clusters disponíveis e usa as credenciais definidas nele para se autenticar em cada um deles. Quando há mais de um context configurado, um seletor de cluster aparece na barra de navegação superior para que você possa alternar entre eles. O Kubetail observa mudanças no arquivo kubeconfig e atualiza a lista automaticamente, de modo que novos contexts aparecem sem necessidade de reiniciar.
+
+<Image src={clusterPickerLight} alt="Kubetail dashboard home page showing the cluster picker" class="dark:sl-hidden" />
+<Image src={clusterPickerDark} alt="Kubetail dashboard home page showing the cluster picker" class="light:sl-hidden" />
+
+---
+
+## Filtros de workloads
+
+Na página inicial do dashboard, você pode ver todos os seus workloads em tempo real e restringir a visualização por namespace, tipo de workload e busca.
+
+<Image src={workloadSearchLight} alt="Kubetail dashboard home page showing workload search" class="dark:sl-hidden" />
+<Image src={workloadSearchDark} alt="Kubetail dashboard home page showing workload search" class="light:sl-hidden" />
+
+---
+
+## Tail em tempo real
+
+Selecionar um workload abre o console de logs, que começa a fazer tail de todos os logs dos seus contêineres simultaneamente. Novas linhas de log chegam à medida que são escritas, e você pode rolar para cima para ver linhas anteriores. Você também pode usar os controles do visualizador para pular para o início do fluxo, ir para um horário específico ou voltar ao fim para retomar o tailing.
+
+<Image src={consolePageLight} alt="Kubetail dashboard logging console showing web server log streams" class="dark:sl-hidden" />
+<Image src={consolePageDark} alt="Kubetail dashboard logging console showing web server log streams" class="light:sl-hidden" />
+
+---
+
+## Rastreamento do ciclo de vida dos contêineres
+
+Kubetail observa eventos de pods Kubernetes em tempo real. Quando um novo pod ou contêiner inicia — durante um rolling update, um crash-restart ou um scale-out — os seus logs são adicionados automaticamente ao fluxo ativo. Quando um pod é excluído, sua fonte de logs é removida do fluxo. Você não precisa reabrir o console nem atualizar manualmente para ver essas mudanças.
+
+---
+
+## Filtros de logs
+
+No console de logs, você pode filtrar por:
+
+- **Container** — mostra apenas contêineres específicos pelo nome.
+- **Node** — mostra apenas contêineres em execução em um determinado nó.
+- **Region / Zone** — filtra por região de nuvem ou zona de disponibilidade (obtidas dos labels de nó `topology.kubernetes.io/region` e `topology.kubernetes.io/zone`).
+- **OS / Arch** — filtra por sistema operacional ou arquitetura de CPU (obtidos dos labels de nó `kubernetes.io/os` e `kubernetes.io/arch`).
+
+Qualquer combinação desses filtros pode ser aplicada ao mesmo tempo, e remover todos os filtros retorna ao fluxo completo.

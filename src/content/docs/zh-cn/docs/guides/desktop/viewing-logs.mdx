@@ -1,0 +1,132 @@
+---
+title: 查看日志
+description: "使用 Kubetail 查看 Kubernetes 日志：通过 `kubetail serve` 启动 Web 仪表板，或通过 `kubetail logs` 直接将日志流输出到终端。"
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import { Image } from "astro:assets";
+
+import terminalLight from '@/assets/screenshots/light/terminal-logs.webp';
+import terminalDark from '@/assets/screenshots/dark/terminal-logs.webp';
+
+在[安装](/zh-cn/docs/guides/desktop/installation) Kubetail 之后，您可以使用 `kubetail serve` 启动 Web 仪表板，或使用 `kubetail logs` 将日志直接流式输出到终端。
+
+---
+
+## Web 仪表板 (GUI)
+
+Web 仪表板提供了一个基于浏览器的界面，用于浏览和过滤 Kubernetes 工作负载中的日志。使用 `kubetail serve` 启动后，它会自动在 [`http://localhost:7500`](http://localhost:7500) 打开。通过仪表板，您可以选择工作负载和 Pod，实时查看日志输出，并在不离开浏览器的情况下切换集群上下文。完整的仪表板功能介绍请参阅 [Web 仪表板 (GUI) 指南](/zh-cn/docs/concepts/gui-overview)。
+
+---
+
+## 终端
+
+<Image src={terminalLight} alt="显示 `kubetail logs` 命令输出的终端" class="dark:sl-hidden" />
+<Image src={terminalDark} alt="显示 `kubetail logs` 命令输出的终端" class="light:sl-hidden" />
+
+`kubetail logs` 命令可让您直接在终端中获取并流式输出日志。您可以针对单个 Pod、Deployment 或任何其他工作负载类型，还可以在一个命令中组合来自不同 namespace 的多个来源：
+
+```sh
+kubetail logs frontend:deployments/web backend:deployments/api
+```
+
+**尾随读取**
+
+默认情况下，`kubetail logs` 会返回最后 10 条记录。使用 `--head` 从开头读取，使用 `--all` 返回全部内容，或使用 `--follow` 持续流式输出新记录：
+
+```sh
+# 持续输出某个 Deployment 的新记录
+kubetail logs deployments/web --follow
+
+# 返回前 50 条记录
+kubetail logs deployments/web --head=50
+
+# 返回全部记录并继续跟踪
+kubetail logs deployments/web --all --follow
+```
+
+**选择列**
+
+输出表默认包含 `timestamp` 和 `dot` 列。您可以使用 `--columns`、`--add-columns` 或 `--remove-columns` 自定义显示内容。可用列包括：`timestamp`、`dot`、`node`、`region`、`zone`、`os`、`arch`、`namespace`、`pod`、`container`。
+
+```sh
+# 在默认列基础上添加 namespace 和 pod 列
+kubetail logs deployments/web --add-columns pod,container
+
+# 仅显示原始日志消息，不显示元数据
+kubetail logs deployments/web --raw
+```
+
+**按时间窗口过滤**
+
+使用 `--since` 和 `--until`（包含端点）或 `--after` 和 `--before`（不包含端点）将日志限定在特定时间范围内。既支持 ISO 8601 时间戳，也支持时长格式：
+
+```sh
+# 最近 30 分钟的记录
+kubetail logs deployments/web --since PT30M --all
+
+# 两个时间戳之间的记录
+kubetail logs deployments/web --since 2024-01-01T00:00:00Z --until 2024-01-02T00:00:00Z --all
+```
+
+**按来源过滤**
+
+使用 `--node`、`--zone`、`--region`、`--os` 和 `--arch` 来限制哪些 Pod 会出现在输出中。每个标志都接受逗号分隔的值列表：
+
+```sh
+# 仅显示运行在特定节点上的 Pod 日志
+kubetail logs deployments/web --node=ip-10-0-1-42
+
+# 仅显示特定可用区中的 Pod 日志
+kubetail logs deployments/web --zone=us-east-1a
+
+# 组合多个过滤条件
+kubetail logs deployments/web --region=us-east-1 --arch=amd64
+```
+
+**按内容过滤**
+
+使用带正则表达式的 `--grep` 过滤日志行：
+
+```sh
+kubetail logs deployments/web --grep "ERROR" --force --all
+```
+
+注意：使用 `--grep` 时必须带上 `--force`，因为过滤是在客户端执行的，可能会下载比预期更多的数据。
+
+**容器生命周期跟踪**
+
+Kubetail 会实时监视 Kubernetes Pod 事件。当新的 Pod 或容器启动时，例如在滚动更新、崩溃重启或扩容期间，其日志会自动加入当前活动流。您无需重新启动流即可看到这些变化。
+
+<Aside type="tip">
+完整的标志列表和来源语法选项请参阅 [`kubetail logs` CLI 参考](/zh-cn/docs/reference/cli#kubetail-logs)。
+</Aside>
+
+---
+
+## 高级功能
+
+若要启用 Kubernetes API 中不可用的高级功能，例如日志文件大小、最后事件时间戳和搜索，您可以安装 Kubetail 的集群内服务，以便更底层地访问磁盘上的日志文件，这一套能力称为 **Kubetail API**。
+
+Kubetail API 由一个作为 Deployment 运行的 [Kubetail Cluster API](/zh-cn/docs/reference/cluster-api) 实例，以及一个在每个节点上作为 DaemonSet 运行的 [Kubetail Cluster Agent](/zh-cn/docs/reference/cluster-agent) 组成。Cluster Agent 是一个小型的 Rust 程序，它直接从节点文件系统中读取容器日志文件，并按需将其流式传输到 API。在大规模使用 grep 过滤日志时，这尤其有用，因为 agent 可以在将数据发送给客户端之前先过滤掉部分行。
+
+您可以使用 `kubetail cluster` 命令管理 Kubetail API 的安装：
+
+```sh
+# 在集群中安装 Kubetail API
+kubetail cluster install
+
+# 升级到最新版本
+kubetail cluster upgrade
+
+# 从集群中移除 Kubetail API
+kubetail cluster uninstall
+```
+
+安装 Kubetail API 后，Kubetail 会自动在 UI 中启用高级功能。
+
+<Aside type="tip">
+所有 `kubetail cluster` 子命令都支持 `--kube-context` 标志，用于指定目标集群上下文。
+</Aside>
+
+`kubetail cluster` 命令底层使用 Helm，因此如果需要，您之后可以继续用 Helm 自定义安装。如果您更希望直接使用 Helm 管理安装，请参阅 [Helm Chart 参考](/zh-cn/docs/reference/helm-chart)。

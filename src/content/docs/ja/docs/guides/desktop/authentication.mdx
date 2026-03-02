@@ -1,0 +1,52 @@
+---
+title: 認証
+description: "Kubetail はローカルの kubeconfig を使って認証し、クライアント証明書、Bearer トークン、exec プラグイン、OIDC プロバイダーなど、標準的な Credential タイプをすべて引き継ぎます。"
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+`kubetail` CLI ツールは、ローカルの **kubeconfig** ファイルを使って Kubernetes クラスターに認証します。クラスター内の権限は Cluster RBAC によって処理されます。
+
+---
+
+## Kubeconfig
+
+認証が必要な `kubetail` コマンド（例: `kubetail serve`, `kubetail logs`）を実行すると、Kubetail はローカルの kubeconfig ファイルを読み取り、そこに定義された認証情報を使って各クラスター context に接続します。標準的な kubeconfig の Credential タイプはすべてサポートされています。
+
+| Credential タイプ         | kubeconfig フィールド                                      |
+|---------------------------|------------------------------------------------------------|
+| Client certificate / key  | `client-certificate`, `client-key`                         |
+| Bearer token              | `token`, `tokenFile`                                       |
+| Exec credential plugin    | `exec` (例: `aws eks get-token`, `gke-gcloud-auth-plugin`) |
+| OIDC / auth-provider      | `auth-provider`                                            |
+
+Kubetail は kubeconfig ファイルの変更を監視し、再起動なしで新しい context や更新された context を取り込みます。
+
+<Aside type="tip">
+別の kubeconfig ファイルを使うには、次の方法があります。
+
+* CLI フラグ `--kubeconfig` を使う
+* ローカル設定ファイルの `general.kubeconfig` オプションを使う
+* 標準の環境変数 `KUBECONFIG` を使う
+</Aside>
+
+---
+
+## RBAC 権限
+
+`kubetail` は kubeconfig ユーザーの権限を利用します。最低限、監視するリソースに対する読み取り権限が必要です。
+
+| リソース     | API グループ | 動詞             |
+|--------------|--------------|------------------|
+| cronjobs     | batch        | get, list, watch |
+| daemonsets   | apps         | get, list, watch |
+| deployments  | apps         | get, list, watch |
+| jobs         | batch        | get, list, watch |
+| namespaces   | core         | get, list, watch |
+| nodes        | core         | get, list, watch |
+| pods         | core         | get, list, watch |
+| pods/log     | core         | get, list, watch |
+| replicasets  | apps         | get, list, watch |
+| statefulsets | apps         | get, list, watch |
+
+`kubetail` は、ユーザーが限られた namespace にしかアクセスできない場合も自動的に検出します。

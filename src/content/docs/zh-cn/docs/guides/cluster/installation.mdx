@@ -1,0 +1,78 @@
+---
+title: 安装
+description: "使用 Helm 或 YAML 清单在 Kubernetes 集群内部安装 Kubetail，然后通过 `kubectl port-forward` 或 `kubectl proxy` 访问仪表板。"
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+要在 Kubernetes 集群内部运行 Kubetail，您可以使用 Helm 安装应用及其所需资源，也可以手动应用 YAML 清单完成安装。
+
+## Helm
+
+要使用 [helm](https://helm.sh) 安装 Kubetail，先添加 Kubetail 组织的 chart 仓库，然后安装 `kubetail` chart：
+
+```sh
+helm repo add kubetail https://kubetail-org.github.io/helm-charts/
+helm install kubetail kubetail/kubetail --namespace kubetail-system --create-namespace
+```
+
+有关如何配置 Helm chart 的更多信息，请参阅 chart 的 [values.yaml](https://github.com/kubetail-org/helm-charts/blob/main/charts/kubetail/values.yaml) 文件。要验证安装是否成功，可以检查应用的 Pod：
+
+```sh
+kubectl get pods -n kubetail-system
+```
+
+## YAML 清单
+
+如果使用基于集群的认证，请使用 [kubetail-clusterauth.yaml](https://github.com/kubetail-org/helm-charts/releases/latest/download/kubetail-clusterauth.yaml)：
+
+```sh
+kubectl apply -f https://github.com/kubetail-org/helm-charts/releases/latest/download/kubetail-clusterauth.yaml
+```
+
+如果使用基于令牌的认证，请使用 [kubetail-tokenauth.yaml](https://github.com/kubetail-org/helm-charts/releases/latest/download/kubetail-tokenauth.yaml)：
+
+```sh
+kubectl apply -f https://github.com/kubetail-org/helm-charts/releases/latest/download/kubetail-tokenauth.yaml
+```
+
+要验证安装是否成功，可以检查应用的 Pod：
+
+```sh
+kubectl get pods -n kubetail-system
+```
+
+## 后续步骤
+
+当 Kubetail 在集群内部运行后，您可以像平常一样通过 `kubectl proxy` 或 `kubectl port-forward` 访问它：
+
+* **`kubectl proxy`**
+
+  ```sh
+  kubectl proxy
+  ```
+
+  访问 [http://localhost:8001/api/v1/namespaces/kubetail-system/services/kubetail-dashboard:8080/proxy/](http://localhost:8001/api/v1/namespaces/kubetail-system/services/kubetail-dashboard:8080/proxy/)
+
+
+* **`kubectl port-forward`**
+
+  ```sh
+  kubectl port-forward -n kubetail-system svc/kubetail-dashboard 8080:8080
+  ```
+
+  访问 [http://localhost:8080](http://localhost:8080)
+
+您也可以通过 Service 或 Ingress 暴露 Kubetail Web 仪表板，以便更方便地访问。
+
+有关 Kubetail Dashboard 的更多信息，请查看[此处文档](/zh-cn/docs/concepts/gui-overview)。
+
+<br />
+<br />
+
+<Aside type="tip">
+除了在集群中运行 Kubetail，您也可以在以下环境中运行它：
+
+* [Desktop](/zh-cn/docs/guides/desktop/installation)
+* [Docker](/zh-cn/docs/guides/docker/installation)
+</Aside>

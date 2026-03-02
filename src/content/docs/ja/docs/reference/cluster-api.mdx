@@ -1,0 +1,254 @@
+---
+title: Cluster API リファレンス
+description: "Kubetail Cluster API リファレンス。Docker イメージのバリアント、起動フラグ、TLS、logging、CSRF、Cluster Agent 接続向け YAML 設定を扱います。"
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Kubetail Cluster API は、Dashboard がクラスタ操作を行うために使用する GraphQL API を提供する Go ベースの HTTP サーバーです。サーバー実行ファイルは Kubetail リポジトリ内の [modules/cluster-api](https://github.com/kubetail-org/kubetail/tree/main/modules/cluster-api) にあるソースコードからビルドされ、通常は `kubetail-cluster-api` Docker イメージを使ってデプロイされます（下記参照）。`kubetail-cluster-api` を単独コンテナとして実行することも可能ですが、公式の Kubetail [Helm Chart](/ja/docs/reference/helm-chart) を使ったデプロイを推奨します。
+
+## Docker イメージ
+
+`kubetail-cluster-api` Docker イメージは、各リリースごとに Docker Hub と GitHub Container Registry に公開されます。
+
+| Registry | Image |
+|----------|-------|
+| Docker Hub | `kubetail/kubetail-cluster-api` |
+| GHCR | `ghcr.io/kubetail-org/kubetail-cluster-api` |
+
+2 つのバリアントが利用できます。
+
+| タグ接尾辞 | ベースイメージ | 説明 |
+|------------|----------------|------|
+| _(なし)_ | `scratch` | 最小構成のイメージで、最も軽量です |
+| `-alpine` | `alpine` | シェルと標準ユーティリティを含みます |
+
+## エントリーポイント
+
+デフォルトのコンテナエントリーポイントは `/cluster-api/cluster-api` です。
+
+```sh
+cluster-api [flags]
+```
+
+## フラグ
+
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--config` | `-c` | | 設定ファイルへのパス（例: `/etc/kubetail/cluster-api.yaml`） |
+| `--addr` | `-a` | `:8080` | バインドするホストアドレス |
+| `--gin-mode` | | `release` | Gin フレームワークのモード (`release`, `debug`) |
+
+## 設定
+
+Cluster API は YAML、JSON、TOML の設定ファイルで構成できます。ファイルのパスは `-c` / `--config` で渡します。設定ファイルでは `${VARIABLE_NAME}` 構文で環境変数を参照できます。
+
+```sh
+cluster-api --config /etc/kubetail/cluster-api.yaml
+```
+
+<Tabs>
+  <TabItem label="YAML">
+    ```yaml
+    ## Kubetail Cluster API Configuration File
+    #
+    # このファイルは kubetail cluster API server の動作を定義します。
+    # クラスタ操作のための GraphQL API を提供します。
+    #
+
+    ## allowed-namespaces ##
+    #
+    # API がアクセスを許可される namespace の一覧です。
+    # 空の場合はすべての namespace にアクセスできます。
+    #
+    # 既定値: []
+    #
+    allowed-namespaces: []
+
+    ## addr ##
+    #
+    # HTTP サーバーがバインドするネットワークアドレスとポートです。
+    #
+    # 既定値: :8080
+    #
+    addr: ":8080"
+
+    ## base-path ##
+    #
+    # すべての API エンドポイントに共通するベース URL パスです。
+    #
+    # 既定値: /
+    #
+    base-path: /
+
+    ## gin-mode ##
+    #
+    # Gin フレームワークのモードです。
+    # 有効な値: debug, release
+    #
+    # 既定値: release
+    #
+    gin-mode: release
+
+    ## cluster-agent ##
+    #
+    # Cluster Agent への接続設定
+    #
+    cluster-agent:
+
+      ## dispatch-url ##
+      #
+      # Cluster Agent への接続に使用する URL です。
+      # In-Cluster サービスディスカバリー用の kubernetes:// スキームをサポートします。
+      #
+      # 既定値: kubernetes://kubetail-cluster-agent:50051
+      #
+      dispatch-url: kubernetes://kubetail-cluster-agent:50051
+
+      ## tls ##
+      #
+      # Cluster Agent 接続用 TLS 設定
+      #
+      tls:
+
+        ## enabled ##
+        #
+        # Cluster Agent 接続で TLS を有効にするかどうか
+        #
+        # 既定値: false
+        #
+        enabled: false
+
+        ## cert-file ##
+        #
+        # TLS 証明書ファイルへのパスです。
+        #
+        # 既定値: ""
+        #
+        cert-file: ""
+
+        ## key-file ##
+        #
+        # TLS 秘密鍵ファイルへのパスです。
+        #
+        # 既定値: ""
+        #
+        key-file: ""
+
+        ## ca-file ##
+        #
+        # Cluster Agent の証明書を検証するために使用する CA 証明書ファイルへのパスです。
+        #
+        # 既定値: ""
+        #
+        ca-file: ""
+
+        ## server-name ##
+        #
+        # TLS 検証に使用するサーバー名です。
+        # 空の場合は dispatch-url のホスト名が使用されます。
+        #
+        # 既定値: ""
+        #
+        server-name: ""
+
+    ## csrf ##
+    #
+    # CSRF 保護設定
+    #
+    csrf:
+
+      ## enabled ##
+      #
+      # CSRF 保護を有効にするかどうか
+      #
+      # 既定値: true
+      #
+      enabled: true
+
+    ## logging ##
+    #
+    # API サーバーのログ出力設定
+    #
+    logging:
+
+      ## enabled ##
+      #
+      # サーバーで logging を有効にするかどうか
+      #
+      # 既定値: true
+      #
+      enabled: true
+
+      ## level ##
+      #
+      # 出力する最小ログレベルです。
+      # 有効な値: debug, info, warn, error, disabled
+      #
+      # 既定値: info
+      #
+      level: info
+
+      ## format ##
+      #
+      # ログ出力の形式です。
+      # 有効な値: json, pretty
+      #
+      # 既定値: json
+      #
+      format: json
+
+      ## access-log ##
+      #
+      # HTTP アクセスログ設定
+      #
+      access-log:
+
+        ## enabled ##
+        #
+        # アクセスログを有効にするかどうか
+        #
+        # 既定値: true
+        #
+        enabled: true
+
+        ## hide-health-checks ##
+        #
+        # アクセスログからヘルスチェック要求 (/healthz) を除外するかどうか
+        #
+        # 既定値: false
+        #
+        hide-health-checks: false
+
+    ## tls ##
+    #
+    # HTTP サーバー用 TLS 設定
+    #
+    tls:
+
+      ## enabled ##
+      #
+      # TLS を有効にするかどうか
+      #
+      # 既定値: false
+      #
+      enabled: false
+
+      ## cert-file ##
+      #
+      # TLS 証明書ファイルへのパスです。
+      #
+      # 既定値: ""
+      #
+      cert-file: ""
+
+      ## key-file ##
+      #
+      # TLS 秘密鍵ファイルへのパスです。
+      #
+      # 既定値: ""
+      #
+      key-file: ""
+    ```
+  </TabItem>
+</Tabs>

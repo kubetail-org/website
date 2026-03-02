@@ -1,0 +1,49 @@
+---
+title: セキュリティとプライバシー
+description: "Kubetail はログデータをクラスターからデスクトップまで利用者の管理下に保ちます。すべてのアクセス制御は Kubernetes RBAC に委譲されます。"
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+Kubetail は、ログデータをクラスターからデスクトップまで利用者の管理下に保ちつつ、クラスター管理者が誰にアクセス権を与えるかを引き続き制御できるよう設計されています。このページでは、Kubetail が設計上どのようにプライバシーとセキュリティを扱っているかを説明します。
+
+---
+
+## ログのプライバシー
+
+Kubetail にはクラウド型のログバックエンドがありません。そのため、ログを表示するとき、データは外部サービスを経由せずにクラスターから直接デバイスへ届きます。経路はデプロイトポロジーによって異なります。
+
+- **デスクトップ**: ログはディスク上の Pod ログファイルから、kube-apiserver（またはインストール済みであれば Kubetail API）を経由し、ローカルマシン上で動作する Dashboard サーバーへ、そして最終的にブラウザーへ届きます。経路全体がクラスターとデスクトップの範囲内に収まります。
+- **クラスター**: ログはディスク上の Pod ログファイルから、kube-apiserver（または Kubetail API）を経由して、クラスター内で動作する Dashboard サーバーへ流れます。通信はすべてクラスター内部ネットワーク上で行われます。ログがブラウザーに届くのは、`kubectl port-forward`、`kubectl proxy`、または利用者が制御する ingress 経由で接続した後です。
+
+どちらの場合でも、ログデータは最初から最後まで利用者の管理下にあります（詳しくは [アーキテクチャ](/ja/docs/concepts/architecture) を参照してください）。
+
+---
+
+## アクセス制御
+
+Kubetail はアクセス制御をすべて Kubernetes RBAC に委譲します。そのため、クラスター管理者は誰がどのログを見られるかを完全に制御し続けることができます。
+
+### Kubetail CLI
+
+デスクトップ上では、Kubetail はアクティブな kubeconfig context の RBAC 権限をそのまま引き継ぎます。つまり `kubectl` が使うのと同じ権限です。あるユーザーが Pod に対して `kubectl logs` を実行できるなら、そのログは Kubetail でも表示できます。できない場合は、Kubetail はその要求を拒否します。
+
+Kubetail はログストリームを開く前に、Kubernetes の `SelfSubjectAccessReview` API を使って権限を確認します。クラスター管理者は標準的な Kubernetes RBAC リソースを使って、必要な範囲にきめ細かくアクセスを限定できます。
+
+### Kubetail API
+
+オプションの Kubetail API がクラスターにインストールされている場合、Dashboard サーバーから Cluster API へのすべてのリクエストには、そのユーザーの Kubernetes service account token が含まれます。Cluster API と Cluster Agent は、どちらもデータを返す前に、そのトークンを Kubernetes authorization API に対して検証します。
+
+つまり、Kubetail API を経由したログアクセスも、他の Kubernetes API 操作と同じ RBAC ポリシーに従います。別個の権限システムは導入されません。ある namespace で `pods/log` に対する `get` と `watch` 権限を持たないユーザーは、どのような接続方法であっても、その namespace からログデータを取得できません。
+
+---
+
+## まとめ
+
+| 項目 | 挙動 |
+|---|---|
+| ログデータが利用環境の外に出るか | いいえ |
+| クラウド型ログバックエンド | なし |
+| アクセス制御メカニズム | Kubernetes RBAC |
+| 認証方式（デスクトップ） | kubeconfig 認証情報 |
+| 認証方式（クラスター） | Kubernetes service account token |

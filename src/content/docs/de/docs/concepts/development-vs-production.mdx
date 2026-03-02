@@ -1,0 +1,32 @@
+---
+title: Entwicklung vs. Produktion
+description: "Kubetail ergänzt Ihren Observability-Stack. Nutzen Sie es, um Requests über kurzlebige Container hinweg während der Entwicklung nachzuverfolgen oder Logs bei Incidents live zu tailen."
+---
+
+Kubetail funktioniert sowohl in Entwicklungs- als auch in Produktionsumgebungen gut, auch wenn sich das konkrete Nutzenversprechen in jeder Phase unterscheidet.
+
+---
+
+## Entwicklung
+
+Verteilte Systeme sind schwer zu debuggen, weil eine einzelne Benutzeranfrage viele Services berühren kann. Genau für dieses Szenario wurde Kubetail entwickelt. Mit Kubetail können Sie Logs aus mehreren Services in einer chronologischen Timeline zusammenführen, über alle Container der jeweiligen Workloads hinweg, und in Echtzeit beobachten, wie Requests durch Ihr System fließen.
+
+Da Kubetail Container-Lifecycle-Ereignisse verfolgt, bleiben Log-Streams verbunden, wenn Container neu starten oder ersetzt werden. Dadurch lässt sich der Weg einer Anfrage leicht Ende-zu-Ende nachvollziehen und Probleme lassen sich reproduzieren, ohne dass einzelne Pod-Logs mühsam zu einem Gesamtbild zusammengesetzt werden müssen.
+
+Um Kubetail in der Entwicklung einzusetzen, installieren Sie einfach die `kubetail` CLI und führen `kubetail serve` aus, um Logs im Browser anzuzeigen, oder `kubetail logs`, um Logs direkt ins Terminal zu streamen (siehe [Quickstart](/de/docs/tutorials/getting-started/quickstart)). Es ist keine Installation auf Cluster-Seite nötig, und es muss auch keine Log-Forwarding-Pipeline vorab eingerichtet werden.
+
+---
+
+## Produktion
+
+Kubetail skaliert auch in der Produktion problemlos. Sie können es nutzen, um sicherzustellen, dass Ihre Traffic-Flows wie erwartet funktionieren, und Sie können damit auch Service-Logs in Echtzeit stichprobenartig prüfen, um zu sehen, ob Fehler auftreten.
+
+### Ergänzung zu Ihrem bestehenden Logging-Stack
+
+Kubetail ist kein Ersatz für eine vollständige Observability-Plattform. Tools wie Datadog, Grafana, ClickHouse, VictoriaMetrics, Honeycomb, Dash0 und Loki sind für langfristige Log-Aufbewahrung, Alerting, Metrik-Korrelation und historische Analysen im großen Maßstab ausgelegt. Die Stärke von Kubetail liegt in Echtzeit-Sichtbarkeit und Live-Log-Tailing, was sich sehr gut mit Plattformen ergänzt, die auf Speicherung und Abfragen optimiert sind.
+
+Ein häufiges Muster ist, Kubetail für Live-Debugging zu verwenden und die primäre Logging-Plattform für alles andere: Metrik-Dashboards, Alerts und Analysen nach einem Incident.
+
+### Debugging bei Ausfällen
+
+Kubetail hat während Incidents einen wichtigen betrieblichen Vorteil: **Es benötigt nur, dass der kube-apiserver erreichbar ist**. Es hängt nicht davon ab, dass ein externer Logging-Dienst läuft oder ein Remote-Storage-Backend antwortet. Wenn Ihr Cluster in Flammen steht und Ihr Observability-Stack beeinträchtigt ist, kann Kubetail Ihnen trotzdem noch live zeigen, was Ihre Container genau in diesem Moment tun.

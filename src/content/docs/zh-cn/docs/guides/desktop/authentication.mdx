@@ -1,0 +1,52 @@
+---
+title: 认证
+description: "Kubetail 使用本地 kubeconfig 进行认证，并继承所有标准凭据类型：客户端证书、bearer token、exec 插件以及 OIDC 提供者。"
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+`kubetail` CLI 工具使用本地 **kubeconfig** 文件来对 Kubernetes 集群进行认证。集群内权限由 Cluster RBAC 处理。
+
+---
+
+## Kubeconfig
+
+当您运行需要认证的 `kubetail` 命令时（例如 `kubetail serve`、`kubetail logs`），Kubetail 会读取本地 kubeconfig 文件，并使用其中定义的凭据连接到每个集群 context。它支持所有标准 kubeconfig 凭据类型：
+
+| 凭据类型                  | kubeconfig 字段                                             |
+|---------------------------|-------------------------------------------------------------|
+| 客户端证书 / 密钥         | `client-certificate`, `client-key`                          |
+| Bearer token             | `token`, `tokenFile`                                        |
+| Exec 凭据插件            | `exec`（例如 `aws eks get-token`, `gke-gcloud-auth-plugin`） |
+| OIDC / auth-provider     | `auth-provider`                                             |
+
+Kubetail 会监视 kubeconfig 文件的变化，并且无需重启就能拾取新增或更新的 contexts。
+
+<Aside type="tip">
+若要使用不同的 kubeconfig 文件，您可以：
+
+* 使用 CLI 参数 `--kubeconfig`
+* 在本地配置文件中使用 `general.kubeconfig` 选项
+* 使用标准环境变量 `KUBECONFIG`
+</Aside>
+
+---
+
+## RBAC 权限
+
+`kubetail` 使用 kubeconfig 用户的权限。至少，它需要对所监控资源具有读取权限：
+
+| 资源         | API 组 | 动词             |
+|--------------|--------|------------------|
+| cronjobs     | batch  | get, list, watch |
+| daemonsets   | apps   | get, list, watch |
+| deployments  | apps   | get, list, watch |
+| jobs         | batch  | get, list, watch |
+| namespaces   | core   | get, list, watch |
+| nodes        | core   | get, list, watch |
+| pods         | core   | get, list, watch |
+| pods/log     | core   | get, list, watch |
+| replicasets  | apps   | get, list, watch |
+| statefulsets | apps   | get, list, watch |
+
+`kubetail` 会自动检测用户是否只能访问一部分 namespaces。

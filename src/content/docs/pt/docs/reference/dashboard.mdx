@@ -1,0 +1,322 @@
+---
+title: Referencia do Dashboard
+description: "Referencia do servidor Kubetail Dashboard: variantes de imagem Docker, flags de inicializacao e opcoes YAML para autenticacao, sessoes, TLS, CSRF e a conexao com a Cluster API."
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+O Kubetail Dashboard e um servidor HTTP baseado em Go que hospeda a interface web do Dashboard e fornece a API backend que a interface usa para interagir com seus clusters Kubernetes. O executavel do servidor e compilado a partir do codigo-fonte localizado no repositorio do Kubetail em [modules/dashboard](https://github.com/kubetail-org/kubetail/tree/main/modules/dashboard) e normalmente e implantado usando a imagem Docker `kubetail-dashboard` (veja abaixo). E possivel executar `kubetail-dashboard` como um contêiner independente, mas recomendamos implanta-lo com o [chart Helm](/pt/docs/reference/helm-chart) oficial do Kubetail.
+
+## Imagem Docker
+
+A imagem Docker `kubetail-dashboard` e publicada no Docker Hub e no GitHub Container Registry a cada release:
+
+| Registry | Image |
+|----------|-------|
+| Docker Hub | `kubetail/kubetail-dashboard` |
+| GHCR | `ghcr.io/kubetail-org/kubetail-dashboard` |
+
+Ha duas variantes disponiveis:
+
+| Sufixo da tag | Imagem base | Descricao |
+|---------------|-------------|-----------|
+| _(nenhum)_ | `scratch` | Imagem minima, menor footprint |
+| `-alpine` | `alpine` | Inclui shell e utilitarios padrao |
+
+## Entrypoint
+
+O entrypoint padrao do contêiner e `/dashboard/dashboard`:
+
+```sh
+dashboard [flags]
+```
+
+## Flags
+
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--config` | `-c` | | Caminho para o arquivo de configuracao (por exemplo, `/etc/kubetail/dashboard.yaml`) |
+| `--addr` | `-a` | `:8080` | Endereco do host ao qual se vincular |
+| `--gin-mode` | | `release` | Modo do framework Gin (`release`, `debug`) |
+
+## Configuracao
+
+O dashboard pode ser configurado usando um arquivo de configuracao YAML, JSON ou TOML. Passe o caminho para o arquivo com `-c` / `--config`. Variaveis de ambiente podem ser referenciadas no arquivo de configuracao com a sintaxe `${VARIABLE_NAME}`.
+
+```sh
+dashboard --config /etc/kubetail/dashboard.yaml
+```
+
+<Tabs>
+  <TabItem label="YAML">
+    ```yaml
+    ## Kubetail Dashboard Configuration File
+    #
+    # Este arquivo define o comportamento do kubetail dashboard server,
+    # que serve a interface web e fornece a API backend para o dashboard.
+    #
+
+    ## allowed-namespaces ##
+    #
+    # Lista de namespaces aos quais o dashboard pode acessar.
+    # Se estiver vazia, todos os namespaces estarao acessiveis.
+    #
+    # Valor padrao: []
+    #
+    allowed-namespaces: []
+
+    ## kubeconfig ##
+    #
+    # Caminho para o arquivo kubeconfig usado em requisicoes para a API do Kubernetes.
+    # Se estiver vazio, o caminho padrao (~/.kube/config) ou a variavel de ambiente KUBECONFIG sera usado.
+    #
+    # Valor padrao: ""
+    #
+    kubeconfig: ""
+
+    ## addr ##
+    #
+    # O endereco de rede e a porta aos quais o servidor HTTP deve se vincular.
+    #
+    # Valor padrao: :8080
+    #
+    addr: ":8080"
+
+    ## auth-mode ##
+    #
+    # O modo de autenticacao do dashboard.
+    # Valores validos: auto, token
+    #
+    # Valor padrao: auto
+    #
+    auth-mode: auto
+
+    ## base-path ##
+    #
+    # O caminho base da URL para todos os endpoints do dashboard.
+    #
+    # Valor padrao: /
+    #
+    base-path: /
+
+    ## cluster-api-endpoint ##
+    #
+    # A URL do servidor Cluster API.
+    # Se estiver vazia, a integracao com Cluster API sera desabilitada.
+    #
+    # Valor padrao: ""
+    #
+    cluster-api-endpoint: ""
+
+    ## environment ##
+    #
+    # O ambiente em que o dashboard esta sendo executado.
+    # Valores validos: desktop, cluster
+    #
+    # Valor padrao: cluster
+    #
+    environment: cluster
+
+    ## gin-mode ##
+    #
+    # O modo do framework Gin.
+    # Valores validos: debug, release
+    #
+    # Valor padrao: release
+    #
+    gin-mode: release
+
+    ## csrf ##
+    #
+    # Configuracoes de protecao CSRF
+    #
+    csrf:
+
+      ## enabled ##
+      #
+      # Indica se a protecao CSRF esta habilitada.
+      #
+      # Valor padrao: true
+      #
+      enabled: true
+
+    ## logging ##
+    #
+    # Configuracao da saida de logs do servidor dashboard
+    #
+    logging:
+
+      ## enabled ##
+      #
+      # Indica se o logging esta habilitado para o servidor.
+      #
+      # Valor padrao: true
+      #
+      enabled: true
+
+      ## level ##
+      #
+      # O nivel minimo de log a ser emitido.
+      # Valores validos: debug, info, warn, error, disabled
+      #
+      # Valor padrao: info
+      #
+      level: info
+
+      ## format ##
+      #
+      # O formato da saida de logs.
+      # Valores validos: json, pretty
+      #
+      # Valor padrao: json
+      #
+      format: json
+
+      ## access-log ##
+      #
+      # Configuracao de log de acesso HTTP
+      #
+      access-log:
+
+        ## enabled ##
+        #
+        # Indica se o log de acesso esta habilitado.
+        #
+        # Valor padrao: true
+        #
+        enabled: true
+
+        ## hide-health-checks ##
+        #
+        # Indica se requisicoes de health check (/healthz) devem ser omitidas do log de acesso.
+        #
+        # Valor padrao: false
+        #
+        hide-health-checks: false
+
+    ## session ##
+    #
+    # Configuracoes de gerenciamento de sessao
+    #
+    session:
+
+      ## secret ##
+      #
+      # A chave secreta usada para assinar tokens de sessao.
+      # Se estiver vazia, um secret aleatorio sera gerado na inicializacao (as sessoes nao
+      # sobreviverao a reinicializacoes).
+      #
+      # Valor padrao: ""
+      #
+      secret: ""
+
+      ## cookie ##
+      #
+      # Configuracao do cookie de sessao
+      #
+      cookie:
+
+        ## name ##
+        #
+        # O nome do cookie de sessao.
+        #
+        # Valor padrao: kubetail_dashboard_session
+        #
+        name: kubetail_dashboard_session
+
+        ## path ##
+        #
+        # O caminho de URL para o qual o cookie e valido.
+        #
+        # Valor padrao: /
+        #
+        path: /
+
+        ## domain ##
+        #
+        # O dominio para o qual o cookie e valido.
+        # Se estiver vazio, o cookie sera valido apenas para o dominio atual.
+        #
+        # Valor padrao: ""
+        #
+        domain: ""
+
+        ## max-age ##
+        #
+        # A idade maxima do cookie em segundos.
+        #
+        # Valor padrao: 2592000 (30 days)
+        #
+        max-age: 2592000
+
+        ## secure ##
+        #
+        # Indica se o cookie deve ser enviado apenas por HTTPS.
+        #
+        # Valor padrao: false
+        #
+        secure: false
+
+        ## http-only ##
+        #
+        # Indica se o cookie e inacessivel ao JavaScript.
+        #
+        # Valor padrao: true
+        #
+        http-only: true
+
+        ## same-site ##
+        #
+        # O atributo SameSite do cookie.
+        # Valores validos: strict, lax, none
+        #
+        # Valor padrao: lax
+        #
+        same-site: lax
+
+    ## tls ##
+    #
+    # Configuracao TLS para o servidor HTTP
+    #
+    tls:
+
+      ## enabled ##
+      #
+      # Indica se TLS esta habilitado.
+      #
+      # Valor padrao: false
+      #
+      enabled: false
+
+      ## cert-file ##
+      #
+      # Caminho para o arquivo de certificado TLS.
+      #
+      # Valor padrao: ""
+      #
+      cert-file: ""
+
+      ## key-file ##
+      #
+      # Caminho para o arquivo de chave privada TLS.
+      #
+      # Valor padrao: ""
+      #
+      key-file: ""
+
+    ## ui ##
+    #
+    # Opcoes de configuracao especificas da interface
+    #
+    ui:
+
+      ## cluster-api-enabled ##
+      #
+      # Indica se a integracao com Cluster API esta habilitada na interface.
+      #
+      # Valor padrao: true
+      #
+      cluster-api-enabled: true
+    ```
+  </TabItem>
+</Tabs>

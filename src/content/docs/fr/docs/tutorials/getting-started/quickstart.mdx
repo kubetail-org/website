@@ -1,0 +1,187 @@
+---
+title: Démarrage rapide
+description: "Installez la CLI Kubetail et commencez à tailer les logs Kubernetes en quelques minutes — lancez le tableau de bord web avec `kubetail serve` ou diffusez-les vers votre terminal."
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+## Installation
+
+L'outil CLI `kubetail` est le principal point d'entrée de Kubetail sur votre poste. Pour l'installer, vous pouvez utiliser votre gestionnaire de paquets préféré:
+
+<Tabs syncKey="os">
+    <TabItem label="macOS">
+        **Homebrew**
+        ```sh
+        brew install kubetail
+        ```
+
+        **Krew**
+        ```sh
+        kubectl krew install kubetail
+        ```
+
+        **MacPorts**
+        ```sh
+        sudo port install kubetail
+        ```
+
+        **Nix (Flake)**
+        ```sh
+        nix profile add github:kubetail-org/kubetail-nix
+        ```
+
+        **Nix (Classic)**
+        ```sh
+        nix-env -i -f https://github.com/kubetail-org/kubetail-nix/archive/refs/heads/main.tar.gz
+        ```
+
+        **asdf**
+        ```sh
+        asdf plugin add kubetail https://github.com/kubetail-org/asdf-kubetail.git
+        asdf install kubetail latest
+        ```
+    </TabItem>
+    <TabItem label="Linux">
+        **Homebrew**
+        ```sh
+        brew install kubetail
+        ```
+
+        **Krew**
+        ```sh
+        kubectl krew install kubetail
+        ```
+
+        **Snap**
+        ```sh
+        sudo snap install kubetail
+        ```
+
+        **Ubuntu/Mint (apt)**
+        ```sh
+        sudo add-apt-repository ppa:kubetail/kubetail
+        sudo apt update && sudo apt install kubetail-cli
+        ```
+
+        **Fedora/CentOS/RHEL/Amazonlinux/Mageia (copr)**
+        ```sh
+        dnf copr enable kubetail/kubetail
+        dnf install kubetail
+        ```
+
+        **SUSE (zypper)**
+        ```sh
+        zypper addrepo 'https://download.opensuse.org/repositories/home:/kubetail/$releasever/' kubetail
+        zypper refresh && zypper install kubetail-cli
+        ```
+
+        **Alpine (apk)**
+        ```sh
+        apk add kubetail --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing
+        ```
+
+        **Arch (AUR)**
+        ```sh
+        yay -S --noconfirm kubetail-cli
+        ```
+
+        **Gentoo (GURU)**
+        ```sh
+        ACCEPT_KEYWORDS="~$(portageq envvar ARCH)" emerge dev-util/kubetail
+        ```
+
+        **Nix (Flake)**
+        ```sh
+        nix profile add github:kubetail-org/kubetail-nix
+        ```
+
+        **Nix (Classic)**
+        ```sh
+        nix-env -i -f https://github.com/kubetail-org/kubetail-nix/archive/refs/heads/main.tar.gz
+        ```
+
+        **asdf**
+        ```sh
+        asdf plugin add kubetail https://github.com/kubetail-org/asdf-kubetail.git
+        asdf install kubetail latest
+        ```
+    </TabItem>
+    <TabItem label="Windows">
+        **Winget**
+        ```sh
+        winget install kubetail
+        ```
+
+        **Krew**
+        ```sh
+        krew install kubetail
+        ```
+
+        **Chocolatey**
+        ```sh
+        choco install kubetail
+        ```
+
+        **Scoop**
+        ```sh
+        scoop install kubetail
+        ```
+    </TabItem>
+</Tabs>
+
+<br />
+---
+
+Si vous préférez, vous pouvez aussi le télécharger depuis les [binaires de release](https://github.com/kubetail-org/kubetail/releases/latest) ou utiliser notre script d'installation:
+
+```sh
+curl -sS https://www.kubetail.com/install.sh | bash
+```
+---
+
+## Utilisation
+
+Une fois installé, vous êtes prêt à commencer à tailer des logs. L'outil CLI `kubetail` utilise votre fichier kubeconfig pour l'authentification, vous aurez donc accès aux mêmes clusters que `kubectl`. Consultez la [référence de la CLI](/fr/docs/reference/cli) pour la liste complète des commandes.
+
+* **Tableau de bord web**
+
+    Lancez le tableau de bord web à l'aide de la commande [`serve`](/fr/docs/reference/cli#kubetail-serve) (il s'ouvrira sur [http://localhost:7500](http://localhost:7500)):
+
+    ```sh
+    kubetail serve
+    ```
+
+* **Terminal**
+
+    Diffusez les logs directement dans votre terminal avec la commande [`logs`](/fr/docs/reference/cli#kubetail-logs):
+
+    ```sh
+    kubetail logs -f deployments/my-app
+    ```
+
+* **Configuration**
+
+    Créez un fichier de configuration local à `~/.kubetail/config.yaml` à l'aide de la commande [`config init`](/fr/docs/reference/cli#kubetail-config):
+
+    ```sh
+    kubetail config init
+    ```
+
+* **Fonctionnalités avancées**
+
+    Installez les ressources côté cluster à l'aide de la commande [`cluster install`](/fr/docs/reference/cli#kubetail-cluster) pour activer les fonctionnalités avancées (comme la recherche):
+
+    ```sh
+    kubetail cluster install
+    ```
+
+<br />
+<br />
+
+<Aside type="tip">
+En plus d'exécuter Kubetail sur votre poste, vous pouvez aussi l'exécuter dans ces environnements:
+
+* [Cluster](/fr/docs/guides/cluster/installation)
+* [Docker](/fr/docs/guides/docker/installation)
+</Aside>

@@ -1,0 +1,156 @@
+---
+title: Cluster Agent 参考
+description: "Kubetail Cluster Agent 参考：Docker 镜像变体、启动标志，以及运行在每个集群节点上的 Rust gRPC 服务器的 YAML 配置。"
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Kubetail Cluster Agent 是一个基于 Rust 的 gRPC 服务器，以 DaemonSet 的形式运行在 Kubernetes 集群中的每个节点上。它直接从节点文件系统读取容器日志文件，并按需将其流式传输到 Cluster API。服务器可执行文件由 Kubetail 仓库中 [crates/cluster_agent](https://github.com/kubetail-org/kubetail/tree/main/crates/cluster_agent) 的源代码编译而成，通常通过 `kubetail-cluster-agent` Docker 镜像进行部署（见下文）。虽然也可以将 `kubetail-cluster-agent` 作为独立容器运行，但我们建议使用官方 Kubetail [Helm Chart](/zh-cn/docs/reference/helm-chart) 进行部署。
+
+## Docker 镜像
+
+`kubetail-cluster-agent` Docker 镜像会在每次发布时同步发布到 Docker Hub 和 GitHub Container Registry：
+
+| Registry | Image |
+|----------|-------|
+| Docker Hub | `kubetail/kubetail-cluster-agent` |
+| GHCR | `ghcr.io/kubetail-org/kubetail-cluster-agent` |
+
+有两个变体可用：
+
+| 标签后缀 | 基础镜像 | 说明 |
+|----------|----------|------|
+| _(无)_ | `scratch` | 最小镜像，占用最小 |
+| `-alpine` | `alpine` | 包含 shell 和标准工具 |
+
+## Entrypoint
+
+默认容器入口点是 `/cluster-agent/cluster-agent`：
+
+```sh
+cluster-agent --config <FILE> [flags]
+```
+
+## 标志
+
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--config` | `-c` | | 配置文件路径（**必填**） |
+| `--addr` | `-a` | | 监听连接的地址（覆盖配置） |
+
+## 配置
+
+Cluster Agent 只能通过配置文件进行配置。每次调用时都必须使用 `-c` / `--config` 传入路径。配置文件中可以使用标准 shell 语法引用环境变量。
+
+```sh
+cluster-agent --config /etc/kubetail/cluster-agent.yaml
+```
+
+<Tabs>
+  <TabItem label="YAML">
+    ```yaml
+    ## Kubetail Cluster Agent Configuration File
+    #
+    # 此文件定义 kubetail cluster agent 的行为，
+    # 它运行在 Kubernetes 集群中，用于流式传输和处理容器日志。
+    #
+
+    ## addr ##
+    #
+    # gRPC 服务器应绑定的网络地址和端口。
+    #
+    # 默认值: :50051
+    #
+    addr: :50051
+
+    ## container-logs-dir ##
+    #
+    # Kubernetes 存储容器日志文件的目录路径。
+    # 通常这是从宿主节点文件系统挂载进来的路径。
+    #
+    # 默认值: /var/log/containers
+    #
+    container-logs-dir: /var/log/containers
+
+    ## logging ##
+    #
+    # agent 的日志输出配置
+    #
+    logging:
+
+      ## enabled ##
+      #
+      # 是否为 agent 启用 logging。
+      #
+      # 默认值: true
+      #
+      enabled: true
+
+      ## level ##
+      #
+      # 要输出的最小日志级别。
+      # 有效值: debug, info, warn, error
+      #
+      # 默认值: info
+      #
+      level: info
+
+      ## format ##
+      #
+      # 日志输出格式。
+      # 有效值: json, pretty
+      #
+      # 默认值: json
+      #
+      format: json
+
+    ## tls ##
+    #
+    # 安全 gRPC 连接的 TLS 配置
+    #
+    tls:
+
+      ## enabled ##
+      #
+      # 是否为 gRPC 连接启用 TLS。
+      #
+      # 默认值: false
+      #
+      enabled: false
+
+      ## cert-file ##
+      #
+      # TLS 证书文件路径。
+      #
+      # 默认值: ""
+      #
+      cert-file: ""
+
+      ## key-file ##
+      #
+      # TLS 私钥文件路径。
+      #
+      # 默认值: ""
+      #
+      key-file: ""
+
+      ## ca-file ##
+      #
+      # 用于验证客户端证书的 CA 证书文件路径。
+      # 当 client-auth 设置为 require-and-verify 时必须提供。
+      #
+      # 默认值: ""
+      #
+      ca-file: ""
+
+      ## client-auth ##
+      #
+      # 传入 gRPC 连接的客户端认证策略。
+      # 有效值: none, require-and-verify
+      #
+      # 默认值: none
+      #
+      client-auth: none
+    ```
+  </TabItem>
+</Tabs>

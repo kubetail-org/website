@@ -1,0 +1,22 @@
+---
+title: Docker Compose
+description: "`kubetail-cli` イメージを Docker Compose で使い、kubeconfig をマウントして Kubetail ダッシュボードサーバーを localhost:7500 で起動します。"
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+CLI ツールを `docker-compose` でローカル利用するには、この設定ファイル [docker-compose.yml](https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/docker-compose.yml) を出発点として使えます。
+
+```sh
+curl -LO https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/docker-compose.yml
+docker-compose up
+```
+
+これにより、ローカルの `.kube/config` が `kubetail-cli` コンテナにマウントされ、ダッシュボードサーバーが [http://localhost:7500](http://localhost:7500) で起動します。
+
+<Aside type="tip">
+`kubetail-cli` Docker イメージは次の方法でも利用できます。
+
+* [Docker Run](/ja/docs/guides/docker/docker-run)
+* [Kubernetes Pod](/ja/docs/guides/docker/kubernetes-pod)
+</Aside>

@@ -1,0 +1,16 @@
+---
+title: Minikube
+description: "您可以通过一条命令把 Kubetail 安装为内置的 minikube addon（自 v1.36.0 起提供），然后通过 `minikube service` 打开仪表板。"
+---
+
+从 [minikube](https://minikube.sigs.k8s.io/docs/) v1.36.0 开始，您可以将 Kubetail 作为 addon 安装:
+
+```sh
+minikube addons enable kubetail
+```
+
+当 Kubetail 的 Pod 在集群中运行起来之后，您可以通过 service 访问它:
+
+```sh
+minikube service -n kubetail-system kubetail-dashboard
+```

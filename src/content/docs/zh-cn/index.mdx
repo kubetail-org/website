@@ -1,0 +1,216 @@
+---
+title: ""
+description: "Kubetail 是一个面向 Kubernetes 的实时日志仪表板。可在终端或浏览器中查看容器日志。可运行在桌面端、集群中或 Docker 中。"
+template: splash
+hero:
+  title: 易用的 Kubernetes 日志工具
+  tagline: Kubetail 是一个面向 Kubernetes 的实时日志仪表板
+  actions:
+    - text: 查看文档
+      link: /zh-cn/docs/concepts/introduction
+      icon: right-arrow
+    - text: 在 GitHub 上查看
+      link: https://github.com/kubetail-org/kubetail
+      icon: external
+      variant: minimal
+  image:
+    html: |
+      <div class="flex flex-col items-center gap-2 w-full">
+        <video class="w-full max-w-screen-sm rounded-md dark:hidden" poster="https://assets.kubetail.com/demo-light-poster.bb7f6d4a.webp" controls>
+          <source src="https://assets.kubetail.com/demo-light.48aba4ab.mp4" type="video/mp4" />
+        </video>
+        <video class="w-full max-w-screen-sm rounded-md hidden dark:block" poster="https://assets.kubetail.com/demo-dark-poster.6070fba2.webp" controls>
+          <source src="https://assets.kubetail.com/demo-dark.251c0575.mp4" type="video/mp4" />
+        </video>
+        <a class="underline hover:no-underline text-(--sl-color-accent)" href="https://www.kubetail.com/demo">
+          在线演示
+          <svg class="inline align-baseline" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewBox="0 0 24 24" height="16">
+            <path d="M7 17L17 7"></path>
+            <path d="M7 7h10v10"></path>
+          </svg>
+        </a>
+      </div>
+head:
+  - tag: title
+    content: "Kubetail | Kubernetes 日志仪表板"
+  - tag: link
+    attrs:
+      rel: preload
+      as: image
+      fetchpriority: high
+      href: 'https://assets.kubetail.com/demo-light-poster.bb7f6d4a.webp'
+  - tag: link
+    attrs:
+      rel: preload
+      as: image
+      fetchpriority: high
+      href: 'https://assets.kubetail.com/demo-dark-poster.6070fba2.webp'
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+## 快速开始
+
+`kubetail` CLI 工具是您在桌面端使用 Kubetail 的主要入口。安装时，您可以使用自己喜欢的包管理器：
+
+<Tabs syncKey="os">
+  <TabItem label="macOS">
+    **Homebrew**
+    ```sh
+    brew install kubetail
+    ```
+
+    **Krew**
+    ```sh
+    kubectl krew install kubetail
+    ```
+
+    **MacPorts**
+    ```sh
+    sudo port install kubetail
+    ```
+
+    **Nix (Flake)**
+    ```sh
+    nix profile add github:kubetail-org/kubetail-nix
+    ```
+
+    **Nix (Classic)**
+    ```sh
+    nix-env -i -f https://github.com/kubetail-org/kubetail-nix/archive/refs/heads/main.tar.gz
+    ```
+
+    **asdf**
+    ```sh
+    asdf plugin add kubetail https://github.com/kubetail-org/asdf-kubetail.git
+    asdf install kubetail latest
+    ```
+  </TabItem>
+  <TabItem label="Linux">
+    **Homebrew**
+    ```sh
+    brew install kubetail
+    ```
+
+    **Krew**
+    ```sh
+    kubectl krew install kubetail
+    ```
+
+    **Snap**
+    ```sh
+    sudo snap install kubetail
+    ```
+
+    **Ubuntu/Mint (apt)**
+    ```sh
+    sudo add-apt-repository ppa:kubetail/kubetail
+    sudo apt update && sudo apt install kubetail-cli
+    ```
+
+    **Fedora/CentOS/RHEL/Amazonlinux/Mageia (copr)**
+    ```sh
+    dnf copr enable kubetail/kubetail
+    dnf install kubetail
+    ```
+
+    **SUSE (zypper)**
+    ```sh
+    zypper addrepo 'https://download.opensuse.org/repositories/home:/kubetail/$releasever/' kubetail
+    zypper refresh && zypper install kubetail-cli
+    ```
+
+    **Alpine (apk)**
+    ```sh
+    apk add kubetail --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing
+    ```
+
+    **Arch (AUR)**
+    ```sh
+    yay -S --noconfirm kubetail-cli
+    ```
+
+    **Gentoo (GURU)**
+    ```sh
+    ACCEPT_KEYWORDS="~$(portageq envvar ARCH)" emerge dev-util/kubetail
+    ```
+
+    **Nix (Flake)**
+    ```sh
+    nix profile add github:kubetail-org/kubetail-nix
+    ```
+
+    **Nix (Classic)**
+    ```sh
+    nix-env -i -f https://github.com/kubetail-org/kubetail-nix/archive/refs/heads/main.tar.gz
+    ```
+
+    **asdf**
+    ```sh
+    asdf plugin add kubetail https://github.com/kubetail-org/asdf-kubetail.git
+    asdf install kubetail latest
+    ```
+  </TabItem>
+  <TabItem label="Windows">
+    **Winget**
+    ```sh
+    winget install kubetail
+    ```
+
+    **Krew**
+    ```sh
+    krew install kubetail
+    ```
+
+    **Chocolatey**
+    ```sh
+    choco install kubetail
+    ```
+
+    **Scoop**
+    ```sh
+    scoop install kubetail
+    ```
+  </TabItem>
+</Tabs>
+
+<br />
+
+---
+
+如果您愿意，也可以从[发布的二进制文件](https://github.com/kubetail-org/kubetail/releases/latest)下载，或者使用我们的安装脚本：
+
+```sh
+curl -sS https://www.kubetail.com/install.sh | bash
+```
+
+<br />
+<br />
+
+<Aside type="tip" title="后续步骤">
+**1. 启动 Web 仪表板（GUI）**
+
+```sh
+kubetail serve
+```
+
+**2. 在终端中查看日志**
+
+```sh
+kubetail logs -f deployments/my-app
+```
+
+**3. 启用高级功能（安装 Kubetail API）**
+
+```sh
+kubetail cluster install
+```
+
+**4. 初始化本地配置文件**
+
+```sh
+kubetail config init
+```
+
+请查阅文档以获取完整的[命令](/zh-cn/docs/reference/cli)列表。祝您愉快地 tail 日志。
+</Aside>

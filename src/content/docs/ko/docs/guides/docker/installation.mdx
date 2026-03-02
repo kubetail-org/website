@@ -1,0 +1,66 @@
+---
+title: 설치
+description: "Docker Hub (`kubetail/kubetail-cli`) 또는 GHCR에서 `kubetail-cli` 이미지를 내려받아 로컬 설치 없이 컨테이너에서 Kubetail CLI를 실행합니다."
+---
+
+컨테이너 내부에서 Kubetail CLI 도구(`kubetail`)를 실행하려면 Docker 이미지 [`kubetail-cli`](https://hub.docker.com/r/kubetail/kubetail-cli)를 사용할 수 있습니다. 이 이미지는 각 릴리스마다 Docker Hub와 GitHub Container Registry에 게시됩니다.
+
+| Registry | Image |
+|----------|-------|
+| Docker Hub | `kubetail/kubetail-cli` |
+| GHCR | `ghcr.io/kubetail-org/kubetail-cli` |
+
+두 가지 변형이 제공됩니다.
+
+| 태그 접미사 | 베이스 이미지 | 설명 |
+|-------------|---------------|------|
+| _(없음)_ | `scratch` | 가장 작은 크기의 최소 이미지 |
+| `-alpine` | `alpine` | 셸과 표준 유틸리티 포함 |
+
+## Docker Run
+
+CLI 도구를 `docker run`으로 로컬에서 사용하려면 로컬 `.kube/config` 파일을 `kubetail-cli` 컨테이너에 마운트해야 합니다.
+
+```sh
+docker run --rm -it \
+  -v ~/.kube/config:/root/.kube/config:ro \
+  kubetail/kubetail-cli logs \
+  --kubeconfig /root/.kube/config \
+  -f \
+  deployments/my-app
+```
+
+`sh` 엔트리포인트를 사용해 대화형 세션을 시작할 수도 있습니다.
+
+```sh
+docker run --rm -it \
+  -v ~/.kube/config:/root/.kube/config:ro \
+  --entrypoint sh \
+  kubetail/kubetail-cli
+```
+
+## Docker Compose
+
+CLI 도구를 `docker-compose`로 로컬에서 사용하려면 이 설정 파일 [docker-compose.yml](https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/docker-compose.yml) 을 출발점으로 사용할 수 있습니다.
+
+```sh
+curl -LO https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/docker-compose.yml
+docker-compose up
+```
+
+이렇게 하면 로컬 `.kube/config` 파일이 `kubetail-cli` 컨테이너에 마운트되고 대시보드 서버가 [http://localhost:7500](http://localhost:7500) 에서 시작됩니다.
+
+## Kubernetes Pod
+
+클러스터 내부에서 CLI 도구를 사용하려면 이 매니페스트 [`kubetail-cli-pod.yaml`](https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/kubetail-cli-pod.yaml) 를 출발점으로 사용할 수 있습니다.
+
+```sh
+kubectl add -f https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/kubetail-cli-pod.yaml
+```
+
+이렇게 하면 동일한 namespace의 Pod 로그에 접근할 수 있는 `kubetail-cli` 컨테이너가 default namespace 안에서 시작됩니다. Pod가 실행되면 `exec`로 들어가 `--in-cluster` 플래그를 사용해 CLI 명령을 실행할 수 있습니다.
+
+```sh
+kubectl exec -it kubetail-cli -- sh
+# ./kubetail logs --in-cluster -f deployments/my-app
+```

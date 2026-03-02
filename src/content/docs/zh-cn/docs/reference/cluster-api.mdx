@@ -1,0 +1,254 @@
+---
+title: Cluster API 参考
+description: "Kubetail Cluster API 参考：Docker 镜像变体、启动标志，以及用于 TLS、logging、CSRF 和 Cluster Agent 连接的 YAML 配置。"
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Kubetail Cluster API 是一个基于 Go 的 HTTP 服务器，提供 Dashboard 用于执行集群操作的 GraphQL API。服务器可执行文件由 Kubetail 仓库中 [modules/cluster-api](https://github.com/kubetail-org/kubetail/tree/main/modules/cluster-api) 的源代码编译而成，通常通过 `kubetail-cluster-api` Docker 镜像进行部署（见下文）。虽然也可以将 `kubetail-cluster-api` 作为独立容器运行，但我们建议使用官方 Kubetail [Helm Chart](/zh-cn/docs/reference/helm-chart) 进行部署。
+
+## Docker 镜像
+
+`kubetail-cluster-api` Docker 镜像会在每次发布时同步发布到 Docker Hub 和 GitHub Container Registry：
+
+| Registry | Image |
+|----------|-------|
+| Docker Hub | `kubetail/kubetail-cluster-api` |
+| GHCR | `ghcr.io/kubetail-org/kubetail-cluster-api` |
+
+有两个变体可用：
+
+| 标签后缀 | 基础镜像 | 说明 |
+|----------|----------|------|
+| _(无)_ | `scratch` | 最小镜像，占用最小 |
+| `-alpine` | `alpine` | 包含 shell 和标准工具 |
+
+## Entrypoint
+
+默认容器入口点是 `/cluster-api/cluster-api`：
+
+```sh
+cluster-api [flags]
+```
+
+## 标志
+
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--config` | `-c` | | 配置文件路径（例如 `/etc/kubetail/cluster-api.yaml`） |
+| `--addr` | `-a` | `:8080` | 要绑定的主机地址 |
+| `--gin-mode` | | `release` | Gin 框架模式 (`release`, `debug`) |
+
+## 配置
+
+Cluster API 可以使用 YAML、JSON 或 TOML 配置文件进行配置。通过 `-c` / `--config` 传入文件路径。配置文件中可以使用 `${VARIABLE_NAME}` 语法引用环境变量。
+
+```sh
+cluster-api --config /etc/kubetail/cluster-api.yaml
+```
+
+<Tabs>
+  <TabItem label="YAML">
+    ```yaml
+    ## Kubetail Cluster API Configuration File
+    #
+    # 此文件定义 kubetail cluster API server 的行为，
+    # 它为集群操作提供 GraphQL API。
+    #
+
+    ## allowed-namespaces ##
+    #
+    # API 允许访问的 namespace 列表。
+    # 如果为空，则所有 namespace 都可访问。
+    #
+    # 默认值: []
+    #
+    allowed-namespaces: []
+
+    ## addr ##
+    #
+    # HTTP 服务器应绑定的网络地址和端口。
+    #
+    # 默认值: :8080
+    #
+    addr: ":8080"
+
+    ## base-path ##
+    #
+    # 所有 API 端点的基础 URL 路径。
+    #
+    # 默认值: /
+    #
+    base-path: /
+
+    ## gin-mode ##
+    #
+    # Gin 框架模式。
+    # 有效值: debug, release
+    #
+    # 默认值: release
+    #
+    gin-mode: release
+
+    ## cluster-agent ##
+    #
+    # 连接 Cluster Agent 的配置
+    #
+    cluster-agent:
+
+      ## dispatch-url ##
+      #
+      # 用于连接 Cluster Agent 的 URL。
+      # 支持 kubernetes:// scheme 以进行集群内服务发现。
+      #
+      # 默认值: kubernetes://kubetail-cluster-agent:50051
+      #
+      dispatch-url: kubernetes://kubetail-cluster-agent:50051
+
+      ## tls ##
+      #
+      # Cluster Agent 连接的 TLS 配置
+      #
+      tls:
+
+        ## enabled ##
+        #
+        # 是否为 Cluster Agent 连接启用 TLS。
+        #
+        # 默认值: false
+        #
+        enabled: false
+
+        ## cert-file ##
+        #
+        # TLS 证书文件路径。
+        #
+        # 默认值: ""
+        #
+        cert-file: ""
+
+        ## key-file ##
+        #
+        # TLS 私钥文件路径。
+        #
+        # 默认值: ""
+        #
+        key-file: ""
+
+        ## ca-file ##
+        #
+        # 用于验证 Cluster Agent 证书的 CA 证书文件路径。
+        #
+        # 默认值: ""
+        #
+        ca-file: ""
+
+        ## server-name ##
+        #
+        # 用于 TLS 验证的服务器名称。
+        # 如果为空，则使用 dispatch-url 中的主机名。
+        #
+        # 默认值: ""
+        #
+        server-name: ""
+
+    ## csrf ##
+    #
+    # CSRF 保护设置
+    #
+    csrf:
+
+      ## enabled ##
+      #
+      # 是否启用 CSRF 保护。
+      #
+      # 默认值: true
+      #
+      enabled: true
+
+    ## logging ##
+    #
+    # API 服务器日志输出配置
+    #
+    logging:
+
+      ## enabled ##
+      #
+      # 是否为服务器启用 logging。
+      #
+      # 默认值: true
+      #
+      enabled: true
+
+      ## level ##
+      #
+      # 要输出的最小日志级别。
+      # 有效值: debug, info, warn, error, disabled
+      #
+      # 默认值: info
+      #
+      level: info
+
+      ## format ##
+      #
+      # 日志输出格式。
+      # 有效值: json, pretty
+      #
+      # 默认值: json
+      #
+      format: json
+
+      ## access-log ##
+      #
+      # HTTP 访问日志配置
+      #
+      access-log:
+
+        ## enabled ##
+        #
+        # 是否启用访问日志。
+        #
+        # 默认值: true
+        #
+        enabled: true
+
+        ## hide-health-checks ##
+        #
+        # 是否在访问日志中省略健康检查请求 (/healthz)。
+        #
+        # 默认值: false
+        #
+        hide-health-checks: false
+
+    ## tls ##
+    #
+    # HTTP 服务器的 TLS 配置
+    #
+    tls:
+
+      ## enabled ##
+      #
+      # 是否启用 TLS。
+      #
+      # 默认值: false
+      #
+      enabled: false
+
+      ## cert-file ##
+      #
+      # TLS 证书文件路径。
+      #
+      # 默认值: ""
+      #
+      cert-file: ""
+
+      ## key-file ##
+      #
+      # TLS 私钥文件路径。
+      #
+      # 默认值: ""
+      #
+      key-file: ""
+    ```
+  </TabItem>
+</Tabs>

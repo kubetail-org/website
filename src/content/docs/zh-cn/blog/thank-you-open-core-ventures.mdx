@@ -1,0 +1,42 @@
+---
+title: 感谢 OCV
+description: "Kubetail 加入了 Open Core Ventures 的 Catalyst 项目——一个为期 12 周的导师计划，帮助项目从个人热情项目成长为社区驱动的努力。"
+date: 2025-07-30
+authors:
+  - name: Andres Morey
+    title: Lead Developer
+    url: https://github.com/amorey
+    picture: https://github.com/amorey.png
+---
+
+如果我们能够实现在每个集群中运行、为 Kubernetes 构建新日志层的使命，这在很大程度上将归功于 Alex Smith 领导的 [Open Core Ventures](https://www.opencoreventures.com/)（OCV）及其 [Catalyst](https://www.opencoreventures.com/blog/announcing-the-ocv-open-source-project-sponsorship-program) 项目。
+
+OCV 是由 Sid Sijbandij（GitLab 联合创始人）创立的风险投资公司，专注于投资基于[开放核心](https://www.opencoreventures.com/open-core)原则的早期开源企业。作为其开源推广工作的一部分，他们创立了 Catalyst 项目，为有意发展项目的开源项目维护者提供小额资助和大量导师指导。在 12 周的时间里，他们教您如何构建开源社区，如何有效推广产品以实现增长和牵引力。Kubetail 近期参加了该项目，对我们来说是[改变游戏规则的经历](https://www.opencoreventures.com/blog/creator-of-kubetail-and-yc-alum-open-source-is-having-its-internet-moment)。
+
+## 加入之前
+
+在投入 Kubetail 之前，我是 [Octopart](https://octopart.com) 的联合创始人，该公司是 Y Combinator W07 批次的成员。作为创业公司，我们表现还不错，因此在开始做 Kubetail 时，我沿用了类似的方式：专注于构建 MVP，一旦准备好就发布到 Hacker News（HN）。幸运的是，帖子在几小时内登上了首页，我们获得了数百个 GitHub star 和少量真实用户（约 10 人）。
+
+随后，Kubetail 进入了[悲伤之谷](https://x.com/paulg/status/1316661104911806465)。这是创业曲线中初次发布后的阶段，最初的热潮消退，只剩下少数用户，没有外部验证，全靠自己内心的乐观支撑。我对这个谷底并不陌生，于是像以前一样，埋头继续编码。
+
+在这段时间里，我专注于让 MVP（[Kubetail 仪表板](https://github.com/kubetail-org/kubetail/tree/d095230347832643152df5d38dc5de3f3741ebe3)）尽可能易用。根据少数早期用户的反馈，我修改了架构，使其既能在集群内运行，也能在用户桌面上运行。我还致力于让用户更方便地通过 Homebrew 和其他包仓库找到并下载应用。与此同时，我在后台专注于实现最受期待的功能：搜索。
+
+一年多来，我独自工作，项目增长停滞不前。然后我收到了一封来自 OCV 的意外邮件，最终促成了我们加入 Catalyst 赞助项目，改变了一切。
+
+## Catalyst
+
+作为 Catalyst 的参与者，我得到了 Alex 和 OCV 团队的亲身指导，这对有技术能力但缺乏社区建设或开源项目管理经验的我来说弥足珍贵。在 Catalyst 的帮助下，我将日常工作从纯编码转变为在开发、社区参与和贡献者支持之间取得平衡。
+
+参加 Catalyst 之前，Kubetail 没有任何社区。我们有一个 Discord 服务器，但只有我自己，每天独自工作。之后，Alex 每周指导我，建议我应该关注什么、尝试什么新事物。在他的帮助下，Kubetail 在 12 周内从约 300 个 star 增长到超过 1,300 个。更重要的是，社区活跃起来了。Catalyst 之前，我们有 3 名贡献者，Discord 中没有用户。现在，我们有 35 名贡献者和一个拥有 61 名成员的活跃 Discord 社区。
+
+Catalyst 期间，一切都水到渠成，我们终于准备好推出日志搜索功能——这次有了社区的支持和 OCV 的导师指导，帮助我们向新用户推广这项功能。这次宣布功能时，Kubetail 在 HN 首页停留了超过一天，并在 Reddit 和 Twitter 上被数万用户看到。这使每月下载量从不足 100 次增长到超过 400 次，将 Kubetail 从一个小的热情项目转变为一个充满雄心的社区驱动项目。对我来说，Catalyst 的高光时刻就在这前后——能够与新的 Kubetail 维护者（[rxinui](https://github.com/rxinui)）和社区其他成员一起庆祝 GitHub 1,000 star 里程碑。
+
+![Discord 庆祝](../../../../assets/blog/1000-stars-discord-celebration.png)
+
+## 向前
+
+我对前路的艰难没有幻想。我们面对的是一个困难的技术问题，在一个拥有 Datadog、Grafana、New Relic、ClickHouse 等众多资金雄厚企业的市场中运营，这些企业已经吸引了大多数潜在用户的注意。此外，用户对可观测性工具已有诸多功能期待，我们需要大量优秀工程师来实现目标，为此还需要尚未解决如何获取的资源。
+
+然而，我从未像现在这样对成功充满信心。每次从经验丰富的贡献者那里学到新知识，或者看到年轻贡献者的 pull request 被合并时他们的兴奋，都让我充满能量。每次审阅用户为解决自己问题提交的 pull request，或与人讨论新功能，都让我更加确信，以开源社区的一员、共同构建产品的方式是最佳选择。
+
+对我来说，开源项目就像一口锅，能够产出用户热爱使用、对他们也有益的高质量产品。当然，每个产品背后的神奇成分是社区，谈到 Kubetail 的社区，我必须在此向 Alex 和 OCV 团队全体表达诚挚的感谢。

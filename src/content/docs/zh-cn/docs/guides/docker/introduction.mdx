@@ -1,0 +1,33 @@
+---
+title: 介绍
+description: "使用 Docker 镜像 `kubetail-cli` 将 Kubetail CLI 作为容器运行，可以在本地通过 `docker run` 或 `docker compose` 运行，也可以在集群中作为 Pod 运行。"
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+如果要在容器中运行 Kubetail CLI 工具 (`kubetail`)，可以使用 Docker 镜像 [`kubetail-cli`](https://hub.docker.com/r/kubetail/kubetail-cli)。该镜像会在每次发布时同步发布到 Docker Hub 和 GitHub Container Registry：
+
+| Registry   | Image                               |
+|------------|-------------------------------------|
+| Docker Hub | `kubetail/kubetail-cli`             |
+| GHCR       | `ghcr.io/kubetail-org/kubetail-cli` |
+
+有两个变体可用：
+
+| 标签后缀 | 基础镜像 | 说明 |
+|----------|----------|------|
+| _(无)_ | `scratch` | 最小镜像，占用最小 |
+| `-alpine` | `alpine` | 包含 shell 和标准工具 |
+
+在 Docker 中运行 `kubetail`，既可以将 Kubetail 集成到本地 Docker 开发工作流中，也可以让您在集群内部调试日志。
+
+<br />
+<br />
+
+<Aside type="tip">
+以下是几种在 Docker 中运行 `kubetail` 的常见方式：
+
+* [Docker Run](/zh-cn/docs/guides/docker/docker-run)
+* [Docker Compose](/zh-cn/docs/guides/docker/docker-compose)
+* [Kubernetes Pod](/zh-cn/docs/guides/docker/kubernetes-pod)
+</Aside>

@@ -1,0 +1,156 @@
+---
+title: Cluster Agent 참조
+description: "Kubetail Cluster Agent 참조. Docker 이미지 변형, 시작 플래그, 각 클러스터 노드에서 실행되는 Rust 기반 gRPC 서버용 YAML 설정을 다룹니다."
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Kubetail Cluster Agent는 Kubernetes 클러스터의 각 노드에서 DaemonSet으로 실행되는 Rust 기반 gRPC 서버입니다. 노드 파일시스템에서 컨테이너 로그 파일을 직접 읽고 필요할 때 Cluster API로 스트리밍합니다. 서버 실행 파일은 Kubetail 저장소의 [crates/cluster_agent](https://github.com/kubetail-org/kubetail/tree/main/crates/cluster_agent)에 있는 소스 코드에서 빌드되며, 일반적으로 `kubetail-cluster-agent` Docker 이미지로 배포됩니다(아래 참조). `kubetail-cluster-agent`를 독립 실행형 컨테이너로 실행할 수도 있지만, 공식 Kubetail [Helm 차트](/ko/docs/reference/helm-chart)로 배포하는 방식을 권장합니다.
+
+## Docker 이미지
+
+`kubetail-cluster-agent` Docker 이미지는 각 릴리스마다 Docker Hub와 GitHub Container Registry에 게시됩니다.
+
+| Registry | Image |
+|----------|-------|
+| Docker Hub | `kubetail/kubetail-cluster-agent` |
+| GHCR | `ghcr.io/kubetail-org/kubetail-cluster-agent` |
+
+두 가지 변형이 제공됩니다.
+
+| 태그 접미사 | 베이스 이미지 | 설명 |
+|-------------|---------------|------|
+| _(없음)_ | `scratch` | 가장 작은 크기의 최소 이미지 |
+| `-alpine` | `alpine` | 셸과 표준 유틸리티 포함 |
+
+## 엔트리포인트
+
+기본 컨테이너 엔트리포인트는 `/cluster-agent/cluster-agent` 입니다.
+
+```sh
+cluster-agent --config <FILE> [flags]
+```
+
+## 플래그
+
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--config` | `-c` | | 설정 파일 경로(**필수**) |
+| `--addr` | `-a` | | 연결을 수신할 주소(설정값 덮어쓰기) |
+
+## 설정
+
+Cluster Agent는 설정 파일로만 구성됩니다. 경로는 매 실행마다 `-c` / `--config`로 전달해야 합니다. 설정 파일에서는 표준 셸 구문을 사용해 환경 변수를 참조할 수 있습니다.
+
+```sh
+cluster-agent --config /etc/kubetail/cluster-agent.yaml
+```
+
+<Tabs>
+  <TabItem label="YAML">
+    ```yaml
+    ## Kubetail Cluster Agent Configuration File
+    #
+    # 이 파일은 kubetail cluster agent의 동작을 정의합니다.
+    # Kubernetes 클러스터에서 실행되어 컨테이너 로그를 스트리밍하고 처리합니다.
+    #
+
+    ## addr ##
+    #
+    # gRPC 서버가 바인딩할 네트워크 주소와 포트입니다.
+    #
+    # 기본값: :50051
+    #
+    addr: :50051
+
+    ## container-logs-dir ##
+    #
+    # Kubernetes가 컨테이너 로그 파일을 저장하는 디렉터리 경로입니다.
+    # 일반적으로 호스트 노드 파일시스템에서 마운트됩니다.
+    #
+    # 기본값: /var/log/containers
+    #
+    container-logs-dir: /var/log/containers
+
+    ## logging ##
+    #
+    # agent의 로그 출력 설정
+    #
+    logging:
+
+      ## enabled ##
+      #
+      # agent에서 logging을 활성화할지 여부입니다.
+      #
+      # 기본값: true
+      #
+      enabled: true
+
+      ## level ##
+      #
+      # 출력할 최소 로그 레벨입니다.
+      # 유효한 값: debug, info, warn, error
+      #
+      # 기본값: info
+      #
+      level: info
+
+      ## format ##
+      #
+      # 로그 출력 형식입니다.
+      # 유효한 값: json, pretty
+      #
+      # 기본값: json
+      #
+      format: json
+
+    ## tls ##
+    #
+    # 안전한 gRPC 연결을 위한 TLS 설정
+    #
+    tls:
+
+      ## enabled ##
+      #
+      # gRPC 연결에 TLS를 활성화할지 여부입니다.
+      #
+      # 기본값: false
+      #
+      enabled: false
+
+      ## cert-file ##
+      #
+      # TLS 인증서 파일 경로입니다.
+      #
+      # 기본값: ""
+      #
+      cert-file: ""
+
+      ## key-file ##
+      #
+      # TLS 개인 키 파일 경로입니다.
+      #
+      # 기본값: ""
+      #
+      key-file: ""
+
+      ## ca-file ##
+      #
+      # 클라이언트 인증서를 검증하는 데 사용할 CA 인증서 파일 경로입니다.
+      # client-auth가 require-and-verify로 설정된 경우 필요합니다.
+      #
+      # 기본값: ""
+      #
+      ca-file: ""
+
+      ## client-auth ##
+      #
+      # 들어오는 gRPC 연결에 대한 클라이언트 인증 정책입니다.
+      # 유효한 값: none, require-and-verify
+      #
+      # 기본값: none
+      #
+      client-auth: none
+    ```
+  </TabItem>
+</Tabs>

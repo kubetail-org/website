@@ -1,0 +1,187 @@
+---
+title: 快速开始
+description: "安装 Kubetail CLI 后，几分钟内即可开始 tail Kubernetes 日志 —— 您可以使用 `kubetail serve` 启动 Web 仪表板，或将日志直接流式输出到终端。"
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+## 安装
+
+`kubetail` CLI 工具是您在桌面端使用 Kubetail 的主要入口。安装时，您可以使用自己喜欢的包管理器：
+
+<Tabs syncKey="os">
+    <TabItem label="macOS">
+        **Homebrew**
+        ```sh
+        brew install kubetail
+        ```
+
+        **Krew**
+        ```sh
+        kubectl krew install kubetail
+        ```
+
+        **MacPorts**
+        ```sh
+        sudo port install kubetail
+        ```
+
+        **Nix (Flake)**
+        ```sh
+        nix profile add github:kubetail-org/kubetail-nix
+        ```
+
+        **Nix (Classic)**
+        ```sh
+        nix-env -i -f https://github.com/kubetail-org/kubetail-nix/archive/refs/heads/main.tar.gz
+        ```
+
+        **asdf**
+        ```sh
+        asdf plugin add kubetail https://github.com/kubetail-org/asdf-kubetail.git
+        asdf install kubetail latest
+        ```
+    </TabItem>
+    <TabItem label="Linux">
+        **Homebrew**
+        ```sh
+        brew install kubetail
+        ```
+
+        **Krew**
+        ```sh
+        kubectl krew install kubetail
+        ```
+
+        **Snap**
+        ```sh
+        sudo snap install kubetail
+        ```
+
+        **Ubuntu/Mint (apt)**
+        ```sh
+        sudo add-apt-repository ppa:kubetail/kubetail
+        sudo apt update && sudo apt install kubetail-cli
+        ```
+
+        **Fedora/CentOS/RHEL/Amazonlinux/Mageia (copr)**
+        ```sh
+        dnf copr enable kubetail/kubetail
+        dnf install kubetail
+        ```
+
+        **SUSE (zypper)**
+        ```sh
+        zypper addrepo 'https://download.opensuse.org/repositories/home:/kubetail/$releasever/' kubetail
+        zypper refresh && zypper install kubetail-cli
+        ```
+
+        **Alpine (apk)**
+        ```sh
+        apk add kubetail --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing
+        ```
+
+        **Arch (AUR)**
+        ```sh
+        yay -S --noconfirm kubetail-cli
+        ```
+
+        **Gentoo (GURU)**
+        ```sh
+        ACCEPT_KEYWORDS="~$(portageq envvar ARCH)" emerge dev-util/kubetail
+        ```
+
+        **Nix (Flake)**
+        ```sh
+        nix profile add github:kubetail-org/kubetail-nix
+        ```
+
+        **Nix (Classic)**
+        ```sh
+        nix-env -i -f https://github.com/kubetail-org/kubetail-nix/archive/refs/heads/main.tar.gz
+        ```
+
+        **asdf**
+        ```sh
+        asdf plugin add kubetail https://github.com/kubetail-org/asdf-kubetail.git
+        asdf install kubetail latest
+        ```
+    </TabItem>
+    <TabItem label="Windows">
+        **Winget**
+        ```sh
+        winget install kubetail
+        ```
+
+        **Krew**
+        ```sh
+        krew install kubetail
+        ```
+
+        **Chocolatey**
+        ```sh
+        choco install kubetail
+        ```
+
+        **Scoop**
+        ```sh
+        scoop install kubetail
+        ```
+    </TabItem>
+</Tabs>
+
+<br />
+---
+
+如果您愿意，也可以从[发布的二进制文件](https://github.com/kubetail-org/kubetail/releases/latest)下载，或者使用我们的安装脚本：
+
+```sh
+curl -sS https://www.kubetail.com/install.sh | bash
+```
+---
+
+## 使用
+
+安装完成后，您就可以开始 tail 日志了。`kubetail` CLI 工具使用您的 kubeconfig 文件进行认证，因此您可以访问与 `kubectl` 相同的集群。完整命令列表请参阅 [CLI 参考](/zh-cn/docs/reference/cli)。
+
+* **Web 仪表板**
+
+    使用 [`serve`](/zh-cn/docs/reference/cli#kubetail-serve) 命令启动 Web 仪表板（它会在 [http://localhost:7500](http://localhost:7500) 打开）：
+
+    ```sh
+    kubetail serve
+    ```
+
+* **终端**
+
+    使用 [`logs`](/zh-cn/docs/reference/cli#kubetail-logs) 命令将日志直接流式输出到终端：
+
+    ```sh
+    kubetail logs -f deployments/my-app
+    ```
+
+* **配置**
+
+    使用 [`config init`](/zh-cn/docs/reference/cli#kubetail-config) 命令在 `~/.kubetail/config.yaml` 创建本地配置文件：
+
+    ```sh
+    kubetail config init
+    ```
+
+* **高级功能**
+
+    使用 [`cluster install`](/zh-cn/docs/reference/cli#kubetail-cluster) 命令安装集群侧资源，以启用搜索等高级功能：
+
+    ```sh
+    kubetail cluster install
+    ```
+
+<br />
+<br />
+
+<Aside type="tip">
+除了在桌面端运行 Kubetail 之外，您也可以在这些环境中运行它：
+
+* [Cluster](/zh-cn/docs/guides/cluster/installation)
+* [Docker](/zh-cn/docs/guides/docker/installation)
+</Aside>

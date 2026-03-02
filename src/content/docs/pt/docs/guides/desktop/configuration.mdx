@@ -1,0 +1,224 @@
+---
+title: Configuracao
+description: "Configure a CLI do Kubetail com um arquivo YAML, JSON ou TOML. Cobre o caminho do kubeconfig, os padroes de `logs` (head, tail, colunas) e o host e a porta de `serve`."
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+A ferramenta de CLI `kubetail` pode ser configurada usando um arquivo de configuracao local. Se nenhum arquivo de configuracao for encontrado, o Kubetail usara os valores padrao mostrados abaixo. O arquivo suporta os formatos YAML, JSON e TOML, e os valores podem referenciar variaveis de ambiente usando a sintaxe `${VARIABLE_NAME}`.
+
+---
+
+## Inicializacao
+
+O caminho padrao do arquivo de configuracao e `~/.kubetail/config.yaml`. Voce pode inicializar a configuracao colocando um arquivo no local padrao ou usando o comando `config init` da CLI para fazer isso automaticamente:
+
+```sh
+kubetail config init
+```
+
+<Aside type="tip">
+O comando `config init` aceita a flag `--format` para escolher um formato de inicializacao diferente. Consulte a [referencia da CLI](/pt/docs/reference/cli#kubetail-config-init) para mais detalhes.
+</Aside>
+
+---
+
+## Uso
+
+Sempre que voce executar um comando `kubetail`, ele procurara automaticamente um arquivo de configuracao no local padrao. Voce pode especificar um caminho diferente com a flag global `--config`:
+
+```sh
+kubetail serve --config /path/to/config.yaml
+```
+
+<Aside type="tip">
+A ordem de precedencia das configuracoes e:
+
+1. Valores padrao
+2. Arquivo de configuracao
+3. Flags da CLI
+</Aside>
+
+---
+
+## Valores padrao
+
+<Tabs>
+  <TabItem label="YAML">
+```yaml
+## Arquivo de configuracao da CLI do Kubetail
+# 
+# Este arquivo define o comportamento da ferramenta kubetail CLI,
+# incluindo os padroes do comando logs e as configuracoes do servidor do dashboard.
+#
+
+## version ##
+#
+# Versao do esquema do arquivo de configuracao
+#
+version: 1
+
+## general ##
+#
+general:
+
+  ## kubeconfig ##
+  #
+  # Caminho para o arquivo kubeconfig usado nas requisicoes da CLI.
+  # Se estiver vazio, o caminho padrao (~/.kube/config) ou a variavel de ambiente KUBECONFIG sera usado.
+  #
+  # Valor padrao: ""
+  #
+  kubeconfig: ""
+
+## commands ##
+#
+commands:
+
+  ## logs ##
+  #
+  # Configuracoes especificas do subcomando 'logs'
+  #
+  logs:
+
+    ## kube-context ##
+    #
+    # O contexto especifico do Kubernetes a ser usado.
+    # Se estiver vazio, o contexto ativo atual sera usado.
+    #
+    # Valor padrao: ""
+    #
+    kube-context: ""
+
+    ## head ##
+    #
+    # Numero de linhas a mostrar a partir do inicio do buffer de logs
+    #
+    # Valor padrao: 10
+    #
+    head: 10
+
+    ## tail ##
+    #
+    # Numero de linhas a mostrar a partir do fim do buffer de logs
+    #
+    # Valor padrao: 10
+    #
+    tail: 10
+
+    ## columns ##
+    #
+    # Conjunto completo de colunas de saida para registros de 'logs'.
+    # Valores permitidos: timestamp,dot,node,region,zone,os,arch,namespace,pod,container
+    #
+    # Valor padrao: ["timestamp", "dot"]
+    #
+    columns:
+      - timestamp
+      - dot
+
+  ## serve ##
+  #
+  # Configuracoes do servidor do dashboard
+  #
+  serve:
+
+    ## host ##
+    #
+    # A interface de rede a que o servidor deve se vincular.
+    #
+    # Valor padrao: localhost
+    #
+    host: localhost
+
+    ## port ##
+    #
+    # A porta TCP em que o servidor ira escutar.
+    #
+    # Valor padrao: 7500
+    #
+    port: 7500
+
+    ## skip-open ##
+    #
+    # Se true, a CLI nao abrira o navegador automaticamente
+    # quando o servidor iniciar.
+    #
+    # Valor padrao: false
+    #
+    skip-open: false
+```
+  </TabItem>
+  <TabItem label="TOML">
+```toml
+# Arquivo de configuracao da CLI do Kubetail
+#
+# Define o comportamento da ferramenta kubetail CLI, incluindo
+# os padroes do comando logs e as configuracoes do servidor do dashboard.
+
+# Versao do esquema do arquivo de configuracao
+version = 1
+
+[general]
+# Caminho para o kubeconfig. Se estiver vazio, usa ~/.kube/config ou KUBECONFIG.
+kubeconfig = ""
+
+[commands.logs]
+# Contexto especifico do Kubernetes a ser usado. Se estiver vazio, usa o contexto ativo.
+kube-context = ""
+
+# Numero de linhas a mostrar a partir do inicio do buffer de logs
+head = 10
+
+# Numero de linhas a mostrar a partir do fim do buffer de logs
+tail = 10
+
+# Conjunto completo de colunas de saida para registros de 'logs'.
+# Valores permitidos: timestamp,dot,node,region,zone,os,arch,namespace,pod,container
+columns = ["timestamp", "dot"]
+
+[commands.serve]
+# Interface de rede a que o servidor se vincula
+host = "localhost"
+
+# Porta TCP em que o servidor escuta
+port = 7500
+
+# Se true, nao abre automaticamente o navegador ao iniciar o servidor
+skip-open = false
+```
+  </TabItem>
+  <TabItem label="JSON">
+```json
+{
+  "version": 1,
+  "general": {
+    "kubeconfig": ""
+  },
+  "commands": {
+    "logs": {
+      "kube-context": "",
+      "head": 10,
+      "tail": 10,
+      "columns": ["timestamp", "dot"]
+    },
+    "serve": {
+      "host": "localhost",
+      "port": 7500,
+      "skip-open": false
+    }
+  }
+}
+```
+  </TabItem>
+</Tabs>
+
+<Aside type="tip">
+A expansao de variaveis de ambiente e suportada. Por exemplo:
+
+```yaml
+commands:
+  serve:
+    port: ${MY_KUBETAIL_PORT}
+```
+</Aside>

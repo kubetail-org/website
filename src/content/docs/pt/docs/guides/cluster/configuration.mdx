@@ -1,0 +1,62 @@
+---
+title: Configuracao
+description: "Configure os componentes de cluster do Kubetail, Dashboard, Cluster API e Cluster Agent, substituindo valores de `runtimeConfig` no chart Helm."
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Quando o Kubetail e implantado em um cluster, cada componente, Dashboard, Cluster API e Cluster Agent, e configurado de forma independente usando um arquivo de configuracao YAML montado no contêiner. O chart Helm gerencia esses arquivos por meio de ConfigMaps, mas voce pode personalizar qualquer ajuste substituindo os campos `runtimeConfig` do chart.
+
+---
+
+## Como a configuracao funciona
+
+Cada componente le sua configuracao de um arquivo passado pela flag `--config` na inicializacao:
+
+```sh
+dashboard     --config /etc/kubetail/config.yaml
+cluster-api   --config /etc/kubetail/config.yaml
+cluster-agent --config /etc/kubetail/config.yaml
+```
+
+O arquivo de configuracao e montado a partir de um ConfigMap criado pelo chart Helm. Para personalizar as configuracoes de um componente, passe as sobrescritas nos seus valores Helm em `kubetail.<component>.runtimeConfig`:
+
+```yaml
+kubetail:
+  dashboard:
+    runtimeConfig:
+      logging:
+        level: debug
+  clusterAPI:
+    runtimeConfig:
+      logging:
+        level: debug
+```
+
+<Aside type="tip">
+Todos os arquivos de configuracao oferecem suporte a expansao de variaveis de ambiente usando a sintaxe `${VARIABLE_NAME}`, o que e util para injetar segredos em tempo de execucao.
+</Aside>
+
+---
+
+## Dashboard
+
+O Dashboard e o servidor web que hospeda a interface e faz proxy das requisicoes do navegador para o cluster. No ambiente de cluster, ele e executado como um Deployment no namespace `kubetail-system`.
+
+Para ver a referencia completa de configuracao, consulte a [referencia do Dashboard](/pt/docs/reference/dashboard).
+
+---
+
+## Cluster API
+
+A Cluster API e o servidor backend que faz proxy das requisicoes do Dashboard para as instancias do Cluster Agent em execucao em cada no. No cluster, ela e executada como um Deployment no namespace `kubetail-system`.
+
+Para ver a referencia completa de configuracao, consulte a [referencia da Cluster API](/pt/docs/reference/cluster-api).
+
+---
+
+## Cluster Agent
+
+O Cluster Agent e o pequeno programa baseado em Rust que roda em cada no e le diretamente os arquivos de log de contêineres a partir do sistema de arquivos do no. No cluster, ele e executado como um DaemonSet no namespace `kubetail-system`.
+
+Para ver a referencia completa de configuracao, consulte a [referencia do Cluster Agent](/pt/docs/reference/cluster-agent).

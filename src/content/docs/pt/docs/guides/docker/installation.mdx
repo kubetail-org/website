@@ -1,0 +1,66 @@
+---
+title: Instalacao
+description: "Baixe a imagem `kubetail-cli` do Docker Hub (`kubetail/kubetail-cli`) ou do GHCR para executar a CLI do Kubetail em um contêiner sem instala-la localmente."
+---
+
+Para executar a ferramenta CLI do Kubetail (`kubetail`) dentro de um contêiner, voce pode usar a imagem Docker [`kubetail-cli`](https://hub.docker.com/r/kubetail/kubetail-cli). A imagem e publicada no Docker Hub e no GitHub Container Registry a cada release:
+
+| Registry | Image |
+|----------|-------|
+| Docker Hub | `kubetail/kubetail-cli` |
+| GHCR | `ghcr.io/kubetail-org/kubetail-cli` |
+
+Ha duas variantes disponiveis:
+
+| Sufixo da tag | Imagem base | Descricao |
+|---------------|-------------|-----------|
+| _(nenhum)_ | `scratch` | Imagem minima, menor footprint |
+| `-alpine` | `alpine` | Inclui shell e utilitarios padrao |
+
+## Docker Run
+
+Para usar a ferramenta CLI localmente com `docker run`, voce precisa montar seu arquivo local `.kube/config` em um contêiner `kubetail-cli`:
+
+```sh
+docker run --rm -it \
+  -v ~/.kube/config:/root/.kube/config:ro \
+  kubetail/kubetail-cli logs \
+  --kubeconfig /root/.kube/config \
+  -f \
+  deployments/my-app
+```
+
+Voce tambem pode usar o entrypoint `sh` para iniciar uma sessao interativa:
+
+```sh
+docker run --rm -it \
+  -v ~/.kube/config:/root/.kube/config:ro \
+  --entrypoint sh \
+  kubetail/kubetail-cli
+```
+
+## Docker Compose
+
+Para usar a ferramenta CLI localmente com `docker-compose`, voce pode usar este arquivo de configuracao [docker-compose.yml](https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/docker-compose.yml) como ponto de partida:
+
+```sh
+curl -LO https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/docker-compose.yml
+docker-compose up
+```
+
+Isso montara seu arquivo local `.kube/config` em um contêiner `kubetail-cli` e iniciara o servidor do dashboard em [http://localhost:7500](http://localhost:7500).
+
+## Kubernetes Pod
+
+Para usar a ferramenta CLI dentro de um cluster, voce pode usar este manifesto [`kubetail-cli-pod.yaml`](https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/kubetail-cli-pod.yaml) como ponto de partida:
+
+```sh
+kubectl add -f https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/kubetail-cli-pod.yaml
+```
+
+Isso iniciara um contêiner `kubetail-cli` dentro do namespace padrao, com acesso aos logs de pod no mesmo namespace. Quando o pod estiver em execucao, voce podera entrar com `exec` e executar comandos CLI usando a flag `--in-cluster`:
+
+```sh
+kubectl exec -it kubetail-cli -- sh
+# ./kubetail logs --in-cluster -f deployments/my-app
+```

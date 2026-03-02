@@ -1,0 +1,254 @@
+---
+title: Cluster-API-Referenz
+description: "Kubetail-Cluster-API-Referenz: Docker-Image-Varianten, Start-Flags und YAML-Konfiguration fuer TLS, Logging, CSRF und Verbindungen zum Cluster Agent."
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Die Kubetail Cluster API ist ein Go-basierter HTTP-Server, der die GraphQL-API bereitstellt, die das Dashboard fuer Cluster-Operationen verwendet. Das Server-Binary wird aus dem Quellcode im Kubetail-Repository unter [modules/cluster-api](https://github.com/kubetail-org/kubetail/tree/main/modules/cluster-api) kompiliert und in der Regel ueber das Docker-Image `kubetail-cluster-api` bereitgestellt (siehe unten). Es ist moeglich, `kubetail-cluster-api` als eigenstaendigen Container auszufuehren, wir empfehlen jedoch die Bereitstellung ueber das offizielle Kubetail-[Helm-Chart](/de/docs/reference/helm-chart).
+
+## Docker-Image
+
+Das Docker-Image `kubetail-cluster-api` wird bei jedem Release auf Docker Hub und in der GitHub Container Registry veroeffentlicht:
+
+| Registry | Image |
+|----------|-------|
+| Docker Hub | `kubetail/kubetail-cluster-api` |
+| GHCR | `ghcr.io/kubetail-org/kubetail-cluster-api` |
+
+Es sind zwei Varianten verfuegbar:
+
+| Tag-Suffix | Basis-Image | Beschreibung |
+|------------|-------------|--------------|
+| _(keines)_ | `scratch` | Minimales Image, kleinster Footprint |
+| `-alpine` | `alpine` | Enthaelt eine Shell und Standardwerkzeuge |
+
+## Entry-Point
+
+Der Standard-Entry-Point des Containers ist `/cluster-api/cluster-api`:
+
+```sh
+cluster-api [flags]
+```
+
+## Flags
+
+| Flag | Kurz | Standard | Beschreibung |
+|------|------|----------|--------------|
+| `--config` | `-c` | | Pfad zur Konfigurationsdatei (z. B. `/etc/kubetail/cluster-api.yaml`) |
+| `--addr` | `-a` | `:8080` | Host-Adresse, an die gebunden wird |
+| `--gin-mode` | | `release` | Gin-Framework-Modus (`release`, `debug`) |
+
+## Konfiguration
+
+Die Cluster API kann mit einer YAML-, JSON- oder TOML-Konfigurationsdatei konfiguriert werden. Uebergeben Sie den Pfad zur Datei mit `-c` / `--config`. Umgebungsvariablen koennen in der Konfigurationsdatei mit der Syntax `${VARIABLE_NAME}` referenziert werden.
+
+```sh
+cluster-api --config /etc/kubetail/cluster-api.yaml
+```
+
+<Tabs>
+  <TabItem label="YAML">
+    ```yaml
+    ## Kubetail Cluster API Configuration File
+    #
+    # Diese Datei definiert das Verhalten des kubetail cluster API server,
+    # der die GraphQL-API fuer Cluster-Operationen bereitstellt.
+    #
+
+    ## allowed-namespaces ##
+    #
+    # Liste der Namespaces, auf die die API zugreifen darf.
+    # Wenn leer, sind alle Namespaces zugaenglich.
+    #
+    # Standardwert: []
+    #
+    allowed-namespaces: []
+
+    ## addr ##
+    #
+    # Die Netzwerkadresse und der Port, an die der HTTP-Server gebunden werden soll.
+    #
+    # Standardwert: :8080
+    #
+    addr: ":8080"
+
+    ## base-path ##
+    #
+    # Der Basis-URL-Pfad fuer alle API-Endpunkte.
+    #
+    # Standardwert: /
+    #
+    base-path: /
+
+    ## gin-mode ##
+    #
+    # Der Gin-Framework-Modus.
+    # Gueltige Werte: debug, release
+    #
+    # Standardwert: release
+    #
+    gin-mode: release
+
+    ## cluster-agent ##
+    #
+    # Konfiguration fuer die Verbindung zum Cluster Agent
+    #
+    cluster-agent:
+
+      ## dispatch-url ##
+      #
+      # Die URL, die fuer die Verbindung zum Cluster Agent verwendet wird.
+      # Unterstuetzt das Schema kubernetes:// fuer In-Cluster-Service-Discovery.
+      #
+      # Standardwert: kubernetes://kubetail-cluster-agent:50051
+      #
+      dispatch-url: kubernetes://kubetail-cluster-agent:50051
+
+      ## tls ##
+      #
+      # TLS-Konfiguration fuer Verbindungen zum Cluster Agent
+      #
+      tls:
+
+        ## enabled ##
+        #
+        # Ob TLS fuer Verbindungen zum Cluster Agent aktiviert ist.
+        #
+        # Standardwert: false
+        #
+        enabled: false
+
+        ## cert-file ##
+        #
+        # Pfad zur TLS-Zertifikatsdatei.
+        #
+        # Standardwert: ""
+        #
+        cert-file: ""
+
+        ## key-file ##
+        #
+        # Pfad zur TLS-Private-Key-Datei.
+        #
+        # Standardwert: ""
+        #
+        key-file: ""
+
+        ## ca-file ##
+        #
+        # Pfad zur CA-Zertifikatsdatei, die zur Verifizierung des Zertifikats des Cluster Agent verwendet wird.
+        #
+        # Standardwert: ""
+        #
+        ca-file: ""
+
+        ## server-name ##
+        #
+        # Der Servername, der fuer die TLS-Verifizierung verwendet wird.
+        # Wenn leer, wird der Hostname aus dispatch-url verwendet.
+        #
+        # Standardwert: ""
+        #
+        server-name: ""
+
+    ## csrf ##
+    #
+    # Einstellungen fuer den CSRF-Schutz
+    #
+    csrf:
+
+      ## enabled ##
+      #
+      # Ob CSRF-Schutz aktiviert ist.
+      #
+      # Standardwert: true
+      #
+      enabled: true
+
+    ## logging ##
+    #
+    # Konfiguration fuer die Log-Ausgabe des API-Servers
+    #
+    logging:
+
+      ## enabled ##
+      #
+      # Ob Logging fuer den Server aktiviert ist.
+      #
+      # Standardwert: true
+      #
+      enabled: true
+
+      ## level ##
+      #
+      # Das minimale Log-Level, das ausgegeben wird.
+      # Gueltige Werte: debug, info, warn, error, disabled
+      #
+      # Standardwert: info
+      #
+      level: info
+
+      ## format ##
+      #
+      # Das Format der Log-Ausgabe.
+      # Gueltige Werte: json, pretty
+      #
+      # Standardwert: json
+      #
+      format: json
+
+      ## access-log ##
+      #
+      # Konfiguration fuer HTTP-Access-Logging
+      #
+      access-log:
+
+        ## enabled ##
+        #
+        # Ob Access-Logging aktiviert ist.
+        #
+        # Standardwert: true
+        #
+        enabled: true
+
+        ## hide-health-checks ##
+        #
+        # Ob Health-Check-Anfragen (/healthz) im Access-Log ausgelassen werden sollen.
+        #
+        # Standardwert: false
+        #
+        hide-health-checks: false
+
+    ## tls ##
+    #
+    # TLS-Konfiguration fuer den HTTP-Server
+    #
+    tls:
+
+      ## enabled ##
+      #
+      # Ob TLS aktiviert ist.
+      #
+      # Standardwert: false
+      #
+      enabled: false
+
+      ## cert-file ##
+      #
+      # Pfad zur TLS-Zertifikatsdatei.
+      #
+      # Standardwert: ""
+      #
+      cert-file: ""
+
+      ## key-file ##
+      #
+      # Pfad zur TLS-Private-Key-Datei.
+      #
+      # Standardwert: ""
+      #
+      key-file: ""
+    ```
+  </TabItem>
+</Tabs>

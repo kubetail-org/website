@@ -1,0 +1,49 @@
+---
+title: Sicherheit und Datenschutz
+description: "Kubetail hält Ihre Logdaten vom Cluster bis zum Desktop in Ihrem Besitz. Die gesamte Zugriffskontrolle wird an Kubernetes RBAC delegiert."
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+Kubetail ist so konzipiert, dass Ihre Logdaten vom Cluster bis zum Desktop in Ihrem Besitz bleiben und dass Cluster-Administratoren die Kontrolle darüber behalten, wer darauf zugreifen darf. Diese Seite erklärt, wie Kubetail Datenschutz und Sicherheit bereits durch sein Design umsetzt.
+
+---
+
+## Datenschutz für Logs
+
+Kubetail hat kein Cloud-Logging-Backend. Wenn Sie Logs anzeigen, wandern Ihre Daten daher direkt aus Ihrem Cluster auf Ihr Gerät, ohne vorher über einen externen Dienst zu gehen. Der genaue Pfad hängt von der gewählten Deployment-Topologie ab:
+
+- **Desktop**: Logs fließen von den Pod-Logdateien auf der Festplatte über den kube-apiserver (oder die Kubetail API, falls installiert) zum Dashboard-Server auf Ihrer lokalen Maschine und schließlich in Ihren Browser. Der gesamte Pfad bleibt innerhalb Ihres Clusters und Ihres Desktops.
+- **Cluster**: Logs fließen von den Pod-Logdateien auf der Festplatte über den kube-apiserver (oder die Kubetail API) zum Dashboard-Server, der innerhalb des Clusters läuft, also vollständig über das interne Cluster-Netzwerk. Erst nachdem Sie sich per `kubectl port-forward`, `kubectl proxy` oder einem von Ihnen kontrollierten Ingress verbinden, erreichen die Logs Ihren Browser.
+
+In beiden Fällen bleiben Ihre Logdaten vom Anfang bis zum Ende in Ihrem Besitz (siehe [Architektur](/de/docs/concepts/architecture) für weitere Details).
+
+---
+
+## Zugriffskontrolle
+
+Kubetail delegiert die gesamte Zugriffskontrolle an Kubernetes RBAC. Ihr Cluster-Administrator behält also die volle Kontrolle darüber, wer welche Logs sehen darf.
+
+### Kubetail CLI
+
+Auf dem Desktop übernimmt Kubetail die RBAC-Berechtigungen des aktiven kubeconfig-Kontexts, also genau dieselben Berechtigungen, die auch `kubectl` verwendet. Wenn ein Benutzer `kubectl logs` für einen Pod ausführen darf, kann er diese Logs auch in Kubetail sehen. Wenn nicht, verweigert Kubetail die Anfrage.
+
+Bevor ein Log-Stream geöffnet wird, prüft Kubetail die Berechtigungen über die Kubernetes-API `SelfSubjectAccessReview`. Cluster-Administratoren können den Zugriff mit den üblichen Kubernetes-RBAC-Ressourcen so eng einschränken, wie nötig.
+
+### Kubetail API
+
+Wenn die optionale Kubetail API im Cluster installiert ist, enthält jede Anfrage vom Dashboard-Server an die Cluster API das Kubernetes-Service-Account-Token des jeweiligen Benutzers. Sowohl die Cluster API als auch der Cluster Agent validieren dieses Token gegen die Kubernetes-Autorisierungs-API, bevor Daten ausgeliefert werden.
+
+Das bedeutet, dass der Zugriff auf Logs über die Kubetail API durch dieselben RBAC-Richtlinien geregelt wird wie jede andere Kubernetes-API-Operation. Es wird kein separates Berechtigungssystem eingeführt. Ein Benutzer ohne `get`- und `watch`-Zugriff auf `pods/log` in einem bestimmten Namespace erhält aus diesem Namespace keinerlei Logdaten, unabhängig davon, wie er verbunden ist.
+
+---
+
+## Zusammenfassung
+
+| Eigenschaft | Verhalten |
+|---|---|
+| Logdaten verlassen Ihre Umgebung | Niemals |
+| Cloud-Logging-Backend | Nein |
+| Mechanismus für Zugriffskontrolle | Kubernetes RBAC |
+| Auth-Methode (Desktop) | kubeconfig-Anmeldedaten |
+| Auth-Methode (Cluster) | Kubernetes-Service-Account-Tokens |

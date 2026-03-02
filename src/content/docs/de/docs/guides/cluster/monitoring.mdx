@@ -1,0 +1,110 @@
+---
+title: Monitoring
+description: "Ueberwachen Sie eine Kubetail-Cluster-Bereitstellung: Health-Endpunkte (`/healthz`), Liveness- und Readiness-Probes sowie strukturierte JSON-Logausgabe fuer jede Komponente."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Kubetail stellt fuer jede Komponente Health-Check-Endpunkte und strukturierte Logausgabe bereit. Diese Seite beschreibt, wie Sie den Zustand von Kubetail selbst ueberwachen, wenn es in Ihrem Cluster bereitgestellt wird.
+
+---
+
+## Health-Checks
+
+Jede Komponente stellt einen Health-Endpunkt bereit, den die Liveness- und Readiness-Probes Ihres Clusters verwenden, um den Zustand des Pods zu bestimmen.
+
+### Dashboard und Cluster API
+
+Sowohl das Dashboard als auch die Cluster API stellen einen HTTP-Health-Endpunkt bereit:
+
+```
+GET /healthz
+```
+
+Das Helm-Chart konfiguriert Liveness- und Readiness-Probes fuer diesen Endpunkt automatisch. Sie koennen denselben Endpunkt auch verwenden, um den Status einer Komponente manuell zu pruefen:
+
+```sh
+kubectl exec -n kubetail-system deploy/kubetail-dashboard -- \
+  wget -qO- http://localhost:8080/healthz
+```
+
+### Cluster Agent
+
+Der Cluster Agent stellt auf seinem gRPC-Port (`:50051`) einen standardkonformen [gRPC-Health](https://grpc.github.io/grpc/core/md_doc_health-checking.html)-Dienst bereit. Das Helm-Chart verwendet `grpc_health_probe` innerhalb des Containers, um Readiness und Liveness zu pruefen.
+
+---
+
+## Logging
+
+Alle drei Komponenten erzeugen standardmaessig strukturierte Logs im JSON-Format. Jeder Log-Eintrag enthaelt einen Zeitstempel, ein Log-Level und kontextbezogene Felder wie `request_id`, um einzelne Anfragen durch das System zu verfolgen.
+
+### Log-Level
+
+| Level | Beschreibung |
+|-------|--------------|
+| `debug` | Ausfuehrliche Ausgabe, einschliesslich interner Details zur Request-Weiterleitung |
+| `info` | Normale Betriebsnachrichten (Standard) |
+| `warn` | Behebbare Probleme, die Aufmerksamkeit erfordern koennten |
+| `error` | Fehler, die die Anfrageverarbeitung beeintraechtigen |
+| `disabled` | Keine Log-Ausgabe |
+
+### Konfiguration
+
+Log-Level und Format werden pro Komponente ueber `runtimeConfig` in Ihren Helm-Werten konfiguriert:
+
+```yaml
+kubetail:
+  dashboard:
+    runtimeConfig:
+      logging:
+        level: info
+        format: json        # json or pretty
+        access-log:
+          enabled: true
+          hide-health-checks: true  # suppress /healthz from access logs
+  clusterAPI:
+    runtimeConfig:
+      logging:
+        level: info
+        format: json
+        access-log:
+          enabled: true
+          hide-health-checks: true
+  clusterAgent:
+    runtimeConfig:
+      logging:
+        level: info
+        format: json
+```
+
+<Aside type="tip">
+Verwenden Sie waehrend der Entwicklung `format: pretty` fuer menschenlesbare Log-Ausgabe. In Produktionsumgebungen laesst sich `format: json` besser in Log-Aggregationstools integrieren.
+</Aside>
+
+### Access-Logs
+
+Dashboard und Cluster API enthalten ein HTTP-Access-Log, das jede eingehende Anfrage aufzeichnet. Access-Log-Eintraege enthalten die HTTP-Methode, den Pfad, den Statuscode, die Dauer, die Remote-Adresse und die Request-ID. Sie koennen Health-Check-Anfragen aus dem Access-Log ausblenden, um Rauschen zu reduzieren:
+
+```yaml
+logging:
+  access-log:
+    enabled: true
+    hide-health-checks: true
+```
+
+---
+
+## Pod-Readiness pruefen
+
+Um den Gesamtzustand der Kubetail-Bereitstellung zu pruefen:
+
+```sh
+kubectl get pods -n kubetail-system
+```
+
+Alle Pods sollten den Status `Running` anzeigen und erfolgreiche Readiness-Probes haben. Wenn ein Pod nicht bereit ist, pruefen Sie seine Events und Logs:
+
+```sh
+kubectl describe pod -n kubetail-system <pod-name>
+kubectl logs -n kubetail-system <pod-name>
+```

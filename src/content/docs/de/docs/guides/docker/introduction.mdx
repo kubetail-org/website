@@ -1,0 +1,33 @@
+---
+title: Einfuehrung
+description: "Fuehren Sie die Kubetail CLI als Container mit dem Docker-Image `kubetail-cli` aus, lokal mit `docker run` oder `docker compose` oder innerhalb eines Clusters als Pod."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Um das Kubetail-CLI-Tool (`kubetail`) in einem Container auszufuehren, koennen Sie das Docker-Image [`kubetail-cli`](https://hub.docker.com/r/kubetail/kubetail-cli) verwenden. Das Image wird bei jedem Release auf Docker Hub und in der GitHub Container Registry veroeffentlicht:
+
+| Registry   | Image                               |
+|------------|-------------------------------------|
+| Docker Hub | `kubetail/kubetail-cli`             |
+| GHCR       | `ghcr.io/kubetail-org/kubetail-cli` |
+
+Es sind zwei Varianten verfuegbar:
+
+| Tag-Suffix | Basis-Image | Beschreibung                        |
+|------------|-------------|-------------------------------------|
+| _(keines)_ | `scratch`   | Minimales Image, kleinster Footprint |
+| `-alpine`  | `alpine`    | Enthaelt eine Shell und Standardwerkzeuge |
+
+Wenn Sie `kubetail` in Docker ausfuehren, koennen Sie Kubetail in lokale Docker-Entwicklungsablaeufe integrieren und Ihre Logs auch direkt innerhalb Ihres Clusters debuggen.
+
+<br />
+<br />
+
+<Aside type="tip">
+Hier sind einige gaengige Moeglichkeiten, `kubetail` in Docker auszufuehren:
+
+* [Docker Run](/de/docs/guides/docker/docker-run)
+* [Docker Compose](/de/docs/guides/docker/docker-compose)
+* [Kubernetes Pod](/de/docs/guides/docker/kubernetes-pod)
+</Aside>

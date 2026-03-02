@@ -1,0 +1,33 @@
+---
+title: Docker Run
+description: "`kubetail-cli` イメージで `docker run` を使い、Kubernetes ログを追跡したり対話シェルを開いたりします。クラスタへアクセスするために kubeconfig をマウントしてください。"
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+CLI ツールを `docker run` でローカル利用するには、ローカルの `.kube/config` ファイルを `kubetail-cli` コンテナにマウントする必要があります。
+
+```sh
+docker run --rm -it \
+  -v ~/.kube/config:/root/.kube/config:ro \
+  kubetail/kubetail-cli logs \
+  --kubeconfig /root/.kube/config \
+  -f \
+  deployments/my-app
+```
+
+`sh` エントリーポイントを使って対話セッションを開始することもできます。
+
+```sh
+docker run --rm -it \
+  -v ~/.kube/config:/root/.kube/config:ro \
+  --entrypoint sh \
+  kubetail/kubetail-cli
+```
+
+<Aside type="tip">
+`kubetail-cli` Docker イメージは次の方法でも利用できます。
+
+* [Docker Compose](/ja/docs/guides/docker/docker-compose)
+* [Kubernetes Pod](/ja/docs/guides/docker/kubernetes-pod)
+</Aside>

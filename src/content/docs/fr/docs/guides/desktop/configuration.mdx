@@ -1,0 +1,224 @@
+---
+title: Configuration
+description: "Configurez la CLI Kubetail avec un fichier YAML, JSON ou TOML. Couvre le chemin kubeconfig, les valeurs par defaut de `logs` (head, tail, colonnes) ainsi que l'hote et le port de `serve`."
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+L'outil CLI `kubetail` peut etre configure a l'aide d'un fichier de configuration local. Si aucun fichier n'est trouve, Kubetail utilisera les valeurs par defaut ci-dessous. Le fichier prend en charge les formats YAML, JSON et TOML, et les valeurs peuvent referencer des variables d'environnement avec la syntaxe `${VARIABLE_NAME}`.
+
+---
+
+## Initialisation
+
+Le chemin par defaut du fichier de configuration est `~/.kubetail/config.yaml`. Vous pouvez initialiser la configuration en placant un fichier a l'emplacement par defaut ou en utilisant la commande CLI `config init`:
+
+```sh
+kubetail config init
+```
+
+<Aside type="tip">
+La commande `config init` accepte un indicateur `--format` pour choisir un autre format d'initialisation. Consultez la [reference CLI](/fr/docs/reference/cli#kubetail-config-init) pour plus de details.
+</Aside>
+
+---
+
+## Utilisation
+
+Chaque fois que vous lancez une commande `kubetail`, l'outil recherche automatiquement un fichier de configuration a l'emplacement par defaut. Vous pouvez specifier un autre chemin avec l'option globale `--config`:
+
+```sh
+kubetail serve --config /path/to/config.yaml
+```
+
+<Aside type="tip">
+L'ordre de priorite des parametres est le suivant:
+
+1. Valeurs par defaut
+2. Fichier de configuration
+3. Indicateurs CLI
+</Aside>
+
+---
+
+## Valeurs par defaut
+
+<Tabs>
+  <TabItem label="YAML">
+```yaml
+## Fichier de configuration de la CLI Kubetail
+# 
+# Ce fichier definit le comportement de l'outil kubetail CLI,
+# y compris les valeurs par defaut de la commande logs et les parametres du serveur de dashboard.
+#
+
+## version ##
+#
+# Version du schema du fichier de configuration
+#
+version: 1
+
+## general ##
+#
+general:
+
+  ## kubeconfig ##
+  #
+  # Chemin vers le fichier kubeconfig a utiliser pour les requetes CLI.
+  # S'il est vide, le chemin par defaut (~/.kube/config) ou la variable d'environnement KUBECONFIG est utilise.
+  #
+  # Valeur par defaut: ""
+  #
+  kubeconfig: ""
+
+## commands ##
+#
+commands:
+
+  ## logs ##
+  #
+  # Parametres specifiques au sous-commande 'logs'
+  #
+  logs:
+
+    ## kube-context ##
+    #
+    # Contexte Kubernetes specifique a utiliser.
+    # S'il est vide, le contexte actif courant est utilise.
+    #
+    # Valeur par defaut: ""
+    #
+    kube-context: ""
+
+    ## head ##
+    #
+    # Nombre de lignes a afficher depuis le debut du tampon de logs
+    #
+    # Valeur par defaut: 10
+    #
+    head: 10
+
+    ## tail ##
+    #
+    # Nombre de lignes a afficher depuis la fin du tampon de logs
+    #
+    # Valeur par defaut: 10
+    #
+    tail: 10
+
+    ## columns ##
+    #
+    # Ensemble complet des colonnes de sortie pour les enregistrements 'logs'.
+    # Valeurs autorisees: timestamp,dot,node,region,zone,os,arch,namespace,pod,container
+    #
+    # Valeur par defaut: ["timestamp", "dot"]
+    #
+    columns:
+      - timestamp
+      - dot
+
+  ## serve ##
+  #
+  # Parametres du serveur de dashboard
+  #
+  serve:
+
+    ## host ##
+    #
+    # Interface reseau sur laquelle le serveur doit etre lie.
+    #
+    # Valeur par defaut: localhost
+    #
+    host: localhost
+
+    ## port ##
+    #
+    # Port TCP sur lequel le serveur ecoutera.
+    #
+    # Valeur par defaut: 7500
+    #
+    port: 7500
+
+    ## skip-open ##
+    #
+    # Si true, la CLI n'ouvrira pas automatiquement le navigateur
+    # lorsque le serveur demarre.
+    #
+    # Valeur par defaut: false
+    #
+    skip-open: false
+```
+  </TabItem>
+  <TabItem label="TOML">
+```toml
+# Fichier de configuration de la CLI Kubetail
+#
+# Definit le comportement de l'outil kubetail CLI, y compris
+# les valeurs par defaut de la commande logs et les parametres du serveur de dashboard.
+
+# Version du schema du fichier de configuration
+version = 1
+
+[general]
+# Chemin vers kubeconfig. S'il est vide, utilise ~/.kube/config ou KUBECONFIG.
+kubeconfig = ""
+
+[commands.logs]
+# Contexte Kubernetes specifique a utiliser. S'il est vide, utilise le contexte actif.
+kube-context = ""
+
+# Nombre de lignes a afficher depuis le debut du tampon de logs
+head = 10
+
+# Nombre de lignes a afficher depuis la fin du tampon de logs
+tail = 10
+
+# Ensemble complet des colonnes de sortie pour les enregistrements 'logs'.
+# Valeurs autorisees: timestamp,dot,node,region,zone,os,arch,namespace,pod,container
+columns = ["timestamp", "dot"]
+
+[commands.serve]
+# Interface reseau a laquelle le serveur se lie
+host = "localhost"
+
+# Port TCP sur lequel le serveur ecoute
+port = 7500
+
+# Si true, n'ouvre pas automatiquement le navigateur au demarrage
+skip-open = false
+```
+  </TabItem>
+  <TabItem label="JSON">
+```json
+{
+  "version": 1,
+  "general": {
+    "kubeconfig": ""
+  },
+  "commands": {
+    "logs": {
+      "kube-context": "",
+      "head": 10,
+      "tail": 10,
+      "columns": ["timestamp", "dot"]
+    },
+    "serve": {
+      "host": "localhost",
+      "port": 7500,
+      "skip-open": false
+    }
+  }
+}
+```
+  </TabItem>
+</Tabs>
+
+<Aside type="tip">
+L'expansion des variables d'environnement est prise en charge. Par exemple:
+
+```yaml
+commands:
+  serve:
+    port: ${MY_KUBETAIL_PORT}
+```
+</Aside>

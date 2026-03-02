@@ -1,0 +1,52 @@
+---
+title: 高级功能
+description: "需要 Kubetail API 才能使用的 Kubetail 仪表板高级功能：日志文件大小、最后事件时间戳，以及基于 grep、在节点上执行的日志搜索。"
+---
+
+import { Aside } from "@astrojs/starlight/components";
+import { Image } from "astro:assets";
+
+import homePageWithLogMetadataLight from "@/assets/screenshots/light/home-page-with-log-metadata.webp";
+import homePageWithLogMetadataDark from "@/assets/screenshots/dark/home-page-with-log-metadata.webp";
+import consoleWithSearchLight from "@/assets/screenshots/light/logging-console-with-search.webp";
+import consoleWithSearchDark from "@/assets/screenshots/dark/logging-console-with-search.webp";
+
+高级功能要求您在集群中安装 **Kubetail API**。安装完成后，日志请求将不再通过 kube-apiserver，而是通过集群内的专用服务进行路由，从而获得 Kubernetes API 本身无法提供的能力。
+
+---
+
+## 安装 Kubetail API
+
+如果您使用的是 `kubetail` CLI 工具，可以通过 `kubetail cluster` 命令安装 Kubetail API：
+
+```sh
+kubetail cluster install
+```
+
+这会使用 Kubetail Helm chart 来安装 API，因此之后如果您愿意，也可以继续独立地通过 Helm 管理它。更多细节请参阅 [`cluster` 命令参考](/zh-cn/docs/reference/cli#kubetail-cluster)。
+
+您也可以直接使用 Helm 安装 Kubetail API。具体步骤请参考[集群安装指南](/zh-cn/docs/guides/cluster/installation)。
+
+---
+
+## 日志文件元数据
+
+安装 Kubetail API 后，工作负载列表会显示日志文件大小和最后事件时间戳：
+
+<Image src={homePageWithLogMetadataLight} alt="Kubetail home page showing workloads with log file sizes and last event timestamps" class="dark:sl-hidden" />
+<Image src={homePageWithLogMetadataDark} alt="Kubetail home page showing workloads with log file sizes and last event timestamps" class="light:sl-hidden" />
+
+这些元数据由 Cluster Agent 直接从每个节点上的日志文件中采集，并通过 Cluster API 暴露出来。仅靠 Kubernetes API 无法获得这些信息。
+
+---
+
+## 日志搜索
+
+安装 Kubetail API 后，日志控制台标题栏中会出现一个搜索输入框，您可以输入普通字符串或 `/regex/` 模式来过滤日志流。匹配会在每个节点上、在任何数据发送到仪表板之前完成，因此只会传输命中的行。即使面对高日志量的工作负载，这样也能保持较低的带宽开销。
+
+<Image src={consoleWithSearchLight} alt="Kubetail logging console showing search" class="dark:sl-hidden" />
+<Image src={consoleWithSearchDark} alt="Kubetail logging console showing search" class="light:sl-hidden" />
+
+<Aside type="tip">
+如果您想详细了解 Kubetail API 的日志管道，请参阅[架构](/zh-cn/docs/concepts/architecture#log-delivery-pipelines)页面。
+</Aside>

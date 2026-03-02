@@ -1,0 +1,322 @@
+---
+title: Dashboard 参考
+description: "Kubetail Dashboard 服务器参考：Docker 镜像变体、启动标志，以及用于认证、会话、TLS、CSRF 和 Cluster API 连接的 YAML 选项。"
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Kubetail Dashboard 是一个基于 Go 的 HTTP 服务器，用于托管 Dashboard Web UI，并提供 Web UI 与 Kubernetes 集群交互所需的后端 API。服务器可执行文件由 Kubetail 仓库中 [modules/dashboard](https://github.com/kubetail-org/kubetail/tree/main/modules/dashboard) 的源代码编译而成，通常通过 `kubetail-dashboard` Docker 镜像进行部署（见下文）。虽然也可以将 `kubetail-dashboard` 作为独立容器运行，但我们建议使用官方 Kubetail [Helm Chart](/zh-cn/docs/reference/helm-chart) 进行部署。
+
+## Docker 镜像
+
+`kubetail-dashboard` Docker 镜像会在每次发布时同步发布到 Docker Hub 和 GitHub Container Registry：
+
+| Registry | Image |
+|----------|-------|
+| Docker Hub | `kubetail/kubetail-dashboard` |
+| GHCR | `ghcr.io/kubetail-org/kubetail-dashboard` |
+
+有两个变体可用：
+
+| 标签后缀 | 基础镜像 | 说明 |
+|----------|----------|------|
+| _(无)_ | `scratch` | 最小镜像，占用最小 |
+| `-alpine` | `alpine` | 包含 shell 和标准工具 |
+
+## Entrypoint
+
+默认容器入口点是 `/dashboard/dashboard`：
+
+```sh
+dashboard [flags]
+```
+
+## 标志
+
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--config` | `-c` | | 配置文件路径（例如 `/etc/kubetail/dashboard.yaml`） |
+| `--addr` | `-a` | `:8080` | 要绑定的主机地址 |
+| `--gin-mode` | | `release` | Gin 框架模式 (`release`, `debug`) |
+
+## 配置
+
+Dashboard 可以使用 YAML、JSON 或 TOML 配置文件进行配置。通过 `-c` / `--config` 传入文件路径。配置文件中可以使用 `${VARIABLE_NAME}` 语法引用环境变量。
+
+```sh
+dashboard --config /etc/kubetail/dashboard.yaml
+```
+
+<Tabs>
+  <TabItem label="YAML">
+    ```yaml
+    ## Kubetail Dashboard Configuration File
+    #
+    # 此文件定义 kubetail dashboard server 的行为，
+    # 它负责提供 Web UI 并为 dashboard 提供后端 API。
+    #
+
+    ## allowed-namespaces ##
+    #
+    # dashboard 允许访问的 namespace 列表。
+    # 如果为空，则所有 namespace 都可访问。
+    #
+    # 默认值: []
+    #
+    allowed-namespaces: []
+
+    ## kubeconfig ##
+    #
+    # Kubernetes API 请求使用的 kubeconfig 文件路径。
+    # 如果为空，则使用默认路径（~/.kube/config）或 KUBECONFIG 环境变量。
+    #
+    # 默认值: ""
+    #
+    kubeconfig: ""
+
+    ## addr ##
+    #
+    # HTTP 服务器应绑定的网络地址和端口。
+    #
+    # 默认值: :8080
+    #
+    addr: ":8080"
+
+    ## auth-mode ##
+    #
+    # dashboard 的认证模式。
+    # 有效值: auto, token
+    #
+    # 默认值: auto
+    #
+    auth-mode: auto
+
+    ## base-path ##
+    #
+    # 所有 dashboard 端点的基础 URL 路径。
+    #
+    # 默认值: /
+    #
+    base-path: /
+
+    ## cluster-api-endpoint ##
+    #
+    # Cluster API 服务器的 URL。
+    # 如果为空，则会禁用 Cluster API 集成。
+    #
+    # 默认值: ""
+    #
+    cluster-api-endpoint: ""
+
+    ## environment ##
+    #
+    # dashboard 运行所在的环境。
+    # 有效值: desktop, cluster
+    #
+    # 默认值: cluster
+    #
+    environment: cluster
+
+    ## gin-mode ##
+    #
+    # Gin 框架模式。
+    # 有效值: debug, release
+    #
+    # 默认值: release
+    #
+    gin-mode: release
+
+    ## csrf ##
+    #
+    # CSRF 保护设置
+    #
+    csrf:
+
+      ## enabled ##
+      #
+      # 是否启用 CSRF 保护。
+      #
+      # 默认值: true
+      #
+      enabled: true
+
+    ## logging ##
+    #
+    # dashboard server 的日志输出配置
+    #
+    logging:
+
+      ## enabled ##
+      #
+      # 是否为服务器启用 logging。
+      #
+      # 默认值: true
+      #
+      enabled: true
+
+      ## level ##
+      #
+      # 要输出的最小日志级别。
+      # 有效值: debug, info, warn, error, disabled
+      #
+      # 默认值: info
+      #
+      level: info
+
+      ## format ##
+      #
+      # 日志输出格式。
+      # 有效值: json, pretty
+      #
+      # 默认值: json
+      #
+      format: json
+
+      ## access-log ##
+      #
+      # HTTP 访问日志配置
+      #
+      access-log:
+
+        ## enabled ##
+        #
+        # 是否启用访问日志。
+        #
+        # 默认值: true
+        #
+        enabled: true
+
+        ## hide-health-checks ##
+        #
+        # 是否在访问日志中省略健康检查请求 (/healthz)。
+        #
+        # 默认值: false
+        #
+        hide-health-checks: false
+
+    ## session ##
+    #
+    # 会话管理设置
+    #
+    session:
+
+      ## secret ##
+      #
+      # 用于签名会话 token 的密钥。
+      # 如果为空，则会在启动时生成一个随机 secret（会话不会
+      # 跨重启保留）。
+      #
+      # 默认值: ""
+      #
+      secret: ""
+
+      ## cookie ##
+      #
+      # 会话 cookie 配置
+      #
+      cookie:
+
+        ## name ##
+        #
+        # 会话 cookie 的名称。
+        #
+        # 默认值: kubetail_dashboard_session
+        #
+        name: kubetail_dashboard_session
+
+        ## path ##
+        #
+        # cookie 生效的 URL 路径。
+        #
+        # 默认值: /
+        #
+        path: /
+
+        ## domain ##
+        #
+        # cookie 生效的域名。
+        # 如果为空，则 cookie 仅对当前域名有效。
+        #
+        # 默认值: ""
+        #
+        domain: ""
+
+        ## max-age ##
+        #
+        # cookie 的最大存活时间（秒）。
+        #
+        # 默认值: 2592000 (30 days)
+        #
+        max-age: 2592000
+
+        ## secure ##
+        #
+        # 是否仅通过 HTTPS 发送 cookie。
+        #
+        # 默认值: false
+        #
+        secure: false
+
+        ## http-only ##
+        #
+        # 是否禁止 JavaScript 访问该 cookie。
+        #
+        # 默认值: true
+        #
+        http-only: true
+
+        ## same-site ##
+        #
+        # cookie 的 SameSite 属性。
+        # 有效值: strict, lax, none
+        #
+        # 默认值: lax
+        #
+        same-site: lax
+
+    ## tls ##
+    #
+    # HTTP 服务器的 TLS 配置
+    #
+    tls:
+
+      ## enabled ##
+      #
+      # 是否启用 TLS。
+      #
+      # 默认值: false
+      #
+      enabled: false
+
+      ## cert-file ##
+      #
+      # TLS 证书文件路径。
+      #
+      # 默认值: ""
+      #
+      cert-file: ""
+
+      ## key-file ##
+      #
+      # TLS 私钥文件路径。
+      #
+      # 默认值: ""
+      #
+      key-file: ""
+
+    ## ui ##
+    #
+    # UI 专用配置选项
+    #
+    ui:
+
+      ## cluster-api-enabled ##
+      #
+      # 是否在 UI 中启用 Cluster API 集成。
+      #
+      # 默认值: true
+      #
+      cluster-api-enabled: true
+    ```
+  </TabItem>
+</Tabs>

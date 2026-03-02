@@ -1,0 +1,26 @@
+---
+title: Kubernetes Pod
+description: "Stellen Sie die Kubetail CLI als Kubernetes-Pod mit `kubetail-cli-pod.yaml` bereit und verbinden Sie sich dann per `exec`, um Logs mit dem Flag `--in-cluster` zu verfolgen."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Um das CLI-Tool innerhalb eines Clusters zu verwenden, koennen Sie mit dieser Manifestdatei [`kubetail-cli-pod.yaml`](https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/kubetail-cli-pod.yaml) starten:
+
+```sh
+kubectl add -f https://raw.githubusercontent.com/kubetail-org/kubetail/refs/heads/main/config/examples/kubetail-cli-pod.yaml
+```
+
+Dadurch wird ein `kubetail-cli`-Container im Default-Namespace gestartet, mit Zugriff auf Pod-Logs im selben Namespace. Sobald der Pod laeuft, koennen Sie sich mit `exec` verbinden und CLI-Befehle mit dem Flag `--in-cluster` ausfuehren:
+
+```sh
+kubectl exec -it kubetail-cli -- sh
+# ./kubetail logs --in-cluster -f deployments/my-app
+```
+
+<Aside type="tip">
+Sie koennen das Docker-Image `kubetail-cli` auch verwenden mit:
+
+* [Docker Run](/de/docs/guides/docker/docker-run)
+* [Docker Compose](/de/docs/guides/docker/docker-compose)
+</Aside>

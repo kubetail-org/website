@@ -1,0 +1,33 @@
+---
+title: はじめに
+description: "Docker イメージ `kubetail-cli` を使って Kubetail CLI をコンテナとして実行します。`docker run` や `docker compose` でローカル実行することも、クラスタ内で Pod として実行することもできます。"
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Kubetail CLI ツール (`kubetail`) をコンテナ内で実行するには、Docker イメージ [`kubetail-cli`](https://hub.docker.com/r/kubetail/kubetail-cli) を使用できます。このイメージは、各リリースごとに Docker Hub と GitHub Container Registry に公開されます。
+
+| Registry   | Image                               |
+|------------|-------------------------------------|
+| Docker Hub | `kubetail/kubetail-cli`             |
+| GHCR       | `ghcr.io/kubetail-org/kubetail-cli` |
+
+2 つのバリアントが利用できます。
+
+| タグ接尾辞 | ベースイメージ | 説明 |
+|------------|----------------|------|
+| _(なし)_ | `scratch` | 最小構成のイメージで、最も軽量です |
+| `-alpine` | `alpine` | シェルと標準ユーティリティを含みます |
+
+Docker 内で `kubetail` を実行すると、Kubetail をローカルの Docker 開発フローに組み込めるだけでなく、クラスタ内部からログをデバッグすることもできます。
+
+<br />
+<br />
+
+<Aside type="tip">
+Docker 内で `kubetail` を実行する代表的な方法は次のとおりです。
+
+* [Docker Run](/ja/docs/guides/docker/docker-run)
+* [Docker Compose](/ja/docs/guides/docker/docker-compose)
+* [Kubernetes Pod](/ja/docs/guides/docker/kubernetes-pod)
+</Aside>

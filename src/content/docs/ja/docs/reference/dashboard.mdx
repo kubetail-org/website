@@ -1,0 +1,322 @@
+---
+title: Dashboard リファレンス
+description: "Kubetail Dashboard サーバーのリファレンス。Docker イメージのバリアント、起動フラグ、認証、セッション、TLS、CSRF、Cluster API 接続向け YAML オプションを扱います。"
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Kubetail Dashboard は、Dashboard の Web UI をホストし、Web UI が Kubernetes クラスタとやり取りするために使うバックエンド API を提供する Go ベースの HTTP サーバーです。サーバー実行ファイルは Kubetail リポジトリ内の [modules/dashboard](https://github.com/kubetail-org/kubetail/tree/main/modules/dashboard) にあるソースコードからビルドされ、通常は `kubetail-dashboard` Docker イメージを使ってデプロイされます（下記参照）。`kubetail-dashboard` を単独コンテナとして実行することも可能ですが、公式の Kubetail [Helm Chart](/ja/docs/reference/helm-chart) を使ったデプロイを推奨します。
+
+## Docker イメージ
+
+`kubetail-dashboard` Docker イメージは、各リリースごとに Docker Hub と GitHub Container Registry に公開されます。
+
+| Registry | Image |
+|----------|-------|
+| Docker Hub | `kubetail/kubetail-dashboard` |
+| GHCR | `ghcr.io/kubetail-org/kubetail-dashboard` |
+
+2 つのバリアントが利用できます。
+
+| タグ接尾辞 | ベースイメージ | 説明 |
+|------------|----------------|------|
+| _(なし)_ | `scratch` | 最小構成のイメージで、最も軽量です |
+| `-alpine` | `alpine` | シェルと標準ユーティリティを含みます |
+
+## エントリーポイント
+
+デフォルトのコンテナエントリーポイントは `/dashboard/dashboard` です。
+
+```sh
+dashboard [flags]
+```
+
+## フラグ
+
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--config` | `-c` | | 設定ファイルへのパス（例: `/etc/kubetail/dashboard.yaml`） |
+| `--addr` | `-a` | `:8080` | バインドするホストアドレス |
+| `--gin-mode` | | `release` | Gin フレームワークのモード (`release`, `debug`) |
+
+## 設定
+
+Dashboard は YAML、JSON、TOML の設定ファイルで構成できます。ファイルのパスは `-c` / `--config` で渡します。設定ファイルでは `${VARIABLE_NAME}` 構文で環境変数を参照できます。
+
+```sh
+dashboard --config /etc/kubetail/dashboard.yaml
+```
+
+<Tabs>
+  <TabItem label="YAML">
+    ```yaml
+    ## Kubetail Dashboard Configuration File
+    #
+    # このファイルは kubetail dashboard server の動作を定義します。
+    # Web UI を提供し、dashboard 用のバックエンド API を提供します。
+    #
+
+    ## allowed-namespaces ##
+    #
+    # Dashboard がアクセスを許可される namespace の一覧です。
+    # 空の場合はすべての namespace にアクセスできます。
+    #
+    # 既定値: []
+    #
+    allowed-namespaces: []
+
+    ## kubeconfig ##
+    #
+    # Kubernetes API リクエストに使用する kubeconfig ファイルへのパスです。
+    # 空の場合は既定のパス（~/.kube/config）または KUBECONFIG 環境変数が使用されます。
+    #
+    # 既定値: ""
+    #
+    kubeconfig: ""
+
+    ## addr ##
+    #
+    # HTTP サーバーがバインドするネットワークアドレスとポートです。
+    #
+    # 既定値: :8080
+    #
+    addr: ":8080"
+
+    ## auth-mode ##
+    #
+    # Dashboard の認証モードです。
+    # 有効な値: auto, token
+    #
+    # 既定値: auto
+    #
+    auth-mode: auto
+
+    ## base-path ##
+    #
+    # すべての dashboard エンドポイントに共通するベース URL パスです。
+    #
+    # 既定値: /
+    #
+    base-path: /
+
+    ## cluster-api-endpoint ##
+    #
+    # Cluster API サーバーの URL です。
+    # 空の場合は Cluster API 連携が無効になります。
+    #
+    # 既定値: ""
+    #
+    cluster-api-endpoint: ""
+
+    ## environment ##
+    #
+    # Dashboard が実行される環境です。
+    # 有効な値: desktop, cluster
+    #
+    # 既定値: cluster
+    #
+    environment: cluster
+
+    ## gin-mode ##
+    #
+    # Gin フレームワークのモードです。
+    # 有効な値: debug, release
+    #
+    # 既定値: release
+    #
+    gin-mode: release
+
+    ## csrf ##
+    #
+    # CSRF 保護設定
+    #
+    csrf:
+
+      ## enabled ##
+      #
+      # CSRF 保護を有効にするかどうか
+      #
+      # 既定値: true
+      #
+      enabled: true
+
+    ## logging ##
+    #
+    # dashboard server のログ出力設定
+    #
+    logging:
+
+      ## enabled ##
+      #
+      # サーバーで logging を有効にするかどうか
+      #
+      # 既定値: true
+      #
+      enabled: true
+
+      ## level ##
+      #
+      # 出力する最小ログレベルです。
+      # 有効な値: debug, info, warn, error, disabled
+      #
+      # 既定値: info
+      #
+      level: info
+
+      ## format ##
+      #
+      # ログ出力の形式です。
+      # 有効な値: json, pretty
+      #
+      # 既定値: json
+      #
+      format: json
+
+      ## access-log ##
+      #
+      # HTTP アクセスログ設定
+      #
+      access-log:
+
+        ## enabled ##
+        #
+        # アクセスログを有効にするかどうか
+        #
+        # 既定値: true
+        #
+        enabled: true
+
+        ## hide-health-checks ##
+        #
+        # アクセスログからヘルスチェック要求 (/healthz) を除外するかどうか
+        #
+        # 既定値: false
+        #
+        hide-health-checks: false
+
+    ## session ##
+    #
+    # セッション管理設定
+    #
+    session:
+
+      ## secret ##
+      #
+      # セッショントークンの署名に使用する秘密鍵です。
+      # 空の場合は起動時にランダムな secret が生成されます（セッションは
+      # 再起動をまたいで保持されません）。
+      #
+      # 既定値: ""
+      #
+      secret: ""
+
+      ## cookie ##
+      #
+      # セッションクッキー設定
+      #
+      cookie:
+
+        ## name ##
+        #
+        # セッションクッキーの名前です。
+        #
+        # 既定値: kubetail_dashboard_session
+        #
+        name: kubetail_dashboard_session
+
+        ## path ##
+        #
+        # クッキーが有効な URL パスです。
+        #
+        # 既定値: /
+        #
+        path: /
+
+        ## domain ##
+        #
+        # クッキーが有効なドメインです。
+        # 空の場合は現在のドメインに対してのみ有効です。
+        #
+        # 既定値: ""
+        #
+        domain: ""
+
+        ## max-age ##
+        #
+        # クッキーの最大有効期間（秒）です。
+        #
+        # 既定値: 2592000 (30 days)
+        #
+        max-age: 2592000
+
+        ## secure ##
+        #
+        # クッキーを HTTPS 経由でのみ送信するかどうか
+        #
+        # 既定値: false
+        #
+        secure: false
+
+        ## http-only ##
+        #
+        # クッキーを JavaScript からアクセス不可にするかどうか
+        #
+        # 既定値: true
+        #
+        http-only: true
+
+        ## same-site ##
+        #
+        # クッキーの SameSite 属性です。
+        # 有効な値: strict, lax, none
+        #
+        # 既定値: lax
+        #
+        same-site: lax
+
+    ## tls ##
+    #
+    # HTTP サーバー用 TLS 設定
+    #
+    tls:
+
+      ## enabled ##
+      #
+      # TLS を有効にするかどうか
+      #
+      # 既定値: false
+      #
+      enabled: false
+
+      ## cert-file ##
+      #
+      # TLS 証明書ファイルへのパスです。
+      #
+      # 既定値: ""
+      #
+      cert-file: ""
+
+      ## key-file ##
+      #
+      # TLS 秘密鍵ファイルへのパスです。
+      #
+      # 既定値: ""
+      #
+      key-file: ""
+
+    ## ui ##
+    #
+    # UI 固有の設定オプション
+    #
+    ui:
+
+      ## cluster-api-enabled ##
+      #
+      # UI で Cluster API 連携を有効にするかどうか
+      #
+      # 既定値: true
+      #
+      cluster-api-enabled: true
+    ```
+  </TabItem>
+</Tabs>

@@ -1,0 +1,78 @@
+---
+title: 설치
+description: "Helm 또는 YAML 매니페스트를 사용해 Kubernetes 클러스터 내부에 Kubetail을 설치한 다음 `kubectl port-forward` 또는 `kubectl proxy`로 대시보드에 접근합니다."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Kubernetes 클러스터 내부에서 Kubetail을 실행하려면 Helm으로 애플리케이션과 필요한 리소스를 설치하거나 YAML 매니페스트로 수동 설치할 수 있습니다.
+
+## Helm
+
+[helm](https://helm.sh) 으로 Kubetail을 설치하려면 먼저 Kubetail 조직의 chart 저장소를 추가한 뒤 `kubetail` chart를 설치합니다.
+
+```sh
+helm repo add kubetail https://kubetail-org.github.io/helm-charts/
+helm install kubetail kubetail/kubetail --namespace kubetail-system --create-namespace
+```
+
+Helm chart를 구성하는 방법에 대한 자세한 내용은 chart의 [values.yaml](https://github.com/kubetail-org/helm-charts/blob/main/charts/kubetail/values.yaml) 파일을 참고하세요. 설치가 제대로 되었는지 확인하려면 애플리케이션 Pod를 확인하면 됩니다.
+
+```sh
+kubectl get pods -n kubetail-system
+```
+
+## YAML 매니페스트
+
+클러스터 기반 인증에는 [kubetail-clusterauth.yaml](https://github.com/kubetail-org/helm-charts/releases/latest/download/kubetail-clusterauth.yaml)을 사용하세요.
+
+```sh
+kubectl apply -f https://github.com/kubetail-org/helm-charts/releases/latest/download/kubetail-clusterauth.yaml
+```
+
+토큰 기반 인증에는 [kubetail-tokenauth.yaml](https://github.com/kubetail-org/helm-charts/releases/latest/download/kubetail-tokenauth.yaml)을 사용하세요.
+
+```sh
+kubectl apply -f https://github.com/kubetail-org/helm-charts/releases/latest/download/kubetail-tokenauth.yaml
+```
+
+설치가 제대로 되었는지 확인하려면 애플리케이션 Pod를 확인하면 됩니다.
+
+```sh
+kubectl get pods -n kubetail-system
+```
+
+## 다음 단계
+
+Kubetail이 클러스터 안에서 실행되면 평소와 같이 `kubectl proxy` 또는 `kubectl port-forward`를 사용해 접근할 수 있습니다.
+
+* **`kubectl proxy`**
+
+  ```sh
+  kubectl proxy
+  ```
+
+  [http://localhost:8001/api/v1/namespaces/kubetail-system/services/kubetail-dashboard:8080/proxy/](http://localhost:8001/api/v1/namespaces/kubetail-system/services/kubetail-dashboard:8080/proxy/) 로 접속하세요.
+
+
+* **`kubectl port-forward`**
+
+  ```sh
+  kubectl port-forward -n kubetail-system svc/kubetail-dashboard 8080:8080
+  ```
+
+  [http://localhost:8080](http://localhost:8080) 로 접속하세요.
+
+Kubetail 웹 대시보드에 더 쉽게 접근하려면 Service 또는 Ingress로 노출할 수도 있습니다.
+
+Kubetail Dashboard에 대한 자세한 내용은 [여기 문서](/ko/docs/concepts/gui-overview)를 참고하세요.
+
+<br />
+<br />
+
+<Aside type="tip">
+Kubetail은 클러스터 내부뿐 아니라 다음 환경에서도 실행할 수 있습니다.
+
+* [Desktop](/ko/docs/guides/desktop/installation)
+* [Docker](/ko/docs/guides/docker/installation)
+</Aside>

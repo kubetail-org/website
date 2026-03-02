@@ -1,0 +1,132 @@
+---
+title: ログの表示
+description: "Kubetail で Kubernetes ログを表示します。`kubetail serve` で Web ダッシュボードを起動するか、`kubetail logs` でログを直接ターミナルにストリーミングできます。"
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import { Image } from "astro:assets";
+
+import terminalLight from '@/assets/screenshots/light/terminal-logs.webp';
+import terminalDark from '@/assets/screenshots/dark/terminal-logs.webp';
+
+Kubetail を[インストール](/ja/docs/guides/desktop/installation)したら、`kubetail serve` で Web ダッシュボードを起動するか、`kubetail logs` でログをターミナルへ直接ストリーミングできます。
+
+---
+
+## Web ダッシュボード (GUI)
+
+Web ダッシュボードは、Kubernetes ワークロード全体のログをブラウザー上で参照し、絞り込むためのインターフェースを提供します。`kubetail serve` で起動すると、[`http://localhost:7500`](http://localhost:7500) が自動的に開きます。ダッシュボードでは、ワークロードや Pod を選択し、そのログ出力をリアルタイムで確認したり、ブラウザーを離れずにクラスタコンテキストを切り替えたりできます。ダッシュボード機能の詳しい説明は、[Web ダッシュボード (GUI) ガイド](/ja/docs/concepts/gui-overview) を参照してください。
+
+---
+
+## ターミナル
+
+<Image src={terminalLight} alt="`kubetail logs` コマンドの出力を表示しているターミナル" class="dark:sl-hidden" />
+<Image src={terminalDark} alt="`kubetail logs` コマンドの出力を表示しているターミナル" class="light:sl-hidden" />
+
+`kubetail logs` コマンドを使うと、ログを直接ターミナルで取得してストリーミングできます。個々の Pod、Deployment、その他のワークロードタイプを対象にでき、異なる namespace にある複数のソースを 1 つのコマンドにまとめることも可能です。
+
+```sh
+kubetail logs frontend:deployments/web backend:deployments/api
+```
+
+**末尾追跡**
+
+既定では、`kubetail logs` は直近 10 件のレコードを返します。先頭から読みたい場合は `--head`、すべて返したい場合は `--all`、新しいレコードを継続的に追跡したい場合は `--follow` を使います。
+
+```sh
+# Deployment の新しいレコードをストリーミングする
+kubetail logs deployments/web --follow
+
+# 最初の 50 件のレコードを返す
+kubetail logs deployments/web --head=50
+
+# すべてのレコードを返し、そのまま追跡を続ける
+kubetail logs deployments/web --all --follow
+```
+
+**列の選択**
+
+出力テーブルには既定で `timestamp` と `dot` 列が含まれます。`--columns`、`--add-columns`、`--remove-columns` を使って表示内容を調整できます。使用可能な列は `timestamp`、`dot`、`node`、`region`、`zone`、`os`、`arch`、`namespace`、`pod`、`container` です。
+
+```sh
+# 既定列に namespace 列と pod 列を追加する
+kubetail logs deployments/web --add-columns pod,container
+
+# メタデータなしで生のログメッセージだけを表示する
+kubetail logs deployments/web --raw
+```
+
+**時間範囲で絞り込む**
+
+`--since` と `--until`（両端を含む）、または `--after` と `--before`（両端を含まない）を使うと、ログを特定の時間範囲に限定できます。ISO 8601 タイムスタンプと期間指定の両方に対応しています。
+
+```sh
+# 過去 30 分間のレコード
+kubetail logs deployments/web --since PT30M --all
+
+# 2 つのタイムスタンプの間のレコード
+kubetail logs deployments/web --since 2024-01-01T00:00:00Z --until 2024-01-02T00:00:00Z --all
+```
+
+**ソースで絞り込む**
+
+`--node`、`--zone`、`--region`、`--os`、`--arch` を使うと、出力に含める Pod を制限できます。各フラグにはカンマ区切りの値リストを指定できます。
+
+```sh
+# 特定ノード上で動作する Pod のログだけを表示する
+kubetail logs deployments/web --node=ip-10-0-1-42
+
+# 特定のアベイラビリティゾーンにある Pod のログだけを表示する
+kubetail logs deployments/web --zone=us-east-1a
+
+# フィルターを組み合わせる
+kubetail logs deployments/web --region=us-east-1 --arch=amd64
+```
+
+**内容で絞り込む**
+
+`--grep` に正規表現を指定してログ行を絞り込めます。
+
+```sh
+kubetail logs deployments/web --grep "ERROR" --force --all
+```
+
+注: `--grep` を使う場合は `--force` フラグが必要です。フィルタリングはクライアント側で行われるため、想定より多くのデータをダウンロードする可能性があります。
+
+**コンテナライフサイクルの追跡**
+
+Kubetail は Kubernetes Pod イベントをリアルタイムで監視します。ローリングアップデート、クラッシュ後の再起動、スケールアウトの際に新しい Pod やコンテナが起動すると、そのログは自動的に現在のストリームへ追加されます。これらの変化を見るためにストリームを再起動する必要はありません。
+
+<Aside type="tip">
+フラグとソース構文オプションの一覧は、[`kubetail logs` CLI リファレンス](/ja/docs/reference/cli#kubetail-logs) を参照してください。
+</Aside>
+
+---
+
+## 高度な機能
+
+ログファイルサイズ、最新イベントのタイムスタンプ、検索など、Kubernetes API では利用できない高度な機能を有効にするには、Kubetail のクラスタ内サービスをインストールして、ディスク上のログファイルにより低いレベルでアクセスできるようにします。これを **Kubetail API** と呼びます。
+
+Kubetail API は、Deployment として動作する [Kubetail Cluster API](/ja/docs/reference/cluster-api) と、DaemonSet として各ノード上で動作する [Kubetail Cluster Agent](/ja/docs/reference/cluster-agent) で構成されます。Cluster Agent は、ノードのファイルシステムからコンテナのログファイルを直接読み取り、必要に応じて API にストリーミングする小さな Rust 製プログラムです。大規模に grep でログを絞り込む場合、エージェント側で行を除外してからクライアントへ送れるため、特に有用です。
+
+Kubetail API のインストールは `kubetail cluster` コマンドで管理できます。
+
+```sh
+# Kubetail API をクラスタにインストールする
+kubetail cluster install
+
+# 最新バージョンへアップグレードする
+kubetail cluster upgrade
+
+# Kubetail API をクラスタから削除する
+kubetail cluster uninstall
+```
+
+Kubetail API をインストールすると、Kubetail は UI の高度な機能を自動的に有効化します。
+
+<Aside type="tip">
+`kubetail cluster` のすべてのサブコマンドは、特定のクラスタコンテキストを対象にするための `--kube-context` フラグを受け付けます。
+</Aside>
+
+`kubetail cluster` コマンドは内部で Helm を使用するため、必要であれば後から Helm でインストール内容を調整できます。Helm を直接使って管理したい場合は、[Helm Chart リファレンス](/ja/docs/reference/helm-chart) を参照してください。

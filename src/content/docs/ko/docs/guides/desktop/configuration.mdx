@@ -1,0 +1,223 @@
+---
+title: 구성
+description: "YAML, JSON 또는 TOML 파일로 Kubetail CLI를 구성합니다. kubeconfig 경로, `logs` 기본값(head, tail, columns), `serve`의 호스트와 포트를 다룹니다."
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+`kubetail` CLI 도구는 로컬 구성 파일로 설정할 수 있습니다. 구성 파일을 찾지 못하면 Kubetail은 아래에 표시된 기본값을 사용합니다. 이 파일은 YAML, JSON, TOML 형식을 지원하며, 값에서 `${VARIABLE_NAME}` 구문을 사용해 환경 변수를 참조할 수 있습니다.
+
+---
+
+## 초기화
+
+기본 구성 파일 경로는 `~/.kubetail/config.yaml` 입니다. 기본 위치에 파일을 두거나, CLI의 `config init` 명령으로 자동 생성해 구성을 초기화할 수 있습니다.
+
+```sh
+kubetail config init
+```
+
+<Aside type="tip">
+`config init` 명령은 `--format` 플래그를 받아 다른 초기화 형식을 선택할 수 있습니다. 자세한 내용은 [CLI 참조](/ko/docs/reference/cli#kubetail-config-init)를 확인하세요.
+</Aside>
+
+---
+
+## 사용 방법
+
+`kubetail` 명령을 실행할 때마다 기본 위치에서 구성 파일을 자동으로 찾습니다. 전역 `--config` 플래그로 다른 경로를 지정할 수 있습니다.
+
+```sh
+kubetail serve --config /path/to/config.yaml
+```
+
+<Aside type="tip">
+설정 우선순위는 다음과 같습니다.
+
+1. 기본값
+2. 구성 파일
+3. CLI 플래그
+</Aside>
+
+---
+
+## 기본값
+
+<Tabs>
+  <TabItem label="YAML">
+```yaml
+## Kubetail CLI 구성 파일
+# 
+# 이 파일은 kubetail CLI 도구의 동작을 정의하며,
+# logs 명령의 기본값과 대시보드 서버 설정을 포함합니다.
+#
+
+## version ##
+#
+# 구성 파일의 스키마 버전
+#
+version: 1
+
+## general ##
+#
+general:
+
+  ## kubeconfig ##
+  #
+  # CLI 요청에 사용할 kubeconfig 파일 경로입니다.
+  # 비어 있으면 기본 경로(~/.kube/config) 또는 KUBECONFIG 환경 변수를 사용합니다.
+  #
+  # 기본값: ""
+  #
+  kubeconfig: ""
+
+## commands ##
+#
+commands:
+
+  ## logs ##
+  #
+  # 'logs' 하위 명령 전용 설정
+  #
+  logs:
+
+    ## kube-context ##
+    #
+    # 사용할 특정 Kubernetes 컨텍스트입니다.
+    # 비어 있으면 현재 활성 컨텍스트를 사용합니다.
+    #
+    # 기본값: ""
+    #
+    kube-context: ""
+
+    ## head ##
+    #
+    # 로그 버퍼 시작 부분에서 표시할 줄 수
+    #
+    # 기본값: 10
+    #
+    head: 10
+
+    ## tail ##
+    #
+    # 로그 버퍼 끝 부분에서 표시할 줄 수
+    #
+    # 기본값: 10
+    #
+    tail: 10
+
+    ## columns ##
+    #
+    # 'logs' 레코드에 대한 전체 출력 열 집합입니다.
+    # 허용 값: timestamp,dot,node,region,zone,os,arch,namespace,pod,container
+    #
+    # 기본값: ["timestamp", "dot"]
+    #
+    columns:
+      - timestamp
+      - dot
+
+  ## serve ##
+  #
+  # 대시보드 서버 설정
+  #
+  serve:
+
+    ## host ##
+    #
+    # 서버가 바인딩할 네트워크 인터페이스입니다.
+    #
+    # 기본값: localhost
+    #
+    host: localhost
+
+    ## port ##
+    #
+    # 서버가 수신 대기할 TCP 포트입니다.
+    #
+    # 기본값: 7500
+    #
+    port: 7500
+
+    ## skip-open ##
+    #
+    # true이면 서버가 시작될 때 CLI가 브라우저를 자동으로 열지 않습니다.
+    #
+    # 기본값: false
+    #
+    skip-open: false
+```
+  </TabItem>
+  <TabItem label="TOML">
+```toml
+# Kubetail CLI 구성 파일
+#
+# kubetail CLI 도구의 동작을 정의하며,
+# logs 명령 기본값과 대시보드 서버 설정을 포함합니다.
+
+# 구성 파일의 스키마 버전
+version = 1
+
+[general]
+# kubeconfig 경로입니다. 비어 있으면 ~/.kube/config 또는 KUBECONFIG를 사용합니다.
+kubeconfig = ""
+
+[commands.logs]
+# 사용할 특정 Kubernetes 컨텍스트입니다. 비어 있으면 활성 컨텍스트를 사용합니다.
+kube-context = ""
+
+# 로그 버퍼 시작 부분에서 표시할 줄 수
+head = 10
+
+# 로그 버퍼 끝 부분에서 표시할 줄 수
+tail = 10
+
+# 'logs' 레코드에 대한 전체 출력 열 집합입니다.
+# 허용 값: timestamp,dot,node,region,zone,os,arch,namespace,pod,container
+columns = ["timestamp", "dot"]
+
+[commands.serve]
+# 서버가 바인딩할 네트워크 인터페이스
+host = "localhost"
+
+# 서버가 수신 대기할 TCP 포트
+port = 7500
+
+# true이면 서버 시작 시 브라우저를 자동으로 열지 않습니다
+skip-open = false
+```
+  </TabItem>
+  <TabItem label="JSON">
+```json
+{
+  "version": 1,
+  "general": {
+    "kubeconfig": ""
+  },
+  "commands": {
+    "logs": {
+      "kube-context": "",
+      "head": 10,
+      "tail": 10,
+      "columns": ["timestamp", "dot"]
+    },
+    "serve": {
+      "host": "localhost",
+      "port": 7500,
+      "skip-open": false
+    }
+  }
+}
+```
+  </TabItem>
+</Tabs>
+
+<Aside type="tip">
+환경 변수 확장을 지원합니다. 예:
+
+```yaml
+commands:
+  serve:
+    port: ${MY_KUBETAIL_PORT}
+```
+</Aside>

@@ -1,0 +1,110 @@
+---
+title: Monitoring
+description: "Kubetail のクラスタデプロイを監視します。各コンポーネントのヘルスエンドポイント (`/healthz`)、liveness/readiness probe、構造化 JSON ログ出力を扱います。"
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Kubetail は各コンポーネントでヘルスチェック用エンドポイントと構造化ログ出力を公開します。このページでは、Kubetail がクラスタ内にデプロイされているときに、その健全性をどのように監視するかを説明します。
+
+---
+
+## ヘルスチェック
+
+各コンポーネントはヘルスエンドポイントを公開しており、クラスタの liveness probe と readiness probe はそれを使って Pod の健全性を判定します。
+
+### Dashboard と Cluster API
+
+Dashboard と Cluster API はどちらも HTTP のヘルスエンドポイントを公開します。
+
+```
+GET /healthz
+```
+
+Helm chart はこのエンドポイントに対する liveness probe と readiness probe を自動的に設定します。同じエンドポイントを使って、コンポーネントの状態を手動で確認することもできます。
+
+```sh
+kubectl exec -n kubetail-system deploy/kubetail-dashboard -- \
+  wget -qO- http://localhost:8080/healthz
+```
+
+### Cluster Agent
+
+Cluster Agent は gRPC ポート (`:50051`) で標準の [gRPC health](https://grpc.github.io/grpc/core/md_doc_health-checking.html) サービスを公開します。Helm chart はコンテナ内で `grpc_health_probe` を使い、readiness と liveness を確認します。
+
+---
+
+## Logging
+
+3 つのコンポーネントはすべて、既定で JSON 形式の構造化ログを出力します。各ログエントリにはタイムスタンプ、ログレベル、さらに個々のリクエストをシステム全体で追跡するための `request_id` などのコンテキスト情報が含まれます。
+
+### ログレベル
+
+| Level | Description |
+|-------|-------------|
+| `debug` | 内部のリクエストルーティング詳細を含む詳細な出力 |
+| `info` | 通常の運用メッセージ（既定） |
+| `warn` | 注意が必要な可能性がある回復可能な問題 |
+| `error` | リクエスト処理に影響する障害 |
+| `disabled` | ログ出力なし |
+
+### 設定
+
+ログレベルとフォーマットは、Helm values 内の `runtimeConfig` を通じてコンポーネントごとに設定します。
+
+```yaml
+kubetail:
+  dashboard:
+    runtimeConfig:
+      logging:
+        level: info
+        format: json        # json or pretty
+        access-log:
+          enabled: true
+          hide-health-checks: true  # suppress /healthz from access logs
+  clusterAPI:
+    runtimeConfig:
+      logging:
+        level: info
+        format: json
+        access-log:
+          enabled: true
+          hide-health-checks: true
+  clusterAgent:
+    runtimeConfig:
+      logging:
+        level: info
+        format: json
+```
+
+<Aside type="tip">
+開発時は、人が読みやすいログ出力のために `format: pretty` を使ってください。本番環境では `format: json` の方がログ集約ツールと統合しやすくなります。
+</Aside>
+
+### アクセスログ
+
+Dashboard と Cluster API には、各受信リクエストを記録する HTTP アクセスログが含まれます。アクセスログには HTTP メソッド、パス、ステータスコード、処理時間、リモートアドレス、リクエスト ID が含まれます。ノイズを減らすために、ヘルスチェックのリクエストをアクセスログから除外できます。
+
+```yaml
+logging:
+  access-log:
+    enabled: true
+    hide-health-checks: true
+```
+
+---
+
+## Pod の readiness を確認する
+
+Kubetail デプロイ全体の健全性を確認するには、次を実行します。
+
+```sh
+kubectl get pods -n kubetail-system
+```
+
+すべての Pod は `Running` 状態を示し、readiness probe に成功しているはずです。Pod が ready でない場合は、イベントとログを確認してください。
+
+```sh
+kubectl describe pod -n kubetail-system <pod-name>
+kubectl logs -n kubetail-system <pod-name>
+```

@@ -1,0 +1,105 @@
+---
+title: Ingress
+description: "Stellen Sie das Kubetail-Dashboard ausserhalb Ihres Clusters ueber einen Kubernetes-Ingress bereit. Enthalten ist ein Traefik-Beispiel mit HTTP Basic Auth und TLS ueber cert-manager."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Nach der Installation von Kubetail in Ihrem Cluster ist das Dashboard standardmaessig ueber `kubectl port-forward` oder `kubectl proxy` erreichbar. Wenn Sie einen dauerhaften, browserfreundlichen Zugriff ohne lokalen Proxy-Befehl moechten, koennen Sie es auch ueber eine Kubernetes-Ingress-Ressource bereitstellen.
+
+---
+
+## Ueberblick
+
+Das Helm-Chart enthaelt integrierte Unterstuetzung fuer die Erstellung einer Ingress-Ressource fuer das Dashboard. Sie ist standardmaessig deaktiviert, kann aber ueber die Werte Ihres Charts aktiviert und konfiguriert werden.
+
+Der Dashboard-Service lauscht innerhalb des Clusters auf Port `8080`. Ihr Ingress-Controller muss den Datenverkehr an diesen Port weiterleiten.
+
+---
+
+## Ingress aktivieren
+
+Um den Ingress zu aktivieren, setzen Sie `kubetail.dashboard.ingress.enabled` auf `true` und konfigurieren Sie mindestens eine Regel:
+
+```yaml
+kubetail:
+  dashboard:
+    ingress:
+      enabled: true
+      name: kubetail
+      annotations:
+        traefik.ingress.kubernetes.io/router.middlewares: kubetail-system-kubetail-auth@kubernetescrd
+      className: traefik
+      rules:
+        - host: kubetail.example.com
+          http:
+            paths:
+              - path: /
+                pathType: Prefix
+```
+
+Wenden Sie die Werte anschliessend auf Ihr Release an:
+
+```sh
+helm upgrade kubetail kubetail/kubetail \
+  --namespace kubetail-system \
+  --values values.yaml
+```
+
+---
+
+## TLS-Terminierung
+
+Um HTTPS zu aktivieren, fuegen Sie einen `tls`-Block hinzu, der auf ein Secret mit Ihrem Zertifikat verweist:
+
+```yaml
+kubetail:
+  dashboard:
+    ingress:
+      enabled: true
+      className: nginx
+      rules:
+        - host: kubetail.example.com
+          http:
+            paths:
+              - path: /
+                pathType: Prefix
+                backend:
+                  service:
+                    name: kubetail-dashboard
+                    port:
+                      number: 8080
+      tls:
+        - hosts:
+            - kubetail.example.com
+          secretName: kubetail-tls
+```
+
+Wenn Sie [cert-manager](https://cert-manager.io) verwenden, koennen Sie die Bereitstellung von Zertifikaten automatisieren, indem Sie dem Ingress die passende Annotation hinzufuegen:
+
+```yaml
+kubetail:
+  dashboard:
+    ingress:
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+```
+
+<Aside type="tip">
+Wenn Sie das Dashboard ueber HTTPS bereitstellen, setzen Sie `session.cookie.secure: true` in der `runtimeConfig` des Dashboards, damit das Session-Cookie nur ueber sichere Verbindungen uebertragen wird:
+
+```yaml
+kubetail:
+  dashboard:
+    runtimeConfig:
+      session:
+        cookie:
+          secure: true
+```
+</Aside>
+
+---
+
+<Aside>
+Nur das Dashboard wird ueber Ingress exponiert. Cluster API und Cluster Agent kommunizieren ueber das clusterinterne Netzwerk und benoetigen keine externe Freigabe.
+</Aside>

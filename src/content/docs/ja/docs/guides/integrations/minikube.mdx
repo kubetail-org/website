@@ -1,0 +1,16 @@
+---
+title: Minikube
+description: "Kubetail を minikube の組み込み addon（v1.36.0 以降で利用可能）として 1 コマンドでインストールし、`minikube service` でダッシュボードを開けます。"
+---
+
+[minikube](https://minikube.sigs.k8s.io/docs/) v1.36.0 以降では、Kubetail を addon としてインストールできます。
+
+```sh
+minikube addons enable kubetail
+```
+
+クラスター内で Kubetail の Pod が起動したら、service 経由でアクセスできます。
+
+```sh
+minikube service -n kubetail-system kubetail-dashboard
+```

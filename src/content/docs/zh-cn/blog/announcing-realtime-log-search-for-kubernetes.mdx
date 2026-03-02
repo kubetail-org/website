@@ -1,0 +1,24 @@
+---
+title: "发布：Kubernetes 实时日志搜索"
+description: "Kubetail 现已支持基于 ripgrep 的实时日志搜索。安装 Kubetail 集群代理，可在数据离开集群前直接在节点上 grep 容器日志。"
+date: 2025-05-01
+authors:
+  - name: Andres Morey
+    title: Lead Developer
+    url: https://github.com/amorey
+    picture: https://github.com/amorey.png
+---
+
+自去年 Kubetail 发布以来，日志搜索一直是呼声最高的功能需求。现在，我很高兴地宣布，日志搜索功能已在最新官方版本（cli/v0.4.3，helm/v0.10.1）中正式推出。您可以在这里查看实际效果：
+
+[https://www.kubetail.com/demo](https://www.kubetail.com/demo)
+
+实现搜索功能花费了较长时间，原因在于 Kubernetes API 原生不支持搜索，我们需要从零开始构建。我们曾考虑通过客户端 grep 快速实现，但这种方式用户体验不佳——每次搜索可能需要下载大量日志文件，既慢又耗费带宽。虽然有变通方案，但需要用户额外操作，同样影响体验。
+
+因此，我们通过封装 [ripgrep](https://github.com/BurntSushi/ripgrep) 的自定义 Rust 可执行文件来实现搜索。为什么选择 Rust？因为它极快。Kubetail 后端大部分用 Go 编写，但对于这个直接读取磁盘日志文件的底层组件，我们希望它尽可能快。结果：扫描一个 1GB 的文件只需约 250ms。每次查询时，该可执行文件仅扫描每个节点上相关的容器日志文件，并将匹配的行流式传输到浏览器。大多数查询可以提前终止，甚至在完整扫描前就能返回结果。您可以将 Kubetail 搜索理解为 Kubernetes 日志的"远程 grep"——不再需要下载整个日志文件再本地 grep。
+
+要启用搜索功能，需要在集群中安装 Kubetail"集群资源"。可以通过 GUI 点击"Install"或在 CLI 中运行 `kubetail cluster install` 轻松完成。此操作将在每个节点上部署 Kubetail 集群代理，以及一个 Kubetail 集群 API 实例。集群 API 可用时，仪表板将通过它访问节点上的搜索等 Kubetail 自定义功能；否则，仪表板将在 GUI 中禁用这些功能并回退到使用 Kubernetes API。
+
+日志搜索只是开始，还有很大的改进空间。如果您是 Rust、Go 或 React 开发者，或者是热爱日志的 UI 设计师，欢迎加入我们，共同打造最友好的 Kubernetes 开源日志平台。在 [Discord](https://discord.gg/CmsmWAVkvX) 上加入我们的社区！
+
+Andres

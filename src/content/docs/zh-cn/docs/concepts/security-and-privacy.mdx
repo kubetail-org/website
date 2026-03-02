@@ -1,0 +1,49 @@
+---
+title: 安全与隐私
+description: "Kubetail 让您的日志数据始终处于您的控制之下，从集群到桌面端皆如此。所有访问控制都委托给 Kubernetes RBAC。"
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+Kubetail 的设计目标，是让您的日志数据从集群到桌面端始终处于您的控制之下，同时确保集群管理员始终掌控谁可以访问这些数据。本页说明 Kubetail 如何通过设计来处理隐私与安全问题。
+
+---
+
+## 日志隐私
+
+Kubetail 没有云端日志后端，因此当您查看日志时，数据会直接从集群传到您的设备，而不会先经过外部服务。具体路径取决于部署拓扑:
+
+- **桌面端**: 日志从磁盘上的 Pod 日志文件出发，经由 kube-apiserver（或已安装的 Kubetail API），到达运行在本地机器上的 Dashboard 服务器，最后进入浏览器。整个路径都位于您的集群和桌面环境之内。
+- **集群内**: 日志从磁盘上的 Pod 日志文件出发，经由 kube-apiserver（或 Kubetail API），传到运行在集群内部的 Dashboard 服务器，整个过程都走集群内部网络。只有在您通过 `kubectl port-forward`、`kubectl proxy` 或您自己控制的 ingress 连接后，日志才会到达您的浏览器。
+
+无论哪种方式，您的日志数据从头到尾都处于您的掌控之中（详情见[架构](/zh-cn/docs/concepts/architecture)）。
+
+---
+
+## 访问控制
+
+Kubetail 将所有访问控制都委托给 Kubernetes RBAC，因此集群管理员始终完全掌控谁可以查看哪些日志。
+
+### Kubetail CLI
+
+在桌面端，Kubetail 会继承当前 kubeconfig context 的 RBAC 权限，也就是 `kubectl` 所使用的同一套权限。如果用户可以对某个 Pod 执行 `kubectl logs`，那么他们也可以在 Kubetail 中查看这些日志；如果不能，Kubetail 就会拒绝该请求。
+
+在打开任何日志流之前，Kubetail 会通过 Kubernetes 的 `SelfSubjectAccessReview` API 检查权限。集群管理员可以使用标准 Kubernetes RBAC 资源，将访问范围收得足够细。
+
+### Kubetail API
+
+当可选的 Kubetail API 安装在集群中时，Dashboard 服务器发往 Cluster API 的每一个请求都会包含该用户的 Kubernetes service account token。Cluster API 和 Cluster Agent 在返回任何数据之前，都会先将该 token 发送到 Kubernetes 授权 API 进行校验。
+
+这意味着，通过 Kubetail API 访问日志，仍然受与其他 Kubernetes API 操作相同的 RBAC 策略约束。Kubetail 不会引入任何独立的权限系统。一个在某个 namespace 中没有 `pods/log` 的 `get` 和 `watch` 权限的用户，无论通过何种方式连接，都无法获得该 namespace 的任何日志数据。
+
+---
+
+## 总结
+
+| 属性 | 行为 |
+|---|---|
+| 日志数据离开您的环境 | 从不 |
+| 云端日志后端 | 无 |
+| 访问控制机制 | Kubernetes RBAC |
+| 认证方式（桌面端） | kubeconfig 凭据 |
+| 认证方式（集群内） | Kubernetes service account token |

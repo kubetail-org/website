@@ -1,0 +1,322 @@
+---
+title: Dashboard-Referenz
+description: "Referenz fuer den Kubetail-Dashboard-Server: Docker-Image-Varianten, Start-Flags und YAML-Optionen fuer Authentifizierung, Sessions, TLS, CSRF und die Verbindung zur Cluster API."
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Das Kubetail Dashboard ist ein Go-basierter HTTP-Server, der die Dashboard-Web-UI hostet und die Backend-API bereitstellt, mit der die Web-UI mit Ihren Kubernetes-Clustern interagiert. Das Server-Binary wird aus dem Quellcode im Kubetail-Repository unter [modules/dashboard](https://github.com/kubetail-org/kubetail/tree/main/modules/dashboard) kompiliert und in der Regel ueber das Docker-Image `kubetail-dashboard` bereitgestellt (siehe unten). Es ist moeglich, `kubetail-dashboard` als eigenstaendigen Container auszufuehren, wir empfehlen jedoch die Bereitstellung ueber das offizielle Kubetail-[Helm-Chart](/de/docs/reference/helm-chart).
+
+## Docker-Image
+
+Das Docker-Image `kubetail-dashboard` wird bei jedem Release auf Docker Hub und in der GitHub Container Registry veroeffentlicht:
+
+| Registry | Image |
+|----------|-------|
+| Docker Hub | `kubetail/kubetail-dashboard` |
+| GHCR | `ghcr.io/kubetail-org/kubetail-dashboard` |
+
+Es sind zwei Varianten verfuegbar:
+
+| Tag-Suffix | Basis-Image | Beschreibung |
+|------------|-------------|--------------|
+| _(keines)_ | `scratch` | Minimales Image, kleinster Footprint |
+| `-alpine` | `alpine` | Enthaelt eine Shell und Standardwerkzeuge |
+
+## Entry-Point
+
+Der Standard-Entry-Point des Containers ist `/dashboard/dashboard`:
+
+```sh
+dashboard [flags]
+```
+
+## Flags
+
+| Flag | Kurz | Standard | Beschreibung |
+|------|------|----------|--------------|
+| `--config` | `-c` | | Pfad zur Konfigurationsdatei (z. B. `/etc/kubetail/dashboard.yaml`) |
+| `--addr` | `-a` | `:8080` | Host-Adresse, an die gebunden wird |
+| `--gin-mode` | | `release` | Gin-Framework-Modus (`release`, `debug`) |
+
+## Konfiguration
+
+Das Dashboard kann mit einer YAML-, JSON- oder TOML-Konfigurationsdatei konfiguriert werden. Uebergeben Sie den Pfad zur Datei mit `-c` / `--config`. Umgebungsvariablen koennen in der Konfigurationsdatei mit der Syntax `${VARIABLE_NAME}` referenziert werden.
+
+```sh
+dashboard --config /etc/kubetail/dashboard.yaml
+```
+
+<Tabs>
+  <TabItem label="YAML">
+    ```yaml
+    ## Kubetail Dashboard Configuration File
+    #
+    # Diese Datei definiert das Verhalten des kubetail dashboard server,
+    # der die Web-UI bereitstellt und die Backend-API fuer das Dashboard liefert.
+    #
+
+    ## allowed-namespaces ##
+    #
+    # Liste der Namespaces, auf die das Dashboard zugreifen darf.
+    # Wenn leer, sind alle Namespaces zugaenglich.
+    #
+    # Standardwert: []
+    #
+    allowed-namespaces: []
+
+    ## kubeconfig ##
+    #
+    # Pfad zur kubeconfig-Datei, die fuer Kubernetes-API-Anfragen verwendet wird.
+    # Wenn leer, wird der Standardpfad (~/.kube/config) oder die Umgebungsvariable KUBECONFIG verwendet.
+    #
+    # Standardwert: ""
+    #
+    kubeconfig: ""
+
+    ## addr ##
+    #
+    # Die Netzwerkadresse und der Port, an die der HTTP-Server gebunden werden soll.
+    #
+    # Standardwert: :8080
+    #
+    addr: ":8080"
+
+    ## auth-mode ##
+    #
+    # Der Authentifizierungsmodus fuer das Dashboard.
+    # Gueltige Werte: auto, token
+    #
+    # Standardwert: auto
+    #
+    auth-mode: auto
+
+    ## base-path ##
+    #
+    # Der Basis-URL-Pfad fuer alle Dashboard-Endpunkte.
+    #
+    # Standardwert: /
+    #
+    base-path: /
+
+    ## cluster-api-endpoint ##
+    #
+    # Die URL des Cluster-API-Servers.
+    # Wenn leer, ist die Cluster-API-Integration deaktiviert.
+    #
+    # Standardwert: ""
+    #
+    cluster-api-endpoint: ""
+
+    ## environment ##
+    #
+    # Die Umgebung, in der das Dashboard ausgefuehrt wird.
+    # Gueltige Werte: desktop, cluster
+    #
+    # Standardwert: cluster
+    #
+    environment: cluster
+
+    ## gin-mode ##
+    #
+    # Der Gin-Framework-Modus.
+    # Gueltige Werte: debug, release
+    #
+    # Standardwert: release
+    #
+    gin-mode: release
+
+    ## csrf ##
+    #
+    # Einstellungen fuer den CSRF-Schutz
+    #
+    csrf:
+
+      ## enabled ##
+      #
+      # Ob CSRF-Schutz aktiviert ist.
+      #
+      # Standardwert: true
+      #
+      enabled: true
+
+    ## logging ##
+    #
+    # Konfiguration fuer die Log-Ausgabe des Dashboard-Servers
+    #
+    logging:
+
+      ## enabled ##
+      #
+      # Ob Logging fuer den Server aktiviert ist.
+      #
+      # Standardwert: true
+      #
+      enabled: true
+
+      ## level ##
+      #
+      # Das minimale Log-Level, das ausgegeben wird.
+      # Gueltige Werte: debug, info, warn, error, disabled
+      #
+      # Standardwert: info
+      #
+      level: info
+
+      ## format ##
+      #
+      # Das Format der Log-Ausgabe.
+      # Gueltige Werte: json, pretty
+      #
+      # Standardwert: json
+      #
+      format: json
+
+      ## access-log ##
+      #
+      # Konfiguration fuer HTTP-Access-Logging
+      #
+      access-log:
+
+        ## enabled ##
+        #
+        # Ob Access-Logging aktiviert ist.
+        #
+        # Standardwert: true
+        #
+        enabled: true
+
+        ## hide-health-checks ##
+        #
+        # Ob Health-Check-Anfragen (/healthz) im Access-Log ausgelassen werden sollen.
+        #
+        # Standardwert: false
+        #
+        hide-health-checks: false
+
+    ## session ##
+    #
+    # Einstellungen fuer das Session-Management
+    #
+    session:
+
+      ## secret ##
+      #
+      # Der geheime Schluessel, der zum Signieren von Session-Tokens verwendet wird.
+      # Wenn leer, wird beim Start ein zufaelliges Secret generiert (Sessions ueberleben
+      # dann keinen Neustart).
+      #
+      # Standardwert: ""
+      #
+      secret: ""
+
+      ## cookie ##
+      #
+      # Konfiguration des Session-Cookies
+      #
+      cookie:
+
+        ## name ##
+        #
+        # Der Name des Session-Cookies.
+        #
+        # Standardwert: kubetail_dashboard_session
+        #
+        name: kubetail_dashboard_session
+
+        ## path ##
+        #
+        # Der URL-Pfad, fuer den das Cookie gueltig ist.
+        #
+        # Standardwert: /
+        #
+        path: /
+
+        ## domain ##
+        #
+        # Die Domain, fuer die das Cookie gueltig ist.
+        # Wenn leer, ist das Cookie nur fuer die aktuelle Domain gueltig.
+        #
+        # Standardwert: ""
+        #
+        domain: ""
+
+        ## max-age ##
+        #
+        # Das maximale Alter des Cookies in Sekunden.
+        #
+        # Standardwert: 2592000 (30 Tage)
+        #
+        max-age: 2592000
+
+        ## secure ##
+        #
+        # Ob das Cookie nur ueber HTTPS gesendet werden soll.
+        #
+        # Standardwert: false
+        #
+        secure: false
+
+        ## http-only ##
+        #
+        # Ob das Cookie fuer JavaScript unzugaenglich ist.
+        #
+        # Standardwert: true
+        #
+        http-only: true
+
+        ## same-site ##
+        #
+        # Das SameSite-Attribut des Cookies.
+        # Gueltige Werte: strict, lax, none
+        #
+        # Standardwert: lax
+        #
+        same-site: lax
+
+    ## tls ##
+    #
+    # TLS-Konfiguration fuer den HTTP-Server
+    #
+    tls:
+
+      ## enabled ##
+      #
+      # Ob TLS aktiviert ist.
+      #
+      # Standardwert: false
+      #
+      enabled: false
+
+      ## cert-file ##
+      #
+      # Pfad zur TLS-Zertifikatsdatei.
+      #
+      # Standardwert: ""
+      #
+      cert-file: ""
+
+      ## key-file ##
+      #
+      # Pfad zur TLS-Private-Key-Datei.
+      #
+      # Standardwert: ""
+      #
+      key-file: ""
+
+    ## ui ##
+    #
+    # UI-spezifische Konfigurationsoptionen
+    #
+    ui:
+
+      ## cluster-api-enabled ##
+      #
+      # Ob die Cluster-API-Integration in der UI aktiviert ist.
+      #
+      # Standardwert: true
+      #
+      cluster-api-enabled: true
+    ```
+  </TabItem>
+</Tabs>
