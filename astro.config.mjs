@@ -60,6 +60,9 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
         src: './src/assets/logo.svg',
         replacesTitle: true,
       },
+      components: {
+        SiteTitle: './src/components/SiteTitle.astro',
+      },
       customCss: [
         './src/styles/global.css',
       ],
@@ -72,7 +75,7 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
         },
       ],
       editLink: {
-        baseUrl: 'https://github.com/kubetail-org/website/edit/main/',
+        baseUrl: 'https://github.com/kubetail-org/kubetail-docs/edit/main/',
       },
       social: [
         { icon: 'github', label: 'GitHub', href: 'https://github.com/kubetail-org/kubetail' },
