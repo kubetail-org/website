@@ -1,7 +1,6 @@
 // @ts-check
 import starlight from '@astrojs/starlight';
 import { defineConfig } from 'astro/config';
-import starlightBlog from 'starlight-blog';
 import starlightContextualMenu from 'starlight-contextual-menu';
 import starlightLlmsTxt from 'starlight-llms-txt';
 
@@ -12,7 +11,7 @@ import sitemap from '@astrojs/sitemap';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://www.kubetail.com',
+  site: 'https://docs.kubetail.com',
   trailingSlash: 'never',
 
   integrations: [
@@ -44,9 +43,6 @@ export default defineConfig({
         fr: { label: 'Français', lang: 'fr' },
       },
       plugins: [
-        starlightBlog({
-          navigation: 'none'
-        }),
         starlightContextualMenu({
           actions: ["copy", "view", "chatgpt", "claude", "lechat"],
         }),
@@ -59,14 +55,10 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
           `,
         }),
       ],
-      title: 'Kubetail',
+      title: 'Kubetail Docs',
       logo: {
         src: './src/assets/logo.svg',
         replacesTitle: true,
-      },
-      components: {
-        Header: './src/components/Header.astro',
-        Footer: './src/components/Footer.astro',
       },
       customCss: [
         './src/styles/global.css',
@@ -110,7 +102,7 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
                 pt: 'Introdução',
                 fr: 'Introduction',
               },
-              slug: 'docs/concepts/introduction',
+              slug: 'concepts/introduction',
             },
             {
               label: 'Quickstart',
@@ -123,7 +115,7 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
                 pt: 'Início rápido',
                 fr: 'Démarrage rapide',
               },
-              slug: 'docs/tutorials/getting-started/quickstart',
+              slug: 'tutorials/getting-started/quickstart',
             },
             {
               label: 'Architecture',
@@ -136,7 +128,7 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
                 pt: 'Arquitetura',
                 fr: 'Architecture',
               },
-              slug: 'docs/concepts/architecture',
+              slug: 'concepts/architecture',
             },
             {
               label: 'Security and Privacy',
@@ -149,7 +141,7 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
                 pt: 'Segurança e privacidade',
                 fr: 'Sécurité et confidentialité',
               },
-              slug: 'docs/concepts/security-and-privacy',
+              slug: 'concepts/security-and-privacy',
             },
             {
               label: 'Development/Production',
@@ -162,7 +154,7 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
                 pt: 'Desenvolvimento/Produção',
                 fr: 'Développement/Production',
               },
-              slug: 'docs/concepts/development-vs-production',
+              slug: 'concepts/development-vs-production',
             },
           ],
         },
@@ -189,7 +181,7 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
                 pt: 'Instalação',
                 fr: 'Installation',
               },
-              slug: 'docs/guides/desktop/installation',
+              slug: 'guides/desktop/installation',
             },
             {
               label: 'Configuration',
@@ -202,7 +194,7 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
                 pt: 'Configuração',
                 fr: 'Configuration',
               },
-              slug: 'docs/guides/desktop/configuration',
+              slug: 'guides/desktop/configuration',
             },
             {
               label: 'Authentication',
@@ -215,7 +207,7 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
                 pt: 'Autenticação',
                 fr: 'Authentification',
               },
-              slug: 'docs/guides/desktop/authentication',
+              slug: 'guides/desktop/authentication',
             },
             {
               label: 'Viewing Logs',
@@ -228,7 +220,7 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
                 pt: 'Visualizar logs',
                 fr: 'Afficher les journaux',
               },
-              slug: 'docs/guides/desktop/viewing-logs',
+              slug: 'guides/desktop/viewing-logs',
             },
           ],
         },
@@ -255,7 +247,7 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
                 pt: 'Instalação',
                 fr: 'Installation',
               },
-              slug: 'docs/guides/cluster/installation',
+              slug: 'guides/cluster/installation',
             },
             {
               label: 'Configuration',
@@ -268,9 +260,9 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
                 pt: 'Configuração',
                 fr: 'Configuration',
               },
-              slug: 'docs/guides/cluster/configuration',
+              slug: 'guides/cluster/configuration',
             },
-            { label: 'Ingress', slug: 'docs/guides/cluster/ingress' },
+            { label: 'Ingress', slug: 'guides/cluster/ingress' },
             {
               label: 'RBAC & Permissions',
               translations: {
@@ -282,7 +274,7 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
                 pt: 'RBAC e permissões',
                 fr: 'RBAC et permissions',
               },
-              slug: 'docs/guides/cluster/rbac-and-permissions',
+              slug: 'guides/cluster/rbac-and-permissions',
             },
             {
               label: 'Monitoring',
@@ -295,7 +287,7 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
                 pt: 'Monitoramento',
                 fr: 'Surveillance',
               },
-              slug: 'docs/guides/cluster/monitoring',
+              slug: 'guides/cluster/monitoring',
             },
           ],
         },
@@ -322,11 +314,11 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
                 pt: 'Introdução',
                 fr: 'Introduction',
               },
-              slug: 'docs/guides/docker/introduction',
+              slug: 'guides/docker/introduction',
             },
-            { label: 'Docker Run', slug: 'docs/guides/docker/docker-run' },
-            { label: 'Docker Compose', slug: 'docs/guides/docker/docker-compose' },
-            { label: 'Kubernetes Pod', slug: 'docs/guides/docker/kubernetes-pod' },
+            { label: 'Docker Run', slug: 'guides/docker/docker-run' },
+            { label: 'Docker Compose', slug: 'guides/docker/docker-compose' },
+            { label: 'Kubernetes Pod', slug: 'guides/docker/kubernetes-pod' },
           ],
         },
         {
@@ -352,7 +344,7 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
                 pt: 'Visão geral',
                 fr: "Vue d'ensemble",
               },
-              slug: 'docs/concepts/gui-overview',
+              slug: 'concepts/gui-overview',
             },
             {
               label: 'Basic Features',
@@ -365,7 +357,7 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
                 pt: 'Recursos básicos',
                 fr: 'Fonctionnalités de base',
               },
-              slug: 'docs/guides/dashboard/basic-features',
+              slug: 'guides/dashboard/basic-features',
             },
             {
               label: 'Advanced Features',
@@ -378,7 +370,7 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
                 pt: 'Recursos avançados',
                 fr: 'Fonctionnalités avancées',
               },
-              slug: 'docs/guides/dashboard/advanced-features',
+              slug: 'guides/dashboard/advanced-features',
             },
           ],
         },
@@ -394,7 +386,7 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
             fr: 'Intégrations',
           },
           items: [
-            { label: 'Minikube', slug: 'docs/guides/integrations/minikube' },
+            { label: 'Minikube', slug: 'guides/integrations/minikube' },
           ],
         },
         {
@@ -409,7 +401,7 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
             fr: 'Référence',
           },
           items: [
-            { label: 'CLI', slug: 'docs/reference/cli' },
+            { label: 'CLI', slug: 'reference/cli' },
             {
               label: 'Dashboard',
               translations: {
@@ -421,7 +413,7 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
                 pt: 'Dashboard',
                 fr: 'Tableau de bord',
               },
-              slug: 'docs/reference/dashboard',
+              slug: 'reference/dashboard',
             },
             {
               label: 'Cluster API',
@@ -434,7 +426,7 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
                 pt: 'API de cluster',
                 fr: 'API du cluster',
               },
-              slug: 'docs/reference/cluster-api',
+              slug: 'reference/cluster-api',
             },
             {
               label: 'Cluster Agent',
@@ -447,9 +439,9 @@ The primary entry point for Kubetail is the kubetail CLI tool, which can launch 
                 pt: 'Agente de cluster',
                 fr: 'Agent de cluster',
               },
-              slug: 'docs/reference/cluster-agent',
+              slug: 'reference/cluster-agent',
             },
-            { label: 'Helm Chart', slug: 'docs/reference/helm-chart' },
+            { label: 'Helm Chart', slug: 'reference/helm-chart' },
           ],
         },
       ],

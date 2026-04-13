@@ -1,6 +1,6 @@
 {
-  "name": "Kubetail",
-  "short_name": "Kubetail",
+  "name": "Kubetail Docs",
+  "short_name": "Kubetail Docs",
   "icons": [
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
   ],
