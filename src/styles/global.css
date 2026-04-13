@@ -27,13 +27,4 @@
   @apply whitespace-nowrap;
 }
 
-.site-title::after {
-  content: 'DOCS';
-  font-size: .8em;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  margin-left: -.7rem;  
-  margin-bottom: -0.3rem;
-  opacity: .45;
-}
 

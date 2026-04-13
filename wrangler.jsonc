@@ -1,8 +1,11 @@
 {
   "main": "dist/_worker.js/index.js",
-  "name": "kubetail-website",
+  "name": "kubetail-docs",
   "routes": [
-    { "pattern": "docs.kubetail.com", "custom_domain": true },
+    {
+      "pattern": "docs.kubetail.com",
+      "custom_domain": true
+    },
   ],
   "compatibility_date": "2026-02-27",
   "compatibility_flags": [
