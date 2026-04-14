@@ -7,6 +7,7 @@
 		}
 	],
 	"compatibility_date":"2026-04-14",
+	"compatibility_flags": ["global_fetch_strictly_public", "nodejs_compat"],
 	"assets": {
 		"directory": "./dist",
 		"html_handling": "drop-trailing-slash",
