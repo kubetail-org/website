@@ -1,12 +1,17 @@
 // @ts-check
-import { defineConfig } from "astro/config";
+import cloudflare from "@astrojs/cloudflare";
+import sitemap from "@astrojs/sitemap";
 import starlight from "@astrojs/starlight";
+import { defineConfig } from "astro/config";
 import starlightContextualMenu from "starlight-contextual-menu";
 import starlightLlmsTxt from "starlight-llms-txt";
-import sitemap from "@astrojs/sitemap";
 
 // https://astro.build/config
 export default defineConfig({
+  adapter: cloudflare({
+    prerenderEnvironment: "node",
+  }),
+
   site: "https://docs.kubetail.com",
   trailingSlash: "never",
   devToolbar: { enabled: false },
@@ -84,6 +89,19 @@ export default defineConfig({
         },
       ],
       sidebar: [
+        {
+          label: "Welcome",
+          translations: {
+            "zh-CN": "欢迎",
+            ja: "ようこそ",
+            ko: "환영합니다",
+            de: "Willkommen",
+            es: "Bienvenido",
+            pt: "Bem-vindo",
+            fr: "Bienvenue",
+          },
+          slug: "",
+        },
         {
           label: "Getting Started",
           translations: {
