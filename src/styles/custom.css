@@ -1,3 +1,7 @@
 .hero-html {
   color: oklch(0.563 0.194 262.62);
 }
+
+.hero .sl-link-button.primary {
+  flex-direction: row-reverse;
+}
