@@ -1,27 +1,18 @@
 ---
-import { logos } from 'virtual:starlight/user-images';
-import config from 'virtual:starlight/user-config';
+import Logo from '../assets/logo.svg';
 ---
 
 <div class="site-title sl-flex">
 	<a href="https://www.kubetail.com" class="logo-link">
-		{
-			config.logo && logos.dark && (
-				<img
-					alt={config.logo.alt}
-					src={logos.dark.src}
-					width={logos.dark.width}
-					height={logos.dark.height}
-				/>
-			)
-		}
+		<Logo />
 	</a>
-	<a href="/concepts/introduction" class="docs-link" translate="no">DOCS</a>
+	<a href="/" class="docs-link" translate="no">DOCS</a>
 </div>
 
 <style>
 	@layer starlight.core {
 		.site-title {
+			--logo-height: 2rem;
 			align-items: center;
 			gap: var(--sl-nav-gap);
 			font-size: var(--sl-text-h4);
@@ -35,15 +26,16 @@ import config from 'virtual:starlight/user-config';
 			display: flex;
 			align-items: center;
 			text-decoration: none;
+			color: oklch(0.563 0.194 262.62);
 		}
-		img {
-			height: calc(var(--sl-nav-height) - 2 * var(--sl-nav-pad-y));
+		.logo-link :global(svg) {
+			height: var(--logo-height);
 			width: auto;
-			max-width: 100%;
-			object-fit: contain;
-			object-position: 0 50%;
 		}
 		.docs-link {
+			display: flex;
+			align-items: flex-end;
+			height: var(--logo-height);
 			font-size: .8em;
 			font-weight: 800;
 			letter-spacing: 0.05em;
@@ -51,11 +43,15 @@ import config from 'virtual:starlight/user-config';
 			text-decoration: none;
 			color: inherit;
 			margin-left: -.7rem;
-			margin-bottom: -0.3rem;
+			/* 19.5% of logo height: space below "Kubetail" text in the SVG */
+			margin-bottom: -0.17rem;
 		}
-		@media (max-width: 49.99em) {
+		@media (min-width: 50em) {
+			.site-title {
+				--logo-height: 2.3rem;
+			}
 			.docs-link {
-				margin-bottom: calc(-0.3rem + 1px);
+				margin-bottom: -0.25rem;
 			}
 		}
 	}
