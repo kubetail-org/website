@@ -6,6 +6,7 @@
 			"custom_domain": true
 		}
 	],
+	"compatibility_date":"2026-04-14",
 	"assets": {
 		"directory": "./dist",
 		"html_handling": "drop-trailing-slash",
