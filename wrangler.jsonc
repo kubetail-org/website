@@ -8,6 +8,10 @@
 	],
 	"compatibility_date":"2026-04-14",
 	"compatibility_flags": ["global_fetch_strictly_public", "nodejs_compat"],
+	"preview_urls": true,
+	"observability": {
+		"enabled": true
+	},
 	"assets": {
 		"directory": "./dist",
 		"html_handling": "drop-trailing-slash",

@@ -90,6 +90,19 @@ export default defineConfig({
       ],
       sidebar: [
         {
+          label: "Welcome",
+          translations: {
+            "zh-CN": "欢迎",
+            ja: "ようこそ",
+            ko: "환영합니다",
+            de: "Willkommen",
+            es: "Bienvenido",
+            pt: "Bem-vindo",
+            fr: "Bienvenue",
+          },
+          slug: "",
+        },
+        {
           label: "Getting Started",
           translations: {
             "zh-CN": "入门指南",
