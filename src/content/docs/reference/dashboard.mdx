@@ -65,6 +65,28 @@ dashboard --config /etc/kubetail/dashboard.yaml
     #
     allowed-namespaces: []
 
+    ## allowed-origins ##
+    #
+    # Additional origins (in addition to same-origin) accepted on WebSocket
+    # upgrade requests. Each entry must be a fully-qualified origin —
+    # scheme://host[:port] with no path. Comparison is case-insensitive on
+    # host and normalizes default ports (so https://example.com matches
+    # https://example.com:443).
+    #
+    # Use this when running the dashboard behind a reverse proxy that
+    # rewrites Host or terminates TLS without preserving scheme — direct
+    # same-origin matching against r.Host/r.TLS would otherwise reject
+    # legitimate browser requests. List the public-facing origin(s) the
+    # dashboard is served at.
+    #
+    # Examples:
+    #   - https://kubetail.example.com
+    #   - https://kubetail.example.com:8443
+    #
+    # Default value: []
+    #
+    allowed-origins: []
+
     ## kubeconfig ##
     #
     # Path to the kubeconfig file to use for Kubernetes API requests.
@@ -126,20 +148,6 @@ dashboard --config /etc/kubetail/dashboard.yaml
     #
     gin-mode: release
 
-    ## csrf ##
-    #
-    # CSRF protection settings
-    #
-    csrf:
-
-      ## enabled ##
-      #
-      # Whether CSRF protection is enabled.
-      #
-      # Default value: true
-      #
-      enabled: true
-
     ## logging ##
     #
     # Configuration for the dashboard server's logging output
@@ -200,15 +208,20 @@ dashboard --config /etc/kubetail/dashboard.yaml
     #
     session:
 
-      ## secret ##
+      ## key-pairs ##
       #
-      # The secret key used to sign session tokens.
-      # If empty, a random secret is generated on startup (sessions will not
-      # survive restarts).
+      # One or more signing/encryption key pairs for session cookies. The first
+      # pair is used for new cookies; additional pairs are accepted for reading
+      # only, enabling zero-downtime key rotation.
       #
-      # Default value: ""
+      # Each pair has:
+      #   signing-key    (required) — hex-encoded HMAC signing key; 32 or 64 raw bytes recommended
+      #   encryption-key (optional) — hex-encoded AES encryption key; 16, 24, or 32 raw bytes
       #
-      secret: ""
+      # When empty and a local-storage-dir is configured, a random pair is
+      # generated and persisted to disk on first startup.
+      #
+      key-pairs: []
 
       ## cookie ##
       #

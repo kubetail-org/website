@@ -44,16 +44,7 @@ kubectl get pods -n kubetail-system
 
 ## Next Steps
 
-Once Kubetail is running inside your cluster, you can access it using your usual access methods such as `kubectl proxy` or `kubectl port-forward`:
-
-* **`kubectl proxy`**
-
-  ```sh
-  kubectl proxy
-  ```
-
-  Visit [http://localhost:8001/api/v1/namespaces/kubetail-system/services/kubetail-dashboard:8080/proxy/](http://localhost:8001/api/v1/namespaces/kubetail-system/services/kubetail-dashboard:8080/proxy/)
-
+Once Kubetail is running inside your cluster, you can access it using your usual access methods such as `kubectl port-forward`:
 
 * **`kubectl port-forward`**
 
@@ -63,7 +54,7 @@ Once Kubetail is running inside your cluster, you can access it using your usual
 
   Visit [http://localhost:8080](http://localhost:8080)
 
-To make the Kubetail web dashboard easier to access you can also expose it using a service or an ingress.
+To make the Kubetail web dashboard easier to access you can also expose it using an `Ingress` or `GatewayAPI` route (see [Ingress](/guides/cluster/ingress)).
 
 For more information about the Kubetail Dashboard, check out the documentation [here](/dashboard).
 
