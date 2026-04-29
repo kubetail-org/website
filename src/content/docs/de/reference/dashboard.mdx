@@ -65,6 +65,30 @@ dashboard --config /etc/kubetail/dashboard.yaml
     #
     allowed-namespaces: []
 
+    ## allowed-origins ##
+    #
+    # Zusaetzliche Origins (zusaetzlich zu Same-Origin), die bei
+    # WebSocket-Upgrade-Anfragen akzeptiert werden. Jeder Eintrag muss
+    # ein vollstaendig qualifizierter Origin sein — scheme://host[:port]
+    # ohne Pfad. Der Vergleich erfolgt case-insensitiv beim Host und
+    # normalisiert Standard-Ports (so dass https://example.com mit
+    # https://example.com:443 uebereinstimmt).
+    #
+    # Verwenden Sie dies, wenn das Dashboard hinter einem Reverse-Proxy
+    # betrieben wird, der Host umschreibt oder TLS terminiert, ohne das
+    # Schema zu erhalten — andernfalls wuerde der direkte Same-Origin-
+    # Abgleich gegen r.Host/r.TLS legitime Browser-Anfragen ablehnen.
+    # Listen Sie die oeffentlichen Origins auf, unter denen das Dashboard
+    # bereitgestellt wird.
+    #
+    # Beispiele:
+    #   - https://kubetail.example.com
+    #   - https://kubetail.example.com:8443
+    #
+    # Standardwert: []
+    #
+    allowed-origins: []
+
     ## kubeconfig ##
     #
     # Pfad zur kubeconfig-Datei, die fuer Kubernetes-API-Anfragen verwendet wird.
@@ -126,20 +150,6 @@ dashboard --config /etc/kubetail/dashboard.yaml
     #
     gin-mode: release
 
-    ## csrf ##
-    #
-    # Einstellungen fuer den CSRF-Schutz
-    #
-    csrf:
-
-      ## enabled ##
-      #
-      # Ob CSRF-Schutz aktiviert ist.
-      #
-      # Standardwert: true
-      #
-      enabled: true
-
     ## logging ##
     #
     # Konfiguration fuer die Log-Ausgabe des Dashboard-Servers
@@ -200,15 +210,22 @@ dashboard --config /etc/kubetail/dashboard.yaml
     #
     session:
 
-      ## secret ##
+      ## key-pairs ##
       #
-      # Der geheime Schluessel, der zum Signieren von Session-Tokens verwendet wird.
-      # Wenn leer, wird beim Start ein zufaelliges Secret generiert (Sessions ueberleben
-      # dann keinen Neustart).
+      # Ein oder mehrere Signing-/Encryption-Schluesselpaare fuer
+      # Session-Cookies. Das erste Paar wird fuer neue Cookies verwendet;
+      # zusaetzliche Paare werden nur zum Lesen akzeptiert, was eine
+      # ausfallfreie Schluesselrotation ermoeglicht.
       #
-      # Standardwert: ""
+      # Jedes Paar enthaelt:
+      #   signing-key    (erforderlich) — hex-kodierter HMAC-Signing-Key; 32 oder 64 Roh-Bytes empfohlen
+      #   encryption-key (optional)     — hex-kodierter AES-Encryption-Key; 16, 24 oder 32 Roh-Bytes
       #
-      secret: ""
+      # Wenn leer und ein local-storage-dir konfiguriert ist, wird beim
+      # ersten Start ein zufaelliges Paar generiert und auf der Festplatte
+      # persistiert.
+      #
+      key-pairs: []
 
       ## cookie ##
       #

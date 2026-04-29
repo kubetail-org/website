@@ -65,6 +65,28 @@ dashboard --config /etc/kubetail/dashboard.yaml
     #
     allowed-namespaces: []
 
+    ## allowed-origins ##
+    #
+    # Origens adicionais (alem de same-origin) aceitas em requisicoes de
+    # upgrade WebSocket. Cada entrada deve ser uma origem totalmente
+    # qualificada — scheme://host[:port] sem caminho. A comparacao e
+    # case-insensitive no host e normaliza portas padrao (assim
+    # https://example.com corresponde a https://example.com:443).
+    #
+    # Use isto ao executar o dashboard atras de um proxy reverso que
+    # reescreve Host ou termina TLS sem preservar o scheme — a
+    # correspondencia direta de same-origin contra r.Host/r.TLS rejeitaria,
+    # de outra forma, requisicoes legitimas do navegador. Liste a(s)
+    # origem(ns) publica(s) em que o dashboard e servido.
+    #
+    # Exemplos:
+    #   - https://kubetail.example.com
+    #   - https://kubetail.example.com:8443
+    #
+    # Valor padrao: []
+    #
+    allowed-origins: []
+
     ## kubeconfig ##
     #
     # Caminho para o arquivo kubeconfig usado em requisicoes para a API do Kubernetes.
@@ -126,20 +148,6 @@ dashboard --config /etc/kubetail/dashboard.yaml
     #
     gin-mode: release
 
-    ## csrf ##
-    #
-    # Configuracoes de protecao CSRF
-    #
-    csrf:
-
-      ## enabled ##
-      #
-      # Indica se a protecao CSRF esta habilitada.
-      #
-      # Valor padrao: true
-      #
-      enabled: true
-
     ## logging ##
     #
     # Configuracao da saida de logs do servidor dashboard
@@ -200,15 +208,21 @@ dashboard --config /etc/kubetail/dashboard.yaml
     #
     session:
 
-      ## secret ##
+      ## key-pairs ##
       #
-      # A chave secreta usada para assinar tokens de sessao.
-      # Se estiver vazia, um secret aleatorio sera gerado na inicializacao (as sessoes nao
-      # sobreviverao a reinicializacoes).
+      # Um ou mais pares de chaves de assinatura/criptografia para cookies de
+      # sessao. O primeiro par e usado para novos cookies; pares adicionais
+      # sao aceitos somente para leitura, permitindo rotacao de chaves sem
+      # tempo de inatividade.
       #
-      # Valor padrao: ""
+      # Cada par tem:
+      #   signing-key    (obrigatorio) — chave HMAC de assinatura em hex; recomenda-se 32 ou 64 bytes brutos
+      #   encryption-key (opcional)    — chave AES de criptografia em hex; 16, 24 ou 32 bytes brutos
       #
-      secret: ""
+      # Quando vazio e um local-storage-dir esta configurado, um par
+      # aleatorio e gerado e persistido em disco na primeira inicializacao.
+      #
+      key-pairs: []
 
       ## cookie ##
       #

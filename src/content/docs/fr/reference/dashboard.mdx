@@ -65,6 +65,28 @@ dashboard --config /etc/kubetail/dashboard.yaml
     #
     allowed-namespaces: []
 
+    ## allowed-origins ##
+    #
+    # Origines additionnelles (en plus de same-origin) acceptees lors des
+    # requetes d'upgrade WebSocket. Chaque entree doit etre une origine
+    # pleinement qualifiee — scheme://host[:port] sans chemin. La comparaison
+    # est insensible a la casse sur l'hote et normalise les ports par defaut
+    # (ainsi https://example.com correspond a https://example.com:443).
+    #
+    # Utilisez ceci lorsque le dashboard s'execute derriere un reverse proxy
+    # qui reecrit Host ou termine TLS sans preserver le scheme — sinon la
+    # correspondance same-origin directe avec r.Host/r.TLS rejetterait des
+    # requetes navigateur legitimes. Listez la ou les origines publiques
+    # auxquelles le dashboard est servi.
+    #
+    # Exemples:
+    #   - https://kubetail.example.com
+    #   - https://kubetail.example.com:8443
+    #
+    # Valeur par defaut: []
+    #
+    allowed-origins: []
+
     ## kubeconfig ##
     #
     # Chemin vers le fichier kubeconfig a utiliser pour les requetes a l'API Kubernetes.
@@ -126,20 +148,6 @@ dashboard --config /etc/kubetail/dashboard.yaml
     #
     gin-mode: release
 
-    ## csrf ##
-    #
-    # Parametres de protection CSRF
-    #
-    csrf:
-
-      ## enabled ##
-      #
-      # Indique si la protection CSRF est activee.
-      #
-      # Valeur par defaut: true
-      #
-      enabled: true
-
     ## logging ##
     #
     # Configuration de la sortie de logs du serveur dashboard
@@ -200,15 +208,21 @@ dashboard --config /etc/kubetail/dashboard.yaml
     #
     session:
 
-      ## secret ##
+      ## key-pairs ##
       #
-      # Cle secrete utilisee pour signer les tokens de session.
-      # Si vide, un secret aleatoire est genere au demarrage (les sessions ne
-      # survivront pas aux redemarrages).
+      # Une ou plusieurs paires de cles de signature/chiffrement pour les
+      # cookies de session. La premiere paire est utilisee pour les nouveaux
+      # cookies; les paires supplementaires sont acceptees uniquement en
+      # lecture, ce qui permet une rotation de cles sans interruption.
       #
-      # Valeur par defaut: ""
+      # Chaque paire contient:
+      #   signing-key    (obligatoire) — cle HMAC de signature encodee en hex; 32 ou 64 octets bruts recommandes
+      #   encryption-key (optionnelle) — cle AES de chiffrement encodee en hex; 16, 24 ou 32 octets bruts
       #
-      secret: ""
+      # Si vide et qu'un local-storage-dir est configure, une paire aleatoire
+      # est generee et persistee sur disque au premier demarrage.
+      #
+      key-pairs: []
 
       ## cookie ##
       #

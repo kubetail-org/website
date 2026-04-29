@@ -86,7 +86,7 @@ kubetail:
 ```
 
 <Aside type="tip">
-Wenn Sie das Dashboard ueber HTTPS bereitstellen, setzen Sie `session.cookie.secure: true` in der `runtimeConfig` des Dashboards, damit das Session-Cookie nur ueber sichere Verbindungen uebertragen wird:
+Wenn Sie das Dashboard ueber HTTPS bereitstellen, setzen Sie `session.cookie.secure: true` in der `runtimeConfig` des Dashboards, damit das Session-Cookie nur ueber sichere Verbindungen uebertragen wird. Es empfiehlt sich ausserdem, fuer den Cookie-Namen ein `__Host-`-Praefix zu verwenden.
 
 ```yaml
 kubetail:
@@ -94,7 +94,20 @@ kubetail:
     runtimeConfig:
       session:
         cookie:
+          name: __Host-session
           secure: true
+```
+</Aside>
+
+<Aside type="tip">
+Wenn Sie das Dashboard hinter einem Proxy bereitstellen, koennen einige Anfragen die Same-Origin-Pruefungen nicht bestehen (z. B. wenn Host ungleich Origin ist) und werden abgelehnt (z. B. WebSocket-Verbindungen). Um dies zu beheben, koennen Sie die Option `allowedOrigins` verwenden:
+
+```yaml
+kubetail:
+  dashboard:
+    runtimeConfig:
+      allowedOrigins:
+        - https://kubetail.example.com
 ```
 </Aside>
 

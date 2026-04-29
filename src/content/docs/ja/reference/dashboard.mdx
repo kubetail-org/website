@@ -65,6 +65,29 @@ dashboard --config /etc/kubetail/dashboard.yaml
     #
     allowed-namespaces: []
 
+    ## allowed-origins ##
+    #
+    # WebSocket アップグレードリクエストで（same-origin に加えて）
+    # 受け入れる追加のオリジンです。各エントリは完全修飾オリジン
+    # （scheme://host[:port]、パスなし）である必要があります。比較は
+    # ホストについて大文字小文字を区別せず、デフォルトポートを正規化
+    # します（そのため https://example.com は https://example.com:443
+    # と一致します）。
+    #
+    # Host を書き換えたり scheme を保持せずに TLS を終端するリバース
+    # プロキシの背後で Dashboard を実行する場合にこの設定を使用します。
+    # この場合、r.Host/r.TLS に対する直接の same-origin 一致は正当な
+    # ブラウザリクエストを拒否してしまうためです。Dashboard が提供
+    # される公開向けのオリジンを記載してください。
+    #
+    # 例:
+    #   - https://kubetail.example.com
+    #   - https://kubetail.example.com:8443
+    #
+    # 既定値: []
+    #
+    allowed-origins: []
+
     ## kubeconfig ##
     #
     # Kubernetes API リクエストに使用する kubeconfig ファイルへのパスです。
@@ -126,20 +149,6 @@ dashboard --config /etc/kubetail/dashboard.yaml
     #
     gin-mode: release
 
-    ## csrf ##
-    #
-    # CSRF 保護設定
-    #
-    csrf:
-
-      ## enabled ##
-      #
-      # CSRF 保護を有効にするかどうか
-      #
-      # 既定値: true
-      #
-      enabled: true
-
     ## logging ##
     #
     # dashboard server のログ出力設定
@@ -200,15 +209,21 @@ dashboard --config /etc/kubetail/dashboard.yaml
     #
     session:
 
-      ## secret ##
+      ## key-pairs ##
       #
-      # セッショントークンの署名に使用する秘密鍵です。
-      # 空の場合は起動時にランダムな secret が生成されます（セッションは
-      # 再起動をまたいで保持されません）。
+      # セッション Cookie 用の署名／暗号化キーペアを 1 つ以上指定します。
+      # 最初のペアは新しい Cookie の生成に使用され、追加のペアは読み取り
+      # のみ受け付けられます。これによりダウンタイムなしでのキーローテー
+      # ションが可能になります。
       #
-      # 既定値: ""
+      # 各ペアの構成:
+      #   signing-key    （必須）— hex エンコードされた HMAC 署名鍵。32 または 64 バイトのバイナリ長を推奨
+      #   encryption-key （任意）— hex エンコードされた AES 暗号化鍵。16、24、32 バイトのバイナリ長
       #
-      secret: ""
+      # 空のとき local-storage-dir が設定されていれば、初回起動時に
+      # ランダムなペアが生成されてディスクに永続化されます。
+      #
+      key-pairs: []
 
       ## cookie ##
       #

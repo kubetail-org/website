@@ -65,6 +65,26 @@ dashboard --config /etc/kubetail/dashboard.yaml
     #
     allowed-namespaces: []
 
+    ## allowed-origins ##
+    #
+    # 在 WebSocket 升级请求中接受的额外 origin（在 same-origin 之外）。
+    # 每一项必须是完整的 origin —— scheme://host[:port]，不能包含路径。
+    # 比较时 host 不区分大小写，并会归一化默认端口（即 https://example.com
+    # 与 https://example.com:443 相匹配）。
+    #
+    # 当 dashboard 部署在反向代理之后，且代理重写了 Host 或终止了 TLS
+    # 而没有保留 scheme 时，请使用此选项 —— 否则直接基于 r.Host/r.TLS
+    # 进行 same-origin 匹配会拒绝合法的浏览器请求。请列出 dashboard
+    # 对外提供服务的 origin。
+    #
+    # 示例:
+    #   - https://kubetail.example.com
+    #   - https://kubetail.example.com:8443
+    #
+    # 默认值: []
+    #
+    allowed-origins: []
+
     ## kubeconfig ##
     #
     # Kubernetes API 请求使用的 kubeconfig 文件路径。
@@ -126,20 +146,6 @@ dashboard --config /etc/kubetail/dashboard.yaml
     #
     gin-mode: release
 
-    ## csrf ##
-    #
-    # CSRF 保护设置
-    #
-    csrf:
-
-      ## enabled ##
-      #
-      # 是否启用 CSRF 保护。
-      #
-      # 默认值: true
-      #
-      enabled: true
-
     ## logging ##
     #
     # dashboard server 的日志输出配置
@@ -200,15 +206,20 @@ dashboard --config /etc/kubetail/dashboard.yaml
     #
     session:
 
-      ## secret ##
+      ## key-pairs ##
       #
-      # 用于签名会话 token 的密钥。
-      # 如果为空，则会在启动时生成一个随机 secret（会话不会
-      # 跨重启保留）。
+      # 用于会话 cookie 的一个或多个签名/加密密钥对。第一个密钥对
+      # 用于生成新 cookie；其他密钥对仅用于读取，从而支持零停机
+      # 时间的密钥轮换。
       #
-      # 默认值: ""
+      # 每个密钥对包含:
+      #   signing-key    （必填）— 十六进制编码的 HMAC 签名密钥；建议使用 32 或 64 字节的原始字节
+      #   encryption-key （可选）— 十六进制编码的 AES 加密密钥；可为 16、24 或 32 字节的原始字节
       #
-      secret: ""
+      # 当此项为空且配置了 local-storage-dir 时，会在首次启动时
+      # 生成一个随机密钥对并持久化到磁盘。
+      #
+      key-pairs: []
 
       ## cookie ##
       #

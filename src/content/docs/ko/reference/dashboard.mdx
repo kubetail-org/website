@@ -65,6 +65,27 @@ dashboard --config /etc/kubetail/dashboard.yaml
     #
     allowed-namespaces: []
 
+    ## allowed-origins ##
+    #
+    # WebSocket 업그레이드 요청에서 same-origin 외에 추가로 허용할 origin
+    # 목록입니다. 각 항목은 fully-qualified origin이어야 하며 —
+    # scheme://host[:port] 형식으로 path는 포함하지 않습니다. 비교는 host에
+    # 대해 대소문자를 구분하지 않으며 기본 포트를 정규화합니다(예:
+    # https://example.com 은 https://example.com:443 과 일치합니다).
+    #
+    # Host를 재작성하거나 scheme을 보존하지 않은 채 TLS를 종료하는 리버스
+    # 프록시 뒤에서 dashboard를 실행할 때 사용하세요 — 이 경우 r.Host/r.TLS
+    # 기반의 직접적인 same-origin 매칭은 정상적인 브라우저 요청을 거부할
+    # 수 있습니다. dashboard가 외부에 노출되는 origin을 나열하세요.
+    #
+    # 예시:
+    #   - https://kubetail.example.com
+    #   - https://kubetail.example.com:8443
+    #
+    # 기본값: []
+    #
+    allowed-origins: []
+
     ## kubeconfig ##
     #
     # Kubernetes API 요청에 사용할 kubeconfig 파일 경로입니다.
@@ -126,20 +147,6 @@ dashboard --config /etc/kubetail/dashboard.yaml
     #
     gin-mode: release
 
-    ## csrf ##
-    #
-    # CSRF 보호 설정
-    #
-    csrf:
-
-      ## enabled ##
-      #
-      # CSRF 보호를 활성화할지 여부입니다.
-      #
-      # 기본값: true
-      #
-      enabled: true
-
     ## logging ##
     #
     # dashboard server 로그 출력 설정
@@ -200,15 +207,20 @@ dashboard --config /etc/kubetail/dashboard.yaml
     #
     session:
 
-      ## secret ##
+      ## key-pairs ##
       #
-      # 세션 토큰 서명에 사용하는 비밀 키입니다.
-      # 비어 있으면 시작 시 임의의 secret이 생성되며(세션은
-      # 재시작 후 유지되지 않습니다).
+      # 세션 쿠키용 서명/암호화 키 쌍입니다. 첫 번째 쌍은 새 쿠키를 만드는
+      # 데 사용되고, 추가 쌍은 읽기 전용으로 허용되어 무중단 키 로테이션을
+      # 가능하게 합니다.
       #
-      # 기본값: ""
+      # 각 쌍은 다음 항목을 가집니다.
+      #   signing-key    (필수) — hex 인코딩된 HMAC 서명 키. 32 또는 64 raw 바이트 권장
+      #   encryption-key (선택) — hex 인코딩된 AES 암호화 키. 16, 24 또는 32 raw 바이트
       #
-      secret: ""
+      # 비어 있고 local-storage-dir이 설정된 경우, 첫 시작 시 임의의 키
+      # 쌍이 생성되어 디스크에 저장됩니다.
+      #
+      key-pairs: []
 
       ## cookie ##
       #
