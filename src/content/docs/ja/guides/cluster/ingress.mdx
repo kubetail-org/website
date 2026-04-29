@@ -86,7 +86,7 @@ kubetail:
 ```
 
 <Aside type="tip">
-Dashboard を HTTPS で提供する場合は、Dashboard の `runtimeConfig` で `session.cookie.secure: true` を設定し、セッション Cookie が安全な接続でのみ送信されるようにしてください。
+Dashboard を HTTPS で提供する場合は、Dashboard の `runtimeConfig` で `session.cookie.secure: true` を設定し、セッション Cookie が安全な接続でのみ送信されるようにしてください。Cookie 名には `__Host-` プレフィックスを使用するのも良い習慣です。
 
 ```yaml
 kubetail:
@@ -94,7 +94,20 @@ kubetail:
     runtimeConfig:
       session:
         cookie:
+          name: __Host-session
           secure: true
+```
+</Aside>
+
+<Aside type="tip">
+Dashboard をプロキシの背後にデプロイすると、一部のリクエストが same-origin チェックに失敗して（例: host ≠ origin の場合）拒否されることがあります（例: WebSocket 接続）。これを修正するには、`allowedOrigins` オプションを使用できます。
+
+```yaml
+kubetail:
+  dashboard:
+    runtimeConfig:
+      allowedOrigins:
+        - https://kubetail.example.com
 ```
 </Aside>
 

@@ -86,7 +86,7 @@ kubetail:
 ```
 
 <Aside type="tip">
-当您通过 HTTPS 提供 Dashboard 时，请在 Dashboard 的 `runtimeConfig` 中设置 `session.cookie.secure: true`，这样会话 Cookie 只会通过安全连接传输：
+当您通过 HTTPS 提供 Dashboard 时，请在 Dashboard 的 `runtimeConfig` 中设置 `session.cookie.secure: true`，这样会话 Cookie 只会通过安全连接传输。同时，建议为 cookie 名称使用 `__Host-` 前缀。
 
 ```yaml
 kubetail:
@@ -94,7 +94,20 @@ kubetail:
     runtimeConfig:
       session:
         cookie:
+          name: __Host-session
           secure: true
+```
+</Aside>
+
+<Aside type="tip">
+当您将 Dashboard 部署在代理后面时，部分请求可能因 same-origin 校验失败（例如 host ≠ origin）而被拒绝（例如 WebSocket 连接）。您可以使用 `allowedOrigins` 选项来解决这个问题：
+
+```yaml
+kubetail:
+  dashboard:
+    runtimeConfig:
+      allowedOrigins:
+        - https://kubetail.example.com
 ```
 </Aside>
 

@@ -86,7 +86,7 @@ kubetail:
 ```
 
 <Aside type="tip">
-Dashboard를 HTTPS로 제공할 때는 Dashboard의 `runtimeConfig`에서 `session.cookie.secure: true`를 설정해 세션 쿠키가 보안 연결에서만 전송되도록 하세요.
+Dashboard를 HTTPS로 제공할 때는 Dashboard의 `runtimeConfig`에서 `session.cookie.secure: true`를 설정해 세션 쿠키가 보안 연결에서만 전송되도록 하세요. 또한 쿠키 이름에 `__Host-` 접두사를 사용하는 것이 좋습니다.
 
 ```yaml
 kubetail:
@@ -94,7 +94,20 @@ kubetail:
     runtimeConfig:
       session:
         cookie:
+          name: __Host-session
           secure: true
+```
+</Aside>
+
+<Aside type="tip">
+Dashboard를 프록시 뒤에 배포하면 일부 요청이 same-origin 검사에 실패해(예: host ≠ origin) 거부될 수 있습니다(예: WebSocket 연결). 이를 해결하려면 `allowedOrigins` 옵션을 사용할 수 있습니다.
+
+```yaml
+kubetail:
+  dashboard:
+    runtimeConfig:
+      allowedOrigins:
+        - https://kubetail.example.com
 ```
 </Aside>
 

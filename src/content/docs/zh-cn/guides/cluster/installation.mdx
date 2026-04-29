@@ -44,16 +44,7 @@ kubectl get pods -n kubetail-system
 
 ## 后续步骤
 
-当 Kubetail 在集群内部运行后，您可以像平常一样通过 `kubectl proxy` 或 `kubectl port-forward` 访问它：
-
-* **`kubectl proxy`**
-
-  ```sh
-  kubectl proxy
-  ```
-
-  访问 [http://localhost:8001/api/v1/namespaces/kubetail-system/services/kubetail-dashboard:8080/proxy/](http://localhost:8001/api/v1/namespaces/kubetail-system/services/kubetail-dashboard:8080/proxy/)
-
+当 Kubetail 在集群内部运行后，您可以使用常见的访问方式（例如 `kubectl port-forward`）访问它：
 
 * **`kubectl port-forward`**
 
@@ -63,7 +54,7 @@ kubectl get pods -n kubetail-system
 
   访问 [http://localhost:8080](http://localhost:8080)
 
-您也可以通过 Service 或 Ingress 暴露 Kubetail Web 仪表板，以便更方便地访问。
+为了更方便地访问 Kubetail Web 仪表板，您也可以通过 `Ingress` 或 `GatewayAPI` 路由将其暴露出去（参见 [Ingress](/zh-cn/guides/cluster/ingress)）。
 
 有关 Kubetail Dashboard 的更多信息，请查看[此处文档](/zh-cn/concepts/gui-overview)。
 

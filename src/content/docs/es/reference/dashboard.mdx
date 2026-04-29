@@ -65,6 +65,28 @@ dashboard --config /etc/kubetail/dashboard.yaml
     #
     allowed-namespaces: []
 
+    ## allowed-origins ##
+    #
+    # Origenes adicionales (ademas de same-origin) aceptados en las solicitudes
+    # de upgrade WebSocket. Cada entrada debe ser un origen totalmente
+    # cualificado — scheme://host[:port] sin path. La comparacion no distingue
+    # mayusculas/minusculas en el host y normaliza los puertos predeterminados
+    # (de modo que https://example.com coincide con https://example.com:443).
+    #
+    # Use esto cuando ejecute el dashboard detras de un proxy inverso que
+    # reescriba Host o termine TLS sin preservar el scheme — la coincidencia
+    # directa de same-origin contra r.Host/r.TLS rechazaria de otro modo
+    # solicitudes legitimas del navegador. Liste los origenes publicos en los
+    # que se sirve el dashboard.
+    #
+    # Ejemplos:
+    #   - https://kubetail.example.com
+    #   - https://kubetail.example.com:8443
+    #
+    # Valor predeterminado: []
+    #
+    allowed-origins: []
+
     ## kubeconfig ##
     #
     # Ruta al archivo kubeconfig que se utilizara para solicitudes a la API de Kubernetes.
@@ -126,20 +148,6 @@ dashboard --config /etc/kubetail/dashboard.yaml
     #
     gin-mode: release
 
-    ## csrf ##
-    #
-    # Configuracion de proteccion CSRF
-    #
-    csrf:
-
-      ## enabled ##
-      #
-      # Indica si la proteccion CSRF esta habilitada.
-      #
-      # Valor predeterminado: true
-      #
-      enabled: true
-
     ## logging ##
     #
     # Configuracion de la salida de logs del servidor del dashboard
@@ -200,15 +208,21 @@ dashboard --config /etc/kubetail/dashboard.yaml
     #
     session:
 
-      ## secret ##
+      ## key-pairs ##
       #
-      # La clave secreta usada para firmar tokens de sesion.
-      # Si esta vacia, se genera un secreto aleatorio al iniciar (las sesiones no
-      # sobreviviran a los reinicios).
+      # Uno o mas pares de claves de firma/cifrado para las cookies de sesion.
+      # El primer par se usa para nuevas cookies; los pares adicionales se
+      # aceptan solo para lectura, lo que permite la rotacion de claves sin
+      # tiempo de inactividad.
       #
-      # Valor predeterminado: ""
+      # Cada par tiene:
+      #   signing-key    (obligatoria) — clave HMAC de firma codificada en hex; se recomiendan 32 o 64 bytes en bruto
+      #   encryption-key (opcional)    — clave AES de cifrado codificada en hex; 16, 24 o 32 bytes en bruto
       #
-      secret: ""
+      # Cuando esta vacia y se ha configurado un local-storage-dir, se genera
+      # un par aleatorio y se persiste en disco al iniciar por primera vez.
+      #
+      key-pairs: []
 
       ## cookie ##
       #
