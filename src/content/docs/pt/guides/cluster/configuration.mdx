@@ -41,7 +41,7 @@ Todos os arquivos de configuracao oferecem suporte a expansao de variaveis de am
 
 ## Dashboard
 
-O Dashboard e o servidor web que hospeda a interface e faz proxy das requisicoes do navegador para o cluster. No ambiente de cluster, ele e executado como um Deployment no namespace `kubetail-system`.
+O Dashboard e o servidor web que hospeda a interface e faz proxy das requisicoes do navegador para o cluster. No ambiente de cluster, ele e executado como um Deployment no namespace `kubetail`.
 
 Para ver a referencia completa de configuracao, consulte a [referencia do Dashboard](/pt/reference/dashboard).
 
@@ -49,7 +49,7 @@ Para ver a referencia completa de configuracao, consulte a [referencia do Dashbo
 
 ## Cluster API
 
-A Cluster API e o servidor backend que faz proxy das requisicoes do Dashboard para as instancias do Cluster Agent em execucao em cada no. No cluster, ela e executada como um Deployment no namespace `kubetail-system`.
+A Cluster API e o servidor backend que faz proxy das requisicoes do Dashboard para as instancias do Cluster Agent em execucao em cada no. No cluster, ela e executada como um Deployment no namespace `kubetail`.
 
 Para ver a referencia completa de configuracao, consulte a [referencia da Cluster API](/pt/reference/cluster-api).
 
@@ -57,6 +57,6 @@ Para ver a referencia completa de configuracao, consulte a [referencia da Cluste
 
 ## Cluster Agent
 
-O Cluster Agent e o pequeno programa baseado em Rust que roda em cada no e le diretamente os arquivos de log de contêineres a partir do sistema de arquivos do no. No cluster, ele e executado como um DaemonSet no namespace `kubetail-system`.
+O Cluster Agent e o pequeno programa baseado em Rust que roda em cada no e le diretamente os arquivos de log de contêineres a partir do sistema de arquivos do no. No cluster, ele e executado como um DaemonSet no namespace `kubetail`.
 
 Para ver a referencia completa de configuracao, consulte a [referencia do Cluster Agent](/pt/reference/cluster-agent).

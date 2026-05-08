@@ -13,11 +13,11 @@ Kubetail delegiert die Zugriffskontrolle an Kubernetes RBAC. Diese Seite erklaer
 
 Das Helm-Chart erstellt fuer jede Komponente einen dedizierten ServiceAccount, eine ClusterRole und ein ClusterRoleBinding. Jede Komponente laeuft nur mit den Berechtigungen, die sie fuer ihre Aufgabe benoetigt, das Prinzip der geringsten Rechte gilt durchgaengig.
 
-| Component | Kind | ServiceAccount |
-|-----------|------|---------------|
-| Dashboard | Deployment | `kubetail-dashboard` |
-| Cluster API | Deployment | `kubetail-cluster-api` |
-| Cluster Agent | DaemonSet | `kubetail-cluster-agent` |
+| Component     | Kind       | ServiceAccount           |
+|---------------|------------|--------------------------|
+| Dashboard     | Deployment | `kubetail-dashboard`     |
+| Cluster API   | Deployment | `kubetail-cluster-api`   |
+| Cluster Agent | DaemonSet  | `kubetail-cluster-agent` |
 
 ---
 
@@ -48,7 +48,7 @@ rules:
     verbs: [create]
 ```
 
-**Role** - namespacebezogener Zugriff innerhalb von `kubetail-system`:
+**Role** - namespacebezogener Zugriff innerhalb von `kubetail`:
 
 ```yaml
 rules:
@@ -85,7 +85,7 @@ rules:
     verbs: [get, list, watch]
 ```
 
-**Role** - namespacebezogener Zugriff innerhalb von `kubetail-system`:
+**Role** - namespacebezogener Zugriff innerhalb von `kubetail`:
 
 ```yaml
 rules:

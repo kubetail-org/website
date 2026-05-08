@@ -41,7 +41,7 @@ Alle Konfigurationsdateien unterstuetzen die Erweiterung von Umgebungsvariablen 
 
 ## Dashboard
 
-Das Dashboard ist der Webserver, der die UI bereitstellt und Anfragen aus dem Browser an den Cluster weiterleitet. In der Cluster-Umgebung laeuft es als Deployment im Namespace `kubetail-system`.
+Das Dashboard ist der Webserver, der die UI bereitstellt und Anfragen aus dem Browser an den Cluster weiterleitet. In der Cluster-Umgebung laeuft es als Deployment im Namespace `kubetail`.
 
 Die vollstaendige Konfigurationsreferenz finden Sie in der [Dashboard-Referenz](/de/reference/dashboard).
 
@@ -49,7 +49,7 @@ Die vollstaendige Konfigurationsreferenz finden Sie in der [Dashboard-Referenz](
 
 ## Cluster API
 
-Die Cluster API ist der Backend-Server, der Anfragen vom Dashboard an die auf jedem Knoten laufenden Cluster-Agent-Instanzen weiterleitet. Im Cluster laeuft sie als Deployment im Namespace `kubetail-system`.
+Die Cluster API ist der Backend-Server, der Anfragen vom Dashboard an die auf jedem Knoten laufenden Cluster-Agent-Instanzen weiterleitet. Im Cluster laeuft sie als Deployment im Namespace `kubetail`.
 
 Die vollstaendige Konfigurationsreferenz finden Sie in der [Cluster-API-Referenz](/de/reference/cluster-api).
 
@@ -57,6 +57,6 @@ Die vollstaendige Konfigurationsreferenz finden Sie in der [Cluster-API-Referenz
 
 ## Cluster Agent
 
-Der Cluster Agent ist das kleine, auf Rust basierende Programm, das auf jedem Knoten laeuft und Container-Logdateien direkt aus dem Dateisystem des Knotens liest. Im Cluster laeuft er als DaemonSet im Namespace `kubetail-system`.
+Der Cluster Agent ist das kleine, auf Rust basierende Programm, das auf jedem Knoten laeuft und Container-Logdateien direkt aus dem Dateisystem des Knotens liest. Im Cluster laeuft er als DaemonSet im Namespace `kubetail`.
 
 Die vollstaendige Konfigurationsreferenz finden Sie in der [Cluster-Agent-Referenz](/de/reference/cluster-agent).

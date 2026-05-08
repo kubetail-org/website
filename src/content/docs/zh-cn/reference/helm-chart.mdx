@@ -24,10 +24,10 @@ helm repo add kubetail https://kubetail-org.github.io/helm-charts/
 将 chart 安装到专用 namespace 中：
 
 ```sh
-helm install kubetail kubetail/kubetail --namespace kubetail-system --create-namespace
+helm install kubetail kubetail/kubetail --namespace kubetail --create-namespace
 ```
 
-默认情况下，chart 会自动生成所需的 secret（`KUBETAIL_DASHBOARD_SESSION_SECRET`），并将其存储在 Kubernetes Secret 中，以便在升级后保留。
+默认情况下，chart 会自动生成 dashboard 会话签名密钥和加密密钥（`KUBETAIL_DASHBOARD_SESSION_SIGNING_KEY1` 和 `KUBETAIL_DASHBOARD_SESSION_ENCRYPTION_KEY1`），并将其存储在 Kubernetes Secret 中，以便在升级后保留。
 
 ## 升级
 
@@ -35,13 +35,13 @@ helm install kubetail kubetail/kubetail --namespace kubetail-system --create-nam
 
 ```sh
 helm repo update kubetail
-helm upgrade kubetail kubetail/kubetail --namespace kubetail-system
+helm upgrade kubetail kubetail/kubetail --namespace kubetail
 ```
 
 ## 卸载
 
 ```sh
-helm uninstall kubetail --namespace kubetail-system
+helm uninstall kubetail --namespace kubetail
 ```
 
 ## Values
@@ -59,7 +59,10 @@ helm uninstall kubetail --namespace kubetail-system
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `kubetail.allowedNamespaces` | array | `[]` | 将所有组件限制在这些 namespace 内 |
-| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_SECRET` | string | `null` | Base64 编码的 dashboard session secret（为 `null` 时自动生成） |
+| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_SIGNING_KEY1` | string | `null` | Hex 编码的 dashboard 会话签名密钥（为 `null` 时自动生成） |
+| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_ENCRYPTION_KEY1` | string | `null` | Hex 编码的 dashboard 会话加密密钥（为 `null` 时自动生成） |
+| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_SIGNING_KEY2` | string | `null` | 用于轮换的上一个槽位签名密钥（Hex 编码，无自动生成） |
+| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_ENCRYPTION_KEY2` | string | `null` | 用于轮换的上一个槽位加密密钥（Hex 编码，无自动生成） |
 | `kubetail.global.annotations` | map | `{}` | 添加到所有资源的额外 annotation |
 | `kubetail.global.labels` | map | `{}` | 添加到所有资源的额外 label |
 
@@ -83,6 +86,7 @@ helm uninstall kubetail --namespace kubetail-system
 | `kubetail.dashboard.podTemplate.annotations` | map | `{}` | 额外 Pod annotation |
 | `kubetail.dashboard.podTemplate.labels` | map | `{}` | 额外 Pod label |
 | `kubetail.dashboard.podTemplate.extraContainers` | array | `[]` | 额外 sidecar 容器 |
+| `kubetail.dashboard.podTemplate.imagePullSecrets` | array | `[]` | 镜像拉取 secret |
 | `kubetail.dashboard.podTemplate.securityContext` | map | `{}` | Pod security context |
 | `kubetail.dashboard.podTemplate.affinity` | map | `{}` | Pod affinity 规则 |
 | `kubetail.dashboard.podTemplate.nodeSelector` | map | `{}` | Node selector |
@@ -137,6 +141,7 @@ helm uninstall kubetail --namespace kubetail-system
 | `kubetail.clusterAPI.podTemplate.annotations` | map | `{}` | 额外 Pod annotation |
 | `kubetail.clusterAPI.podTemplate.labels` | map | `{}` | 额外 Pod label |
 | `kubetail.clusterAPI.podTemplate.extraContainers` | array | `[]` | 额外 sidecar 容器 |
+| `kubetail.clusterAPI.podTemplate.imagePullSecrets` | array | `[]` | 镜像拉取 secret |
 | `kubetail.clusterAPI.podTemplate.securityContext` | map | `{}` | Pod security context |
 | `kubetail.clusterAPI.podTemplate.affinity` | map | `{}` | Pod affinity 规则 |
 | `kubetail.clusterAPI.podTemplate.nodeSelector` | map | `{}` | Node selector |
@@ -184,6 +189,7 @@ helm uninstall kubetail --namespace kubetail-system
 | `kubetail.clusterAgent.podTemplate.annotations` | map | `{}` | 额外 Pod annotation |
 | `kubetail.clusterAgent.podTemplate.labels` | map | `{}` | 额外 Pod label |
 | `kubetail.clusterAgent.podTemplate.extraContainers` | array | `[]` | 额外 sidecar 容器 |
+| `kubetail.clusterAgent.podTemplate.imagePullSecrets` | array | `[]` | 镜像拉取 secret |
 | `kubetail.clusterAgent.podTemplate.securityContext` | map | `{fsGroup: 0}` | Pod security context |
 | `kubetail.clusterAgent.podTemplate.affinity` | map | `{}` | Pod affinity 规则 |
 | `kubetail.clusterAgent.podTemplate.nodeSelector` | map | `{}` | Node selector |
@@ -198,10 +204,12 @@ helm uninstall kubetail --namespace kubetail-system
 | `kubetail.clusterAgent.networkPolicy.name` | string | `null` | 覆盖 NetworkPolicy 名称 |
 | `kubetail.clusterAgent.networkPolicy.annotations` | map | `{}` | 额外 NetworkPolicy annotation |
 | `kubetail.clusterAgent.networkPolicy.labels` | map | `{}` | 额外 NetworkPolicy label |
+| `kubetail.clusterAgent.rbac.name` | string | `null` | 覆盖 RBAC 资源名称 |
+| `kubetail.clusterAgent.rbac.annotations` | map | `{}` | 额外 RBAC annotation |
+| `kubetail.clusterAgent.rbac.labels` | map | `{}` | 额外 RBAC label |
 | `kubetail.clusterAgent.service.name` | string | `null` | 覆盖 Service 名称 |
 | `kubetail.clusterAgent.service.annotations` | map | `{}` | 额外 Service annotation |
 | `kubetail.clusterAgent.service.labels` | map | `{}` | 额外 Service label |
-| `kubetail.clusterAgent.service.ports.grpc` | int | `50051` | Service gRPC 端口 |
 | `kubetail.clusterAgent.serviceAccount.name` | string | `null` | 覆盖 ServiceAccount 名称 |
 | `kubetail.clusterAgent.serviceAccount.annotations` | map | `{}` | 额外 ServiceAccount annotation |
 | `kubetail.clusterAgent.serviceAccount.labels` | map | `{}` | 额外 ServiceAccount label |

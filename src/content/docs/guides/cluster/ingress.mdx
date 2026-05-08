@@ -28,7 +28,7 @@ kubetail:
       enabled: true
       name: kubetail
       annotations:
-        traefik.ingress.kubernetes.io/router.middlewares: kubetail-system-kubetail-auth@kubernetescrd
+        traefik.ingress.kubernetes.io/router.middlewares: kubetail-kubetail-auth@kubernetescrd
       className: traefik
       rules:
         - host: kubetail.example.com
@@ -42,7 +42,7 @@ Then, apply the values to your release:
 
 ```sh
 helm upgrade kubetail kubetail/kubetail \
-  --namespace kubetail-system \
+  --namespace kubetail \
   --values values.yaml
 ```
 

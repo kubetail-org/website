@@ -24,10 +24,10 @@ helm repo add kubetail https://kubetail-org.github.io/helm-charts/
 전용 namespace에 chart를 설치합니다.
 
 ```sh
-helm install kubetail kubetail/kubetail --namespace kubetail-system --create-namespace
+helm install kubetail kubetail/kubetail --namespace kubetail --create-namespace
 ```
 
-기본적으로 chart는 필요한 secret (`KUBETAIL_DASHBOARD_SESSION_SECRET`) 을 자동 생성하고 Kubernetes Secret에 저장하므로 업그레이드 후에도 유지됩니다.
+기본적으로 chart는 dashboard 세션 서명 키와 암호화 키 (`KUBETAIL_DASHBOARD_SESSION_SIGNING_KEY1` 및 `KUBETAIL_DASHBOARD_SESSION_ENCRYPTION_KEY1`) 를 자동 생성하고 Kubernetes Secret에 저장하므로 업그레이드 후에도 유지됩니다.
 
 ## 업그레이드
 
@@ -35,13 +35,13 @@ helm install kubetail kubetail/kubetail --namespace kubetail-system --create-nam
 
 ```sh
 helm repo update kubetail
-helm upgrade kubetail kubetail/kubetail --namespace kubetail-system
+helm upgrade kubetail kubetail/kubetail --namespace kubetail
 ```
 
 ## 제거
 
 ```sh
-helm uninstall kubetail --namespace kubetail-system
+helm uninstall kubetail --namespace kubetail
 ```
 
 ## Values
@@ -59,7 +59,10 @@ helm uninstall kubetail --namespace kubetail-system
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `kubetail.allowedNamespaces` | array | `[]` | 모든 구성 요소를 이 namespace로 제한 |
-| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_SECRET` | string | `null` | Base64 인코딩된 dashboard session secret (`null`이면 자동 생성) |
+| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_SIGNING_KEY1` | string | `null` | Hex 인코딩된 dashboard 세션 서명 키 (`null`이면 자동 생성) |
+| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_ENCRYPTION_KEY1` | string | `null` | Hex 인코딩된 dashboard 세션 암호화 키 (`null`이면 자동 생성) |
+| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_SIGNING_KEY2` | string | `null` | 로테이션용 이전 슬롯 서명 키 (Hex 인코딩, 자동 생성 없음) |
+| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_ENCRYPTION_KEY2` | string | `null` | 로테이션용 이전 슬롯 암호화 키 (Hex 인코딩, 자동 생성 없음) |
 | `kubetail.global.annotations` | map | `{}` | 모든 리소스에 추가할 annotation |
 | `kubetail.global.labels` | map | `{}` | 모든 리소스에 추가할 label |
 
@@ -83,6 +86,7 @@ helm uninstall kubetail --namespace kubetail-system
 | `kubetail.dashboard.podTemplate.annotations` | map | `{}` | 추가 Pod annotation |
 | `kubetail.dashboard.podTemplate.labels` | map | `{}` | 추가 Pod label |
 | `kubetail.dashboard.podTemplate.extraContainers` | array | `[]` | 추가 sidecar 컨테이너 |
+| `kubetail.dashboard.podTemplate.imagePullSecrets` | array | `[]` | Image pull secret |
 | `kubetail.dashboard.podTemplate.securityContext` | map | `{}` | Pod security context |
 | `kubetail.dashboard.podTemplate.affinity` | map | `{}` | Pod affinity 규칙 |
 | `kubetail.dashboard.podTemplate.nodeSelector` | map | `{}` | Node selector |
@@ -137,6 +141,7 @@ helm uninstall kubetail --namespace kubetail-system
 | `kubetail.clusterAPI.podTemplate.annotations` | map | `{}` | 추가 Pod annotation |
 | `kubetail.clusterAPI.podTemplate.labels` | map | `{}` | 추가 Pod label |
 | `kubetail.clusterAPI.podTemplate.extraContainers` | array | `[]` | 추가 sidecar 컨테이너 |
+| `kubetail.clusterAPI.podTemplate.imagePullSecrets` | array | `[]` | Image pull secret |
 | `kubetail.clusterAPI.podTemplate.securityContext` | map | `{}` | Pod security context |
 | `kubetail.clusterAPI.podTemplate.affinity` | map | `{}` | Pod affinity 규칙 |
 | `kubetail.clusterAPI.podTemplate.nodeSelector` | map | `{}` | Node selector |
@@ -184,6 +189,7 @@ helm uninstall kubetail --namespace kubetail-system
 | `kubetail.clusterAgent.podTemplate.annotations` | map | `{}` | 추가 Pod annotation |
 | `kubetail.clusterAgent.podTemplate.labels` | map | `{}` | 추가 Pod label |
 | `kubetail.clusterAgent.podTemplate.extraContainers` | array | `[]` | 추가 sidecar 컨테이너 |
+| `kubetail.clusterAgent.podTemplate.imagePullSecrets` | array | `[]` | Image pull secret |
 | `kubetail.clusterAgent.podTemplate.securityContext` | map | `{fsGroup: 0}` | Pod security context |
 | `kubetail.clusterAgent.podTemplate.affinity` | map | `{}` | Pod affinity 규칙 |
 | `kubetail.clusterAgent.podTemplate.nodeSelector` | map | `{}` | Node selector |
@@ -198,10 +204,12 @@ helm uninstall kubetail --namespace kubetail-system
 | `kubetail.clusterAgent.networkPolicy.name` | string | `null` | NetworkPolicy 이름 덮어쓰기 |
 | `kubetail.clusterAgent.networkPolicy.annotations` | map | `{}` | 추가 NetworkPolicy annotation |
 | `kubetail.clusterAgent.networkPolicy.labels` | map | `{}` | 추가 NetworkPolicy label |
+| `kubetail.clusterAgent.rbac.name` | string | `null` | RBAC 리소스 이름 덮어쓰기 |
+| `kubetail.clusterAgent.rbac.annotations` | map | `{}` | 추가 RBAC annotation |
+| `kubetail.clusterAgent.rbac.labels` | map | `{}` | 추가 RBAC label |
 | `kubetail.clusterAgent.service.name` | string | `null` | Service 이름 덮어쓰기 |
 | `kubetail.clusterAgent.service.annotations` | map | `{}` | 추가 Service annotation |
 | `kubetail.clusterAgent.service.labels` | map | `{}` | 추가 Service label |
-| `kubetail.clusterAgent.service.ports.grpc` | int | `50051` | Service gRPC 포트 |
 | `kubetail.clusterAgent.serviceAccount.name` | string | `null` | ServiceAccount 이름 덮어쓰기 |
 | `kubetail.clusterAgent.serviceAccount.annotations` | map | `{}` | 추가 ServiceAccount annotation |
 | `kubetail.clusterAgent.serviceAccount.labels` | map | `{}` | 추가 ServiceAccount label |

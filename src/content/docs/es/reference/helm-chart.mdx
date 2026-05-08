@@ -24,10 +24,10 @@ helm repo add kubetail https://kubetail-org.github.io/helm-charts/
 Instale el chart en un namespace dedicado:
 
 ```sh
-helm install kubetail kubetail/kubetail --namespace kubetail-system --create-namespace
+helm install kubetail kubetail/kubetail --namespace kubetail --create-namespace
 ```
 
-Por defecto, el chart genera automaticamente los secretos necesarios (`KUBETAIL_DASHBOARD_SESSION_SECRET`) y los guarda en un Secret de Kubernetes para que se conserven en los upgrades.
+Por defecto, el chart genera automaticamente las claves de firma y cifrado de la sesion del dashboard (`KUBETAIL_DASHBOARD_SESSION_SIGNING_KEY1` y `KUBETAIL_DASHBOARD_SESSION_ENCRYPTION_KEY1`) y las guarda en un Secret de Kubernetes para que se conserven en los upgrades.
 
 ## Upgrade
 
@@ -35,13 +35,13 @@ Obtenga el indice mas reciente del chart y luego actualice el release:
 
 ```sh
 helm repo update kubetail
-helm upgrade kubetail kubetail/kubetail --namespace kubetail-system
+helm upgrade kubetail kubetail/kubetail --namespace kubetail
 ```
 
 ## Desinstalacion
 
 ```sh
-helm uninstall kubetail --namespace kubetail-system
+helm uninstall kubetail --namespace kubetail
 ```
 
 ## Values
@@ -59,7 +59,10 @@ helm uninstall kubetail --namespace kubetail-system
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `kubetail.allowedNamespaces` | array | `[]` | Restringir todos los componentes a estos namespaces |
-| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_SECRET` | string | `null` | Secreto de sesion del dashboard codificado en Base64 (se genera automaticamente si es `null`) |
+| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_SIGNING_KEY1` | string | `null` | Clave de firma de la sesion del dashboard codificada en hex (se genera automaticamente si es `null`) |
+| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_ENCRYPTION_KEY1` | string | `null` | Clave de cifrado de la sesion del dashboard codificada en hex (se genera automaticamente si es `null`) |
+| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_SIGNING_KEY2` | string | `null` | Clave de firma del slot anterior para rotacion codificada en hex (sin generacion automatica) |
+| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_ENCRYPTION_KEY2` | string | `null` | Clave de cifrado del slot anterior para rotacion codificada en hex (sin generacion automatica) |
 | `kubetail.global.annotations` | map | `{}` | Anotaciones adicionales agregadas a todos los recursos |
 | `kubetail.global.labels` | map | `{}` | Labels adicionales agregados a todos los recursos |
 
@@ -83,6 +86,7 @@ helm uninstall kubetail --namespace kubetail-system
 | `kubetail.dashboard.podTemplate.annotations` | map | `{}` | Anotaciones adicionales del pod |
 | `kubetail.dashboard.podTemplate.labels` | map | `{}` | Labels adicionales del pod |
 | `kubetail.dashboard.podTemplate.extraContainers` | array | `[]` | Contenedores sidecar adicionales |
+| `kubetail.dashboard.podTemplate.imagePullSecrets` | array | `[]` | Secretos de pull de imagen |
 | `kubetail.dashboard.podTemplate.securityContext` | map | `{}` | Contexto de seguridad del pod |
 | `kubetail.dashboard.podTemplate.affinity` | map | `{}` | Reglas de afinidad del pod |
 | `kubetail.dashboard.podTemplate.nodeSelector` | map | `{}` | Selector de nodo |
@@ -137,6 +141,7 @@ helm uninstall kubetail --namespace kubetail-system
 | `kubetail.clusterAPI.podTemplate.annotations` | map | `{}` | Anotaciones adicionales del pod |
 | `kubetail.clusterAPI.podTemplate.labels` | map | `{}` | Labels adicionales del pod |
 | `kubetail.clusterAPI.podTemplate.extraContainers` | array | `[]` | Contenedores sidecar adicionales |
+| `kubetail.clusterAPI.podTemplate.imagePullSecrets` | array | `[]` | Secretos de pull de imagen |
 | `kubetail.clusterAPI.podTemplate.securityContext` | map | `{}` | Contexto de seguridad del pod |
 | `kubetail.clusterAPI.podTemplate.affinity` | map | `{}` | Reglas de afinidad del pod |
 | `kubetail.clusterAPI.podTemplate.nodeSelector` | map | `{}` | Selector de nodo |
@@ -184,6 +189,7 @@ helm uninstall kubetail --namespace kubetail-system
 | `kubetail.clusterAgent.podTemplate.annotations` | map | `{}` | Anotaciones adicionales del pod |
 | `kubetail.clusterAgent.podTemplate.labels` | map | `{}` | Labels adicionales del pod |
 | `kubetail.clusterAgent.podTemplate.extraContainers` | array | `[]` | Contenedores sidecar adicionales |
+| `kubetail.clusterAgent.podTemplate.imagePullSecrets` | array | `[]` | Secretos de pull de imagen |
 | `kubetail.clusterAgent.podTemplate.securityContext` | map | `{fsGroup: 0}` | Contexto de seguridad del pod |
 | `kubetail.clusterAgent.podTemplate.affinity` | map | `{}` | Reglas de afinidad del pod |
 | `kubetail.clusterAgent.podTemplate.nodeSelector` | map | `{}` | Selector de nodo |
@@ -198,10 +204,12 @@ helm uninstall kubetail --namespace kubetail-system
 | `kubetail.clusterAgent.networkPolicy.name` | string | `null` | Sobrescribir el nombre de la NetworkPolicy |
 | `kubetail.clusterAgent.networkPolicy.annotations` | map | `{}` | Anotaciones adicionales de la NetworkPolicy |
 | `kubetail.clusterAgent.networkPolicy.labels` | map | `{}` | Labels adicionales de la NetworkPolicy |
+| `kubetail.clusterAgent.rbac.name` | string | `null` | Sobrescribir los nombres de los recursos RBAC |
+| `kubetail.clusterAgent.rbac.annotations` | map | `{}` | Anotaciones RBAC adicionales |
+| `kubetail.clusterAgent.rbac.labels` | map | `{}` | Labels RBAC adicionales |
 | `kubetail.clusterAgent.service.name` | string | `null` | Sobrescribir el nombre del Service |
 | `kubetail.clusterAgent.service.annotations` | map | `{}` | Anotaciones adicionales del Service |
 | `kubetail.clusterAgent.service.labels` | map | `{}` | Labels adicionales del Service |
-| `kubetail.clusterAgent.service.ports.grpc` | int | `50051` | Puerto gRPC del Service |
 | `kubetail.clusterAgent.serviceAccount.name` | string | `null` | Sobrescribir el nombre del ServiceAccount |
 | `kubetail.clusterAgent.serviceAccount.annotations` | map | `{}` | Anotaciones adicionales del ServiceAccount |
 | `kubetail.clusterAgent.serviceAccount.labels` | map | `{}` | Labels adicionales del ServiceAccount |

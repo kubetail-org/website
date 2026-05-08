@@ -24,7 +24,7 @@ GET /healthz
 Das Helm-Chart konfiguriert Liveness- und Readiness-Probes fuer diesen Endpunkt automatisch. Sie koennen denselben Endpunkt auch verwenden, um den Status einer Komponente manuell zu pruefen:
 
 ```sh
-kubectl exec -n kubetail-system deploy/kubetail-dashboard -- \
+kubectl exec -n kubetail deploy/kubetail-dashboard -- \
   wget -qO- http://localhost:8080/healthz
 ```
 
@@ -99,12 +99,12 @@ logging:
 Um den Gesamtzustand der Kubetail-Bereitstellung zu pruefen:
 
 ```sh
-kubectl get pods -n kubetail-system
+kubectl get pods -n kubetail
 ```
 
 Alle Pods sollten den Status `Running` anzeigen und erfolgreiche Readiness-Probes haben. Wenn ein Pod nicht bereit ist, pruefen Sie seine Events und Logs:
 
 ```sh
-kubectl describe pod -n kubetail-system <pod-name>
-kubectl logs -n kubetail-system <pod-name>
+kubectl describe pod -n kubetail <pod-name>
+kubectl logs -n kubetail <pod-name>
 ```

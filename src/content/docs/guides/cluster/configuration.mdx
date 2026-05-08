@@ -41,7 +41,7 @@ All config files support environment variable expansion using `${VARIABLE_NAME}`
 
 ## Dashboard
 
-The Dashboard is the web server that hosts the UI and proxies requests from the browser to the cluster. In the cluster environment it runs as a Deployment in the `kubetail-system` namespace.
+The Dashboard is the web server that hosts the UI and proxies requests from the browser to the cluster. In the cluster environment it runs as a Deployment in the `kubetail` namespace.
 
 For the full configuration reference see the [Dashboard reference](/reference/dashboard).
 
@@ -49,7 +49,7 @@ For the full configuration reference see the [Dashboard reference](/reference/da
 
 ## Cluster API
 
-The Cluster API is is the backend server that proxies requests from the Dashboard to the Cluster Agent instances running on each node.  In the cluster it runs as a Deployment in the `kubetail-system` namespace.
+The Cluster API is is the backend server that proxies requests from the Dashboard to the Cluster Agent instances running on each node.  In the cluster it runs as a Deployment in the `kubetail` namespace.
 
 For the full configuration reference see the [Cluster API reference](/reference/cluster-api).
 
@@ -57,6 +57,6 @@ For the full configuration reference see the [Cluster API reference](/reference/
 
 ## Cluster Agent
 
-The Cluster Agent is the small, Rust-based program that runs on each node and reads container log files directly from the node filesystem. In the cluster it runs as a DaemonSet in the `kubetail-system` namespace.
+The Cluster Agent is the small, Rust-based program that runs on each node and reads container log files directly from the node filesystem. In the cluster it runs as a DaemonSet in the `kubetail` namespace.
 
 For the full configuration reference see the [Cluster Agent reference](/reference/cluster-agent).

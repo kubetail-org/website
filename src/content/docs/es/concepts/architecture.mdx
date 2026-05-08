@@ -23,7 +23,7 @@ Consulte la [guía de instalación en escritorio](/es/guides/desktop/installatio
 
 ### Clúster
 
-Toda la pila de Kubetail puede instalarse como recursos de Kubernetes dentro del clúster usando Helm o manifiestos YAML. En esta topología, el Dashboard Server se ejecuta como un Deployment en el namespace `kubetail-system` y se accede a él desde el navegador mediante `kubectl port-forward`, `kubectl proxy` o un recurso de ingress. Este es el enfoque preferido para entornos de equipo compartidos o cuando se desea un acceso persistente y siempre disponible sin depender de una CLI local.
+Toda la pila de Kubetail puede instalarse como recursos de Kubernetes dentro del clúster usando Helm o manifiestos YAML. En esta topología, el Dashboard Server se ejecuta como un Deployment en el namespace `kubetail` y se accede a él desde el navegador mediante `kubectl port-forward`, `kubectl proxy` o un recurso de ingress. Este es el enfoque preferido para entornos de equipo compartidos o cuando se desea un acceso persistente y siempre disponible sin depender de una CLI local.
 
 Consulte la [guía de instalación en clúster](/es/guides/cluster/installation) para ver las instrucciones.
 
