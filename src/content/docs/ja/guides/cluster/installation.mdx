@@ -13,13 +13,13 @@ Kubetail を Kubernetes クラスタ内で実行するには、Helm を使って
 
 ```sh
 helm repo add kubetail https://kubetail-org.github.io/helm-charts/
-helm install kubetail kubetail/kubetail --namespace kubetail-system --create-namespace
+helm install kubetail kubetail/kubetail --namespace kubetail --create-namespace
 ```
 
 Helm chart の設定方法について詳しくは、chart の [values.yaml](https://github.com/kubetail-org/helm-charts/blob/main/charts/kubetail/values.yaml) を参照してください。インストールが成功したか確認するには、アプリケーションの Pod を確認します。
 
 ```sh
-kubectl get pods -n kubetail-system
+kubectl get pods -n kubetail
 ```
 
 ## YAML マニフェスト
@@ -39,7 +39,7 @@ kubectl apply -f https://github.com/kubetail-org/helm-charts/releases/latest/dow
 インストールが成功したか確認するには、アプリケーションの Pod を確認します。
 
 ```sh
-kubectl get pods -n kubetail-system
+kubectl get pods -n kubetail
 ```
 
 ## 次のステップ
@@ -49,7 +49,7 @@ Kubetail がクラスタ内で動作したら、`kubectl port-forward` などの
 * **`kubectl port-forward`**
 
   ```sh
-  kubectl port-forward -n kubetail-system svc/kubetail-dashboard 8080:8080
+  kubectl port-forward -n kubetail svc/kubetail-dashboard 8080:8080
   ```
 
   [http://localhost:8080](http://localhost:8080) にアクセスしてください。

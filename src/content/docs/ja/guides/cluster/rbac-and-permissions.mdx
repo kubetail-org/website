@@ -13,11 +13,11 @@ Kubetail はアクセス制御を Kubernetes RBAC に委譲します。このペ
 
 Helm chart は各コンポーネントごとに専用の ServiceAccount、ClusterRole、ClusterRoleBinding を作成します。各コンポーネントは自身の役割に必要な権限だけで動作し、最小権限の原則が一貫して適用されます。
 
-| Component | Kind | ServiceAccount |
-|-----------|------|---------------|
-| Dashboard | Deployment | `kubetail-dashboard` |
-| Cluster API | Deployment | `kubetail-cluster-api` |
-| Cluster Agent | DaemonSet | `kubetail-cluster-agent` |
+| Component     | Kind       | ServiceAccount           |
+|---------------|------------|--------------------------|
+| Dashboard     | Deployment | `kubetail-dashboard`     |
+| Cluster API   | Deployment | `kubetail-cluster-api`   |
+| Cluster Agent | DaemonSet  | `kubetail-cluster-agent` |
 
 ---
 
@@ -48,7 +48,7 @@ rules:
     verbs: [create]
 ```
 
-**Role** - `kubetail-system` 内での namespace スコープのアクセス:
+**Role** - `kubetail` 内での namespace スコープのアクセス:
 
 ```yaml
 rules:
@@ -85,7 +85,7 @@ rules:
     verbs: [get, list, watch]
 ```
 
-**Role** - `kubetail-system` 内での namespace スコープのアクセス:
+**Role** - `kubetail` 内での namespace スコープのアクセス:
 
 ```yaml
 rules:

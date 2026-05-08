@@ -41,7 +41,7 @@ kubetail:
 
 ## Dashboard
 
-Dashboard는 UI를 호스팅하고 브라우저의 요청을 클러스터로 프록시하는 웹 서버입니다. 클러스터 환경에서는 `kubetail-system` namespace의 Deployment로 실행됩니다.
+Dashboard는 UI를 호스팅하고 브라우저의 요청을 클러스터로 프록시하는 웹 서버입니다. 클러스터 환경에서는 `kubetail` namespace의 Deployment로 실행됩니다.
 
 전체 구성 참조는 [Dashboard 참조](/ko/reference/dashboard)를 확인하세요.
 
@@ -49,7 +49,7 @@ Dashboard는 UI를 호스팅하고 브라우저의 요청을 클러스터로 프
 
 ## Cluster API
 
-Cluster API는 Dashboard의 요청을 각 노드에서 실행 중인 Cluster Agent 인스턴스로 프록시하는 백엔드 서버입니다. 클러스터에서는 `kubetail-system` namespace의 Deployment로 실행됩니다.
+Cluster API는 Dashboard의 요청을 각 노드에서 실행 중인 Cluster Agent 인스턴스로 프록시하는 백엔드 서버입니다. 클러스터에서는 `kubetail` namespace의 Deployment로 실행됩니다.
 
 전체 구성 참조는 [Cluster API 참조](/ko/reference/cluster-api)를 확인하세요.
 
@@ -57,6 +57,6 @@ Cluster API는 Dashboard의 요청을 각 노드에서 실행 중인 Cluster Age
 
 ## Cluster Agent
 
-Cluster Agent는 각 노드에서 실행되며 노드 파일시스템에서 컨테이너 로그 파일을 직접 읽는 작은 Rust 기반 프로그램입니다. 클러스터에서는 `kubetail-system` namespace의 DaemonSet으로 실행됩니다.
+Cluster Agent는 각 노드에서 실행되며 노드 파일시스템에서 컨테이너 로그 파일을 직접 읽는 작은 Rust 기반 프로그램입니다. 클러스터에서는 `kubetail` namespace의 DaemonSet으로 실행됩니다.
 
 전체 구성 참조는 [Cluster Agent 참조](/ko/reference/cluster-agent)를 확인하세요.

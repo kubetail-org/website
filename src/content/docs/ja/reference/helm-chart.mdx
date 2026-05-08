@@ -24,10 +24,10 @@ helm repo add kubetail https://kubetail-org.github.io/helm-charts/
 専用 namespace に chart をインストールします。
 
 ```sh
-helm install kubetail kubetail/kubetail --namespace kubetail-system --create-namespace
+helm install kubetail kubetail/kubetail --namespace kubetail --create-namespace
 ```
 
-既定では、chart は必要な secret (`KUBETAIL_DASHBOARD_SESSION_SECRET`) を自動生成し、Kubernetes Secret に保存するため、アップグレード後も保持されます。
+既定では、chart は dashboard のセッション署名キーと暗号化キー（`KUBETAIL_DASHBOARD_SESSION_SIGNING_KEY1` と `KUBETAIL_DASHBOARD_SESSION_ENCRYPTION_KEY1`）を自動生成し、Kubernetes Secret に保存するため、アップグレード後も保持されます。
 
 ## アップグレード
 
@@ -35,13 +35,13 @@ helm install kubetail kubetail/kubetail --namespace kubetail-system --create-nam
 
 ```sh
 helm repo update kubetail
-helm upgrade kubetail kubetail/kubetail --namespace kubetail-system
+helm upgrade kubetail kubetail/kubetail --namespace kubetail
 ```
 
 ## アンインストール
 
 ```sh
-helm uninstall kubetail --namespace kubetail-system
+helm uninstall kubetail --namespace kubetail
 ```
 
 ## Values
@@ -59,7 +59,10 @@ helm uninstall kubetail --namespace kubetail-system
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `kubetail.allowedNamespaces` | array | `[]` | すべてのコンポーネントをこれらの namespace に制限 |
-| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_SECRET` | string | `null` | Base64 エンコードされた dashboard session secret（`null` の場合は自動生成） |
+| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_SIGNING_KEY1` | string | `null` | Hex エンコードされた dashboard セッション署名キー（`null` の場合は自動生成） |
+| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_ENCRYPTION_KEY1` | string | `null` | Hex エンコードされた dashboard セッション暗号化キー（`null` の場合は自動生成） |
+| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_SIGNING_KEY2` | string | `null` | ローテーション用の前スロット署名キー（Hex エンコード、自動生成なし） |
+| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_ENCRYPTION_KEY2` | string | `null` | ローテーション用の前スロット暗号化キー（Hex エンコード、自動生成なし） |
 | `kubetail.global.annotations` | map | `{}` | すべてのリソースに追加する annotation |
 | `kubetail.global.labels` | map | `{}` | すべてのリソースに追加する label |
 
@@ -83,6 +86,7 @@ helm uninstall kubetail --namespace kubetail-system
 | `kubetail.dashboard.podTemplate.annotations` | map | `{}` | 追加の Pod annotation |
 | `kubetail.dashboard.podTemplate.labels` | map | `{}` | 追加の Pod label |
 | `kubetail.dashboard.podTemplate.extraContainers` | array | `[]` | 追加の sidecar container |
+| `kubetail.dashboard.podTemplate.imagePullSecrets` | array | `[]` | Image pull secret |
 | `kubetail.dashboard.podTemplate.securityContext` | map | `{}` | Pod の security context |
 | `kubetail.dashboard.podTemplate.affinity` | map | `{}` | Pod affinity ルール |
 | `kubetail.dashboard.podTemplate.nodeSelector` | map | `{}` | Node selector |
@@ -137,6 +141,7 @@ helm uninstall kubetail --namespace kubetail-system
 | `kubetail.clusterAPI.podTemplate.annotations` | map | `{}` | 追加の Pod annotation |
 | `kubetail.clusterAPI.podTemplate.labels` | map | `{}` | 追加の Pod label |
 | `kubetail.clusterAPI.podTemplate.extraContainers` | array | `[]` | 追加の sidecar container |
+| `kubetail.clusterAPI.podTemplate.imagePullSecrets` | array | `[]` | Image pull secret |
 | `kubetail.clusterAPI.podTemplate.securityContext` | map | `{}` | Pod の security context |
 | `kubetail.clusterAPI.podTemplate.affinity` | map | `{}` | Pod affinity ルール |
 | `kubetail.clusterAPI.podTemplate.nodeSelector` | map | `{}` | Node selector |
@@ -184,6 +189,7 @@ helm uninstall kubetail --namespace kubetail-system
 | `kubetail.clusterAgent.podTemplate.annotations` | map | `{}` | 追加の Pod annotation |
 | `kubetail.clusterAgent.podTemplate.labels` | map | `{}` | 追加の Pod label |
 | `kubetail.clusterAgent.podTemplate.extraContainers` | array | `[]` | 追加の sidecar container |
+| `kubetail.clusterAgent.podTemplate.imagePullSecrets` | array | `[]` | Image pull secret |
 | `kubetail.clusterAgent.podTemplate.securityContext` | map | `{fsGroup: 0}` | Pod の security context |
 | `kubetail.clusterAgent.podTemplate.affinity` | map | `{}` | Pod affinity ルール |
 | `kubetail.clusterAgent.podTemplate.nodeSelector` | map | `{}` | Node selector |
@@ -198,10 +204,12 @@ helm uninstall kubetail --namespace kubetail-system
 | `kubetail.clusterAgent.networkPolicy.name` | string | `null` | NetworkPolicy 名を上書き |
 | `kubetail.clusterAgent.networkPolicy.annotations` | map | `{}` | 追加の NetworkPolicy annotation |
 | `kubetail.clusterAgent.networkPolicy.labels` | map | `{}` | 追加の NetworkPolicy label |
+| `kubetail.clusterAgent.rbac.name` | string | `null` | RBAC リソース名を上書き |
+| `kubetail.clusterAgent.rbac.annotations` | map | `{}` | 追加の RBAC annotation |
+| `kubetail.clusterAgent.rbac.labels` | map | `{}` | 追加の RBAC label |
 | `kubetail.clusterAgent.service.name` | string | `null` | Service 名を上書き |
 | `kubetail.clusterAgent.service.annotations` | map | `{}` | 追加の Service annotation |
 | `kubetail.clusterAgent.service.labels` | map | `{}` | 追加の Service label |
-| `kubetail.clusterAgent.service.ports.grpc` | int | `50051` | Service の gRPC ポート |
 | `kubetail.clusterAgent.serviceAccount.name` | string | `null` | ServiceAccount 名を上書き |
 | `kubetail.clusterAgent.serviceAccount.annotations` | map | `{}` | 追加の ServiceAccount annotation |
 | `kubetail.clusterAgent.serviceAccount.labels` | map | `{}` | 追加の ServiceAccount label |

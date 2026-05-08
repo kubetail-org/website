@@ -24,10 +24,10 @@ helm repo add kubetail https://kubetail-org.github.io/helm-charts/
 Instale o chart em um namespace dedicado:
 
 ```sh
-helm install kubetail kubetail/kubetail --namespace kubetail-system --create-namespace
+helm install kubetail kubetail/kubetail --namespace kubetail --create-namespace
 ```
 
-Por padrao, o chart gera automaticamente os secrets necessarios (`KUBETAIL_DASHBOARD_SESSION_SECRET`) e os armazena em um Kubernetes Secret para que sejam preservados durante upgrades.
+Por padrao, o chart gera automaticamente as chaves de assinatura e criptografia da sessao do dashboard (`KUBETAIL_DASHBOARD_SESSION_SIGNING_KEY1` e `KUBETAIL_DASHBOARD_SESSION_ENCRYPTION_KEY1`) e as armazena em um Kubernetes Secret para que sejam preservadas durante upgrades.
 
 ## Upgrade
 
@@ -35,13 +35,13 @@ Baixe o indice mais recente do chart e depois atualize o release:
 
 ```sh
 helm repo update kubetail
-helm upgrade kubetail kubetail/kubetail --namespace kubetail-system
+helm upgrade kubetail kubetail/kubetail --namespace kubetail
 ```
 
 ## Desinstalacao
 
 ```sh
-helm uninstall kubetail --namespace kubetail-system
+helm uninstall kubetail --namespace kubetail
 ```
 
 ## Values
@@ -59,7 +59,10 @@ helm uninstall kubetail --namespace kubetail-system
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `kubetail.allowedNamespaces` | array | `[]` | Restringir todos os componentes a estes namespaces |
-| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_SECRET` | string | `null` | Secret de sessao do dashboard codificado em Base64 (gerado automaticamente se `null`) |
+| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_SIGNING_KEY1` | string | `null` | Chave de assinatura da sessao do dashboard codificada em hex (gerada automaticamente se `null`) |
+| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_ENCRYPTION_KEY1` | string | `null` | Chave de criptografia da sessao do dashboard codificada em hex (gerada automaticamente se `null`) |
+| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_SIGNING_KEY2` | string | `null` | Chave de assinatura do slot anterior para rotacao codificada em hex (sem geracao automatica) |
+| `kubetail.secrets.KUBETAIL_DASHBOARD_SESSION_ENCRYPTION_KEY2` | string | `null` | Chave de criptografia do slot anterior para rotacao codificada em hex (sem geracao automatica) |
 | `kubetail.global.annotations` | map | `{}` | Annotations extras adicionadas a todos os recursos |
 | `kubetail.global.labels` | map | `{}` | Labels extras adicionadas a todos os recursos |
 
@@ -83,6 +86,7 @@ helm uninstall kubetail --namespace kubetail-system
 | `kubetail.dashboard.podTemplate.annotations` | map | `{}` | Annotations adicionais do pod |
 | `kubetail.dashboard.podTemplate.labels` | map | `{}` | Labels adicionais do pod |
 | `kubetail.dashboard.podTemplate.extraContainers` | array | `[]` | Contêineres sidecar adicionais |
+| `kubetail.dashboard.podTemplate.imagePullSecrets` | array | `[]` | Secrets de pull de imagem |
 | `kubetail.dashboard.podTemplate.securityContext` | map | `{}` | Security context do pod |
 | `kubetail.dashboard.podTemplate.affinity` | map | `{}` | Regras de afinidade do pod |
 | `kubetail.dashboard.podTemplate.nodeSelector` | map | `{}` | Node selector |
@@ -137,6 +141,7 @@ helm uninstall kubetail --namespace kubetail-system
 | `kubetail.clusterAPI.podTemplate.annotations` | map | `{}` | Annotations adicionais do pod |
 | `kubetail.clusterAPI.podTemplate.labels` | map | `{}` | Labels adicionais do pod |
 | `kubetail.clusterAPI.podTemplate.extraContainers` | array | `[]` | Contêineres sidecar adicionais |
+| `kubetail.clusterAPI.podTemplate.imagePullSecrets` | array | `[]` | Secrets de pull de imagem |
 | `kubetail.clusterAPI.podTemplate.securityContext` | map | `{}` | Security context do pod |
 | `kubetail.clusterAPI.podTemplate.affinity` | map | `{}` | Regras de afinidade do pod |
 | `kubetail.clusterAPI.podTemplate.nodeSelector` | map | `{}` | Node selector |
@@ -184,6 +189,7 @@ helm uninstall kubetail --namespace kubetail-system
 | `kubetail.clusterAgent.podTemplate.annotations` | map | `{}` | Annotations adicionais do pod |
 | `kubetail.clusterAgent.podTemplate.labels` | map | `{}` | Labels adicionais do pod |
 | `kubetail.clusterAgent.podTemplate.extraContainers` | array | `[]` | Contêineres sidecar adicionais |
+| `kubetail.clusterAgent.podTemplate.imagePullSecrets` | array | `[]` | Secrets de pull de imagem |
 | `kubetail.clusterAgent.podTemplate.securityContext` | map | `{fsGroup: 0}` | Security context do pod |
 | `kubetail.clusterAgent.podTemplate.affinity` | map | `{}` | Regras de afinidade do pod |
 | `kubetail.clusterAgent.podTemplate.nodeSelector` | map | `{}` | Node selector |
@@ -198,10 +204,12 @@ helm uninstall kubetail --namespace kubetail-system
 | `kubetail.clusterAgent.networkPolicy.name` | string | `null` | Sobrescrever o nome da NetworkPolicy |
 | `kubetail.clusterAgent.networkPolicy.annotations` | map | `{}` | Annotations adicionais da NetworkPolicy |
 | `kubetail.clusterAgent.networkPolicy.labels` | map | `{}` | Labels adicionais da NetworkPolicy |
+| `kubetail.clusterAgent.rbac.name` | string | `null` | Sobrescrever os nomes dos recursos RBAC |
+| `kubetail.clusterAgent.rbac.annotations` | map | `{}` | Annotations RBAC adicionais |
+| `kubetail.clusterAgent.rbac.labels` | map | `{}` | Labels RBAC adicionais |
 | `kubetail.clusterAgent.service.name` | string | `null` | Sobrescrever o nome do Service |
 | `kubetail.clusterAgent.service.annotations` | map | `{}` | Annotations adicionais do Service |
 | `kubetail.clusterAgent.service.labels` | map | `{}` | Labels adicionais do Service |
-| `kubetail.clusterAgent.service.ports.grpc` | int | `50051` | Porta gRPC do Service |
 | `kubetail.clusterAgent.serviceAccount.name` | string | `null` | Sobrescrever o nome do ServiceAccount |
 | `kubetail.clusterAgent.serviceAccount.annotations` | map | `{}` | Annotations adicionais do ServiceAccount |
 | `kubetail.clusterAgent.serviceAccount.labels` | map | `{}` | Labels adicionais do ServiceAccount |

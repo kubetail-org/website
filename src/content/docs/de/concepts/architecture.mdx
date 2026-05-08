@@ -23,7 +23,7 @@ Installationsanweisungen finden Sie im [Desktop-Installationsleitfaden](/de/guid
 
 ### Cluster
 
-Der gesamte Kubetail-Stack kann mit Helm oder YAML-Manifests als Kubernetes-Ressourcen innerhalb Ihres Clusters installiert werden. In dieser Topologie läuft der Dashboard Server als Deployment im Namespace `kubetail-system` und wird im Browser über `kubectl port-forward`, `kubectl proxy` oder eine Ingress-Ressource aufgerufen. Das ist der bevorzugte Ansatz für gemeinsam genutzte Teamumgebungen oder wenn Sie dauerhaften, ständig verfügbaren Zugriff möchten, ohne sich auf eine lokale CLI zu verlassen.
+Der gesamte Kubetail-Stack kann mit Helm oder YAML-Manifests als Kubernetes-Ressourcen innerhalb Ihres Clusters installiert werden. In dieser Topologie läuft der Dashboard Server als Deployment im Namespace `kubetail` und wird im Browser über `kubectl port-forward`, `kubectl proxy` oder eine Ingress-Ressource aufgerufen. Das ist der bevorzugte Ansatz für gemeinsam genutzte Teamumgebungen oder wenn Sie dauerhaften, ständig verfügbaren Zugriff möchten, ohne sich auf eine lokale CLI zu verlassen.
 
 Installationsanweisungen finden Sie im [Cluster-Installationsleitfaden](/de/guides/cluster/installation).
 

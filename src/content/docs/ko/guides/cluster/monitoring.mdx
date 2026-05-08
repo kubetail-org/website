@@ -24,7 +24,7 @@ GET /healthz
 Helm chart는 이 엔드포인트에 대해 liveness 및 readiness probe를 자동으로 구성합니다. 동일한 엔드포인트를 사용해 구성 요소 상태를 수동으로 확인할 수도 있습니다.
 
 ```sh
-kubectl exec -n kubetail-system deploy/kubetail-dashboard -- \
+kubectl exec -n kubetail deploy/kubetail-dashboard -- \
   wget -qO- http://localhost:8080/healthz
 ```
 
@@ -99,12 +99,12 @@ logging:
 Kubetail 배포 전체의 상태를 확인하려면 다음을 실행하세요.
 
 ```sh
-kubectl get pods -n kubetail-system
+kubectl get pods -n kubetail
 ```
 
 모든 Pod는 `Running` 상태를 표시하고 readiness probe를 통과해야 합니다. 준비되지 않은 Pod가 있으면 해당 이벤트와 로그를 확인하세요.
 
 ```sh
-kubectl describe pod -n kubetail-system <pod-name>
-kubectl logs -n kubetail-system <pod-name>
+kubectl describe pod -n kubetail <pod-name>
+kubectl logs -n kubetail <pod-name>
 ```

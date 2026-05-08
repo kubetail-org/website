@@ -24,7 +24,7 @@ GET /healthz
 Helm chart 会自动为这个端点配置 liveness probe 和 readiness probe。您也可以使用同一个端点手动检查组件状态：
 
 ```sh
-kubectl exec -n kubetail-system deploy/kubetail-dashboard -- \
+kubectl exec -n kubetail deploy/kubetail-dashboard -- \
   wget -qO- http://localhost:8080/healthz
 ```
 
@@ -99,12 +99,12 @@ logging:
 要检查 Kubetail 部署的整体健康状态：
 
 ```sh
-kubectl get pods -n kubetail-system
+kubectl get pods -n kubetail
 ```
 
 所有 Pod 都应显示 `Running` 状态，并且 readiness probe 已通过。如果某个 Pod 尚未 ready，请检查其事件和日志：
 
 ```sh
-kubectl describe pod -n kubetail-system <pod-name>
-kubectl logs -n kubetail-system <pod-name>
+kubectl describe pod -n kubetail <pod-name>
+kubectl logs -n kubetail <pod-name>
 ```

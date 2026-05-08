@@ -41,7 +41,7 @@ Tous les fichiers de configuration prennent en charge l'expansion des variables 
 
 ## Dashboard
 
-Le Dashboard est le serveur web qui heberge l'interface et relaie les requetes du navigateur vers le cluster. Dans l'environnement cluster, il s'execute comme un Deployment dans le namespace `kubetail-system`.
+Le Dashboard est le serveur web qui heberge l'interface et relaie les requetes du navigateur vers le cluster. Dans l'environnement cluster, il s'execute comme un Deployment dans le namespace `kubetail`.
 
 Pour la reference complete de configuration, consultez la [reference Dashboard](/fr/reference/dashboard).
 
@@ -49,7 +49,7 @@ Pour la reference complete de configuration, consultez la [reference Dashboard](
 
 ## Cluster API
 
-La Cluster API est le serveur backend qui relaie les requetes du Dashboard vers les instances de Cluster Agent executees sur chaque noeud. Dans le cluster, elle s'execute comme un Deployment dans le namespace `kubetail-system`.
+La Cluster API est le serveur backend qui relaie les requetes du Dashboard vers les instances de Cluster Agent executees sur chaque noeud. Dans le cluster, elle s'execute comme un Deployment dans le namespace `kubetail`.
 
 Pour la reference complete de configuration, consultez la [reference Cluster API](/fr/reference/cluster-api).
 
@@ -57,6 +57,6 @@ Pour la reference complete de configuration, consultez la [reference Cluster API
 
 ## Cluster Agent
 
-Le Cluster Agent est le petit programme base sur Rust qui s'execute sur chaque noeud et lit directement les fichiers de log des conteneurs depuis le systeme de fichiers du noeud. Dans le cluster, il s'execute comme un DaemonSet dans le namespace `kubetail-system`.
+Le Cluster Agent est le petit programme base sur Rust qui s'execute sur chaque noeud et lit directement les fichiers de log des conteneurs depuis le systeme de fichiers du noeud. Dans le cluster, il s'execute comme un DaemonSet dans le namespace `kubetail`.
 
 Pour la reference complete de configuration, consultez la [reference Cluster Agent](/fr/reference/cluster-agent).

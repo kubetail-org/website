@@ -13,13 +13,13 @@ import { Aside } from '@astrojs/starlight/components';
 
 ```sh
 helm repo add kubetail https://kubetail-org.github.io/helm-charts/
-helm install kubetail kubetail/kubetail --namespace kubetail-system --create-namespace
+helm install kubetail kubetail/kubetail --namespace kubetail --create-namespace
 ```
 
 有关如何配置 Helm chart 的更多信息，请参阅 chart 的 [values.yaml](https://github.com/kubetail-org/helm-charts/blob/main/charts/kubetail/values.yaml) 文件。要验证安装是否成功，可以检查应用的 Pod：
 
 ```sh
-kubectl get pods -n kubetail-system
+kubectl get pods -n kubetail
 ```
 
 ## YAML 清单
@@ -39,7 +39,7 @@ kubectl apply -f https://github.com/kubetail-org/helm-charts/releases/latest/dow
 要验证安装是否成功，可以检查应用的 Pod：
 
 ```sh
-kubectl get pods -n kubetail-system
+kubectl get pods -n kubetail
 ```
 
 ## 后续步骤
@@ -49,7 +49,7 @@ kubectl get pods -n kubetail-system
 * **`kubectl port-forward`**
 
   ```sh
-  kubectl port-forward -n kubetail-system svc/kubetail-dashboard 8080:8080
+  kubectl port-forward -n kubetail svc/kubetail-dashboard 8080:8080
   ```
 
   访问 [http://localhost:8080](http://localhost:8080)

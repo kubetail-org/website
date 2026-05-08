@@ -13,13 +13,13 @@ Pour installer Kubetail avec [helm](https://helm.sh), ajoutez d'abord le depot d
 
 ```sh
 helm repo add kubetail https://kubetail-org.github.io/helm-charts/
-helm install kubetail kubetail/kubetail --namespace kubetail-system --create-namespace
+helm install kubetail kubetail/kubetail --namespace kubetail --create-namespace
 ```
 
 Pour en savoir plus sur la configuration du chart Helm, consultez le fichier [values.yaml](https://github.com/kubetail-org/helm-charts/blob/main/charts/kubetail/values.yaml). Pour verifier que l'installation a fonctionne, vous pouvez inspecter les pods de l'application:
 
 ```sh
-kubectl get pods -n kubetail-system
+kubectl get pods -n kubetail
 ```
 
 ## Manifeste YAML
@@ -39,7 +39,7 @@ kubectl apply -f https://github.com/kubetail-org/helm-charts/releases/latest/dow
 Pour verifier que l'installation a fonctionne, vous pouvez inspecter les pods de l'application:
 
 ```sh
-kubectl get pods -n kubetail-system
+kubectl get pods -n kubetail
 ```
 
 ## Etapes suivantes
@@ -49,7 +49,7 @@ Une fois que Kubetail s'execute dans votre cluster, vous pouvez y acceder avec v
 * **`kubectl port-forward`**
 
   ```sh
-  kubectl port-forward -n kubetail-system svc/kubetail-dashboard 8080:8080
+  kubectl port-forward -n kubetail svc/kubetail-dashboard 8080:8080
   ```
 
   Consultez [http://localhost:8080](http://localhost:8080)
